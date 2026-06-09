@@ -393,6 +393,24 @@ html[data-theme="dark"] .tdcard{background:var(--sf2);}
 html[data-theme="dark"] .mpick::-webkit-calendar-picker-indicator{filter:invert(.85);}
 .mpick-sm{font-size:11px;padding:3px 5px;min-width:120px;}
 
+/* Custom month picker button + popover (replaces native input[type=month]) */
+.mp-btn{display:inline-flex;align-items:center;gap:6px;font-family:var(--ff);font-size:12.5px;font-weight:800;color:var(--t1);background:var(--sf);border:1.5px solid var(--br);border-radius:8px;padding:5px 11px;cursor:pointer;transition:.14s;min-width:120px;}
+.mp-btn:hover{border-color:var(--blue);color:var(--blue);}
+.mp-btn .ic{opacity:.65;font-size:13px;}
+.mp-btn.sm{font-size:11.5px;padding:3px 8px;min-width:104px;}
+.mp-pop{position:absolute;z-index:580;background:var(--sf);border:1.5px solid var(--br);border-radius:11px;box-shadow:0 14px 42px rgba(0,48,71,.25);padding:10px;min-width:240px;}
+html[data-theme="dark"] .mp-pop{box-shadow:0 14px 42px rgba(0,0,0,.55);}
+.mp-yr{display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:8px;padding:0 2px;}
+.mp-yr button{background:none;border:1px solid var(--br);width:26px;height:26px;border-radius:7px;font-family:var(--ff);font-size:13px;font-weight:800;color:var(--t1);cursor:pointer;transition:.12s;}
+.mp-yr button:hover{background:var(--blue);color:#fff;border-color:var(--blue);}
+.mp-yr button:disabled{opacity:.35;cursor:not-allowed;}
+.mp-yr-lbl{font-weight:900;font-size:14px;color:var(--t1);flex:1;text-align:center;}
+.mp-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;}
+.mp-mo{padding:8px 4px;border:1px solid var(--br);border-radius:7px;font-family:var(--ff);font-size:12px;font-weight:700;color:var(--t1);background:var(--sf2);cursor:pointer;transition:.12s;text-align:center;}
+.mp-mo:hover:not(:disabled){background:var(--blue);color:#fff;border-color:var(--blue);}
+.mp-mo.on{background:var(--yellow);color:#003047;border-color:var(--yellow);font-weight:900;}
+.mp-mo:disabled{opacity:.3;cursor:not-allowed;background:transparent;}
+
 /* Tier-structure: small donut + 3 wide leader columns */
 .tier-layout{display:grid;grid-template-columns:280px 1fr;gap:18px;align-items:start;}
 .tier-donut{padding-top:6px;}
@@ -544,6 +562,7 @@ html[data-theme="dark"] .mpick::-webkit-calendar-picker-indicator{filter:invert(
 
 <div class="etip" id="etip"></div>
 <div class="toast-wrap" id="toastWrap"></div>
+<div class="mp-pop" id="mp-pop" style="display:none"></div>
 
 <!-- Price-tier settings modal -->
 <div class="modal-ov" id="tier-modal" onclick="if(event.target===this)closeTierModal()">
@@ -814,14 +833,14 @@ function money(vndVal){
   if(vndVal==null||isNaN(vndVal))return"—";
   var v = toCur(vndVal), a = Math.abs(v), sym = curSym();
   if(S.currency==="VND"){
-    if(a>=1e9) return (v/1e9).toFixed(a>=1e10?1:2).replace(/\.0$/,"")+" bn ₫";
-    if(a>=1e6) return Math.round(v/1e6)+" m ₫";
-    if(a>=1e3) return Math.round(v/1e3)+"K ₫";
+    if(a>=1e9) return (v/1e9).toFixed(a>=1e10?1:2).replace(/\.0$/,"")+" Bn ₫";
+    if(a>=1e6) return Math.round(v/1e6)+" M ₫";
+    if(a>=1e3) return Math.round(v/1e3)+" K ₫";
     return nf(v)+" ₫";
   }
   // USD or JPY
-  if(a>=1e6) return sym+(v/1e6).toFixed(2).replace(/\.?0+$/,"")+"M";
-  if(a>=1e3) return sym+(v/1e3).toFixed(1).replace(/\.0$/,"")+"K";
+  if(a>=1e6) return sym+(v/1e6).toFixed(2).replace(/\.?0+$/,"")+" M";
+  if(a>=1e3) return sym+(v/1e3).toFixed(1).replace(/\.0$/,"")+" K";
   if(S.currency==="JPY") return sym+nf(v);
   return sym+v.toFixed(0);
 }
@@ -1220,6 +1239,101 @@ function clampMonth(iso,minIso,maxIso){
   return iso;
 }
 
+/* ── Custom month picker ──
+   Renders a small button + on click opens a popover with year arrows + 4×3 month grid.
+   Usage: mpickBtn({value:"01/2025", min:"01/2023", max:"05/2026", onPick:function(mo){…}}). */
+var _mpkState = {viewYear:null, min:"", max:"", onPick:null, anchor:null};
+function _mpkClamp(y,m){
+  var key = y*100+m;
+  if(_mpkState.min){
+    var mn = _mpkState.min.split("/"); var mnK = (+mn[1])*100 + (+mn[0]);
+    if(key < mnK) return false;
+  }
+  if(_mpkState.max){
+    var mx = _mpkState.max.split("/"); var mxK = (+mx[1])*100 + (+mx[0]);
+    if(key > mxK) return false;
+  }
+  return true;
+}
+function _mpkRender(currentMo){
+  var pop = document.getElementById("mp-pop"); if(!pop) return;
+  var months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  var y = _mpkState.viewYear;
+  var minY = _mpkState.min ? +_mpkState.min.split("/")[1] : 1900;
+  var maxY = _mpkState.max ? +_mpkState.max.split("/")[1] : 2100;
+  var curMo = null;
+  if(currentMo){var p=currentMo.split("/"); curMo = {m:+p[0], y:+p[1]};}
+  var grid = "";
+  for(var m=1; m<=12; m++){
+    var ok = _mpkClamp(y, m);
+    var on = curMo && curMo.y===y && curMo.m===m;
+    grid += '<button class="mp-mo'+(on?" on":"")+'" '+(ok?'':'disabled')+' onclick="_mpkPick('+y+','+m+')">'+months[m-1]+'</button>';
+  }
+  pop.innerHTML =
+      '<div class="mp-yr">'
+    + '<button onclick="_mpkChangeYear(-1)" '+(y<=minY?'disabled':'')+'>‹</button>'
+    + '<div class="mp-yr-lbl">'+y+'</div>'
+    + '<button onclick="_mpkChangeYear(1)" '+(y>=maxY?'disabled':'')+'>›</button>'
+    + '</div>'
+    + '<div class="mp-grid">'+grid+'</div>';
+}
+function _mpkChangeYear(d){
+  _mpkState.viewYear += d;
+  _mpkRender(_mpkState.current);
+}
+function _mpkPick(y,m){
+  var mo = (m<10?"0":"")+m+"/"+y;
+  _mpkClose();
+  if(_mpkState.onPick) _mpkState.onPick(mo);
+}
+function _mpkClose(){
+  var pop = document.getElementById("mp-pop"); if(!pop) return;
+  pop.style.display="none";
+  document.removeEventListener("mousedown", _mpkOutside, true);
+  document.removeEventListener("keydown", _mpkEsc, true);
+}
+function _mpkOutside(e){
+  var pop = document.getElementById("mp-pop");
+  if(!pop || !pop.contains(e.target) && e.target!==_mpkState.anchor && !(_mpkState.anchor && _mpkState.anchor.contains(e.target))){
+    _mpkClose();
+  }
+}
+function _mpkEsc(e){if(e.key==="Escape") _mpkClose();}
+function openMpick(btn, opts){
+  var pop = document.getElementById("mp-pop"); if(!pop) return;
+  _mpkState.viewYear = opts.value ? +opts.value.split("/")[1] : (opts.max ? +opts.max.split("/")[1] : new Date().getFullYear());
+  _mpkState.min = opts.min || ""; _mpkState.max = opts.max || "";
+  _mpkState.current = opts.value || "";
+  _mpkState.onPick = opts.onPick;
+  _mpkState.anchor = btn;
+  _mpkRender(opts.value);
+  var rect = btn.getBoundingClientRect();
+  pop.style.display = "block";
+  /* Position: prefer below; if too close to bottom, place above */
+  var top = rect.bottom + window.scrollY + 4;
+  var left = rect.left + window.scrollX;
+  pop.style.top = top + "px";
+  pop.style.left = left + "px";
+  /* Re-adjust if popover overflows viewport */
+  setTimeout(function(){
+    var pr = pop.getBoundingClientRect();
+    if(pr.right > window.innerWidth - 8){pop.style.left = (window.innerWidth - pr.width - 8) + "px";}
+    if(pr.bottom > window.innerHeight - 8){pop.style.top = (rect.top + window.scrollY - pr.height - 4) + "px";}
+  }, 0);
+  /* Close on outside click / Esc */
+  setTimeout(function(){
+    document.addEventListener("mousedown", _mpkOutside, true);
+    document.addEventListener("keydown", _mpkEsc, true);
+  }, 0);
+}
+function moToBtnLabel(mo){if(!mo)return "Select month"; var p=mo.split("/"); var nms=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]; return nms[+p[0]-1]+" "+p[1];}
+/* Convenience builder: returns the HTML string for a month-picker button */
+function mpickBtnHtml(id, value, min, max, handlerName, opts){
+  opts = opts || {};
+  var cls = "mp-btn" + (opts.small ? " sm" : "");
+  return '<button class="'+cls+'" id="'+id+'" data-min="'+(min||"")+'" data-max="'+(max||"")+'" data-value="'+(value||"")+'" onclick="openMpick(this,{value:this.dataset.value,min:this.dataset.min,max:this.dataset.max,onPick:function(mo){'+handlerName+'(mo);}})"><span class="ic">📅</span><span>'+moToBtnLabel(value)+'</span></button>';
+}
+
 /* ── Time bar (English, multi-year + FY) ── */
 function buildFyList(){
   if(!MONTHS_SORTED.length) return [];
@@ -1245,40 +1359,34 @@ function renderTimeBar(){
     return '<button class="tchip tchip-fy multi '+(on?"on":"")+'" onclick="setTimeFY(\''+fy+'\', event)" title="Click = single FY · Shift+Click = compare">'+fy+'</button>';
   }).join("");
   var firstMo = MONTHS_SORTED[0], lastMo = MONTHS_SORTED[MONTHS_SORTED.length-1];
-  var minIso = moToIso(firstMo), maxIso = moToIso(lastMo);
-  var fromIso = T.from ? moToIso(T.from) : minIso;
-  var toIso   = T.to   ? moToIso(T.to)   : maxIso;
+  var fromVal = T.from || firstMo, toVal = T.to || lastMo;
   el.innerHTML='<span class="tlbl">⏱ Time</span><div class="tchips">'+yChips+'</div>'
     +'<span class="tdivx"></span>'
     +'<span class="tlbl" style="opacity:.7">FY</span><div class="tchips">'+fyChips+'</div>'
     +'<span class="tdivx"></span>'
     +'<button class="tchip rng '+(T.mode==="range"?"on":"")+'" onclick="setTimeRange()">📅 Month range</button>'
     +'<span class="trange"'+(T.mode==="range"?"":' style="display:none"')+'>'
-    +'From <input class="mpick" type="month" value="'+fromIso+'" min="'+minIso+'" max="'+maxIso+'" onchange="onPickFrom(this.value)"> '
-    +'to <input class="mpick" type="month" value="'+toIso+'" min="'+minIso+'" max="'+maxIso+'" onchange="onPickTo(this.value)">'
+    +'<span style="font-size:11.5px;color:var(--t3);margin-right:6px">From</span>'+mpickBtnHtml("mp-from", fromVal, firstMo, lastMo, "onPickFrom")
+    +'<span style="font-size:11.5px;color:var(--t3);margin:0 6px">to</span>'+mpickBtnHtml("mp-to", toVal, firstMo, lastMo, "onPickTo")
     +'</span>';
 }
-function onPickFrom(iso){
-  if(!iso) return;
-  var firstIso = moToIso(MONTHS_SORTED[0]), lastIso = moToIso(MONTHS_SORTED[MONTHS_SORTED.length-1]);
-  var clamped = clampMonth(iso, firstIso, lastIso);
-  S.time.from = isoToMo(clamped);
+function onPickFrom(mo){
+  if(!mo) return;
+  S.time.from = mo;
   if(S.time.to && moKey(S.time.from) > moKey(S.time.to)) S.time.to = S.time.from;
   applyTime();
 }
-function onPickTo(iso){
-  if(!iso) return;
-  var firstIso = moToIso(MONTHS_SORTED[0]), lastIso = moToIso(MONTHS_SORTED[MONTHS_SORTED.length-1]);
-  var clamped = clampMonth(iso, firstIso, lastIso);
-  S.time.to = isoToMo(clamped);
+function onPickTo(mo){
+  if(!mo) return;
+  S.time.to = mo;
   if(S.time.from && moKey(S.time.from) > moKey(S.time.to)) S.time.from = S.time.to;
   applyTime();
 }
-function onMarketCutoff(iso){if(!iso) return; S.mkCutoff = isoToMo(iso); renderMarket();}
-function onAcFrom(iso){if(!iso) return; S.acFrom = isoToMo(iso); S.acTo=null; S.acCut=null; renderAcct();}
-function onAcTo(iso){if(!iso) return; S.acTo = isoToMo(iso); S.acCut=null; renderAcct();}
-function onAcCut(iso){if(!iso) return; S.acCut = isoToMo(iso); renderAcct();}
-function onVsCut(iso){if(!iso) return; S.vsCut = isoToMo(iso); renderVS();}
+function onMarketCutoff(mo){if(!mo) return; S.mkCutoff = mo; renderMarket();}
+function onAcFrom(mo){if(!mo) return; S.acFrom = mo; S.acTo=null; S.acCut=null; renderAcct();}
+function onAcTo(mo){if(!mo) return; S.acTo = mo; S.acCut=null; renderAcct();}
+function onAcCut(mo){if(!mo) return; S.acCut = mo; renderAcct();}
+function onVsCut(mo){if(!mo) return; S.vsCut = mo; renderVS();}
 function setTimeYear(y, ev){
   if(y==="ALL"){ S.time = {mode:"year", year:"ALL", years:[], fys:[], from:null, to:null}; return applyTime(); }
   y = +y;
@@ -1510,7 +1618,7 @@ function renderMarket(){
   /* Build cutoff selector for inside the last KPI card */
   var winMonthsArr = activeMonths();
   var winFirst = winMonthsArr[0] || MONTHS_SORTED[0], winLast = winMonthsArr[winMonthsArr.length-1] || MONTHS_SORTED[MONTHS_SORTED.length-1];
-  var cutSelector = '<div style="margin-top:8px;font-size:11px;color:var(--t3);font-weight:700">Cutoff: <input class="mpick mpick-sm" type="month" value="'+moToIso(S.mkCutoff)+'" min="'+moToIso(winFirst)+'" max="'+moToIso(winLast)+'" onchange="onMarketCutoff(this.value)"></div>';
+  var cutSelector = '<div style="margin-top:8px;font-size:11px;color:var(--t3);font-weight:700;display:flex;align-items:center;justify-content:center;gap:6px">Cutoff: '+mpickBtnHtml("mp-mk-cut", S.mkCutoff, winFirst, winLast, "onMarketCutoff", {small:true})+'</div>';
 
   /* ── KPI ROW 1: market 4 cards ── */
   var topNoteQ = '<b>'+esc(qLead.key)+'</b> leads quantity: '+qf(qLead.qty)+' pcs ('+pct(totQ?qLead.qty/totQ*100:0)+')';
@@ -1768,7 +1876,10 @@ function drawSegLeader(canvasId, ag, tier, metricKey, totMetric){
       data:vals, backgroundColor:cols, borderRadius:5,
       datalabels:{
         display:true, anchor:"end", align:"end", clamp:true,
-        color:axisColor(), font:{family:FF,size:11,weight:"800"},
+        color:function(){return document.documentElement.dataset.theme==="dark" ? "#F1F5F9" : "#0F1E33";},
+        font:{family:FF,size:12,weight:"900"},
+        textStrokeColor:function(){return document.documentElement.dataset.theme==="dark" ? "rgba(0,0,0,.4)" : "rgba(255,255,255,.85)";},
+        textStrokeWidth:3,
         formatter:function(v,ctx){
           var i = ctx.dataIndex;
           var pctv = den ? (v/den*100) : 0;
@@ -1811,7 +1922,7 @@ function drawSegLeader(canvasId, ag, tier, metricKey, totMetric){
       },
       scales:{
         x:{beginAtZero:true, grid:{color:gridColor()}, ticks:{font:{family:FF,size:11},color:axisColor(),callback:function(v){return metricKey==="val"?money(v*FX[S.currency]):qf(v);}}},
-        y:{grid:{display:false},ticks:{font:{family:FF,size:12,weight:"800"},color:axisColor()}}
+        y:{grid:{display:false},ticks:{font:{family:FF,size:12.5,weight:"900"},color:function(){return document.documentElement.dataset.theme==="dark" ? "#E2E8F0" : "#0F1E33";}}}
       },
       layout:{padding:{top:8, right:110, left:6, bottom:4}}  /* room for "1.23 bn ₫  45.6%" */
     }
@@ -1930,8 +2041,8 @@ function renderBrand(){
       onClick:function(e,els){if(els.length){var ds=els[0].datasetIndex,d=(ds===0?others:[sel])[els[0].index];if(d)openDrill(filterRows({brand:d.brand}),{title:d.brand,sub:"Brand positioning"});}},
       plugins:{legend:{display:false},datalabels:{},
         tooltip:{callbacks:{label:function(it){var d=it.raw;return [d.brand,"Avg price: "+moneyFull(d.x*FX[S.currency]),"Share Qty: "+d.y+"%","Volume: "+nf(d.qty)+" pcs"];}},titleFont:{family:FF,size:13,weight:"800"},bodyFont:{family:FF,size:12}}},
-      scales:{x:{title:{display:true,text:"Avg awarded price ("+S.currency+"/pc)",font:{family:FF,size:11},color:axisColor()},grid:{color:gridColor()},ticks:{font:{family:FF,size:10},color:axisColor(),callback:function(v){return money(v*FX[S.currency]);}}},
-        y:{title:{display:true,text:"Quantity share (%)",font:{family:FF,size:11},color:axisColor()},beginAtZero:true,grid:{color:gridColor()},ticks:{font:{family:FF,size:10},color:axisColor(),callback:function(v){return v+"%";}}}}},
+      scales:{x:{title:{display:true,text:"Avg awarded price ("+S.currency+"/pc)",font:{family:FF,size:11},color:axisColor()},beginAtZero:true,min:0,grid:{color:gridColor()},ticks:{font:{family:FF,size:10},color:axisColor(),callback:function(v){return money(v*FX[S.currency]);}}},
+        y:{title:{display:true,text:"Quantity share (%)",font:{family:FF,size:11},color:axisColor()},beginAtZero:true,min:0,grid:{color:gridColor()},ticks:{font:{family:FF,size:10},color:axisColor(),callback:function(v){return v+"%";}}}}},
     plugins:[zonePlugin]
   });
   var tmix=sortDesc(toArr(aggBy(BR,function(r){return r.tier;})),"qty");
@@ -2039,16 +2150,15 @@ function renderAcct(){
   window._ACSEG=computeSegV2();
   var seg=window._ACSEG;
   var brandOpts=BRANDS.map(function(b){return '<option value="'+esc(b)+'"'+(b===S.acBrand?" selected":"")+'>'+esc(b)+'</option>';}).join("");
-  var minIso = moToIso(MONTHS_SORTED[0]), maxIso = moToIso(MONTHS_SORTED[MONTHS_SORTED.length-1]);
-  var rangeMin = moToIso(seg.from), rangeMax = moToIso(seg.to);
+  var minMo = MONTHS_SORTED[0], maxMo = MONTHS_SORTED[MONTHS_SORTED.length-1];
   document.getElementById("ac-ctrl").innerHTML=
     '<span class="cl">Brand</span><select class="sel" style="min-width:170px" onchange="S.acBrand=this.value;renderAcct()">'+brandOpts+'</select>'
    +'<span class="divx"></span>'
    +'<span class="cl">Reference window</span>'
-   +'<span style="font-size:11.5px;color:var(--t3);margin-right:4px">From</span><input class="mpick" type="month" value="'+moToIso(seg.from)+'" min="'+minIso+'" max="'+maxIso+'" onchange="onAcFrom(this.value)">'
-   +'<span style="font-size:11.5px;color:var(--t3);margin:0 4px">to</span><input class="mpick" type="month" value="'+moToIso(seg.to)+'" min="'+moToIso(seg.from)+'" max="'+maxIso+'" onchange="onAcTo(this.value)">'
+   +'<span style="font-size:11.5px;color:var(--t3);margin-right:4px">From</span>'+mpickBtnHtml("mp-ac-from", seg.from, minMo, maxMo, "onAcFrom")
+   +'<span style="font-size:11.5px;color:var(--t3);margin:0 4px">to</span>'+mpickBtnHtml("mp-ac-to", seg.to, seg.from, maxMo, "onAcTo")
    +'<span class="divx"></span>'
-   +'<span class="cl">Cutoff</span><input class="mpick" type="month" value="'+moToIso(seg.cut)+'" min="'+rangeMin+'" max="'+rangeMax+'" onchange="onAcCut(this.value)">';
+   +'<span class="cl">Cutoff</span>'+mpickBtnHtml("mp-ac-cut", seg.cut, seg.from, seg.to, "onAcCut");
   document.getElementById("ac-name").textContent=S.acBrand+" · "+moLabel(seg.from)+" → "+moLabel(seg.to)+" · cut "+moLabel(seg.cut);
   var subs=[["overview","📊 Overview"],["detail","🏥 Group detail"],["risk","⚠️ Risk & Opportunity"]];
   document.getElementById("ac-subnav").innerHTML=subs.map(function(s){return '<button class="subt '+(S.acSub===s[0]?"on":"")+'" onclick="S.acSub=\''+s[0]+'\';renderAcct()">'+s[1]+'</button>';}).join("");
@@ -2250,7 +2360,7 @@ function renderVS(){
   var advA=0,advB=0;shared.forEach(function(b){if(buyersA[b]>=buyersB[b])advA++;else advB++;});
   if(!S.vsCut)S.vsCut=MONTHS_SORTED[Math.floor(MONTHS_SORTED.length*0.66)]||MONTHS_SORTED[MONTHS_SORTED.length-1];
   H+='<div class="card reveal"><div class="ch"><div class="ct">⚔️ Territory shifts across a cutoff</div><div class="cs">Before → after cut (full history)</div>'
-    +'<span style="margin-left:auto;font-size:12px;color:var(--t2);font-weight:700">Cut&nbsp;<input class="mpick" type="month" value="'+moToIso(S.vsCut)+'" min="'+moToIso(MONTHS_SORTED[0])+'" max="'+moToIso(MONTHS_SORTED[MONTHS_SORTED.length-1])+'" onchange="onVsCut(this.value)"></span></div>'
+    +'<span style="margin-left:auto;font-size:12px;color:var(--t2);font-weight:700;display:inline-flex;align-items:center;gap:6px">Cut '+mpickBtnHtml("mp-vs-cut", S.vsCut, MONTHS_SORTED[0], MONTHS_SORTED[MONTHS_SORTED.length-1], "onVsCut")+'</span></div>'
     +'<div class="cb"><div class="cw"><canvas id="c-vs-compete"></canvas></div><div id="vs-compete-ins" style="font-size:12.5px;color:var(--t2);margin-top:10px;line-height:1.55"></div></div></div>';
   document.getElementById("vs-body").innerHTML=H;
 

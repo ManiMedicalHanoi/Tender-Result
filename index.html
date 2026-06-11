@@ -376,6 +376,61 @@ html[data-theme="dark"] .tdcard{background:var(--sf2);}
 .tsel{padding:4px 8px;border-radius:8px;border:1.5px solid rgba(255,255,255,.25);background:var(--sf);color:var(--t1);font-family:var(--ff);font-size:12.5px;font-weight:700;cursor:pointer;}
 @media print{.timebar{background:#f0f4fa;}.timebar .tlbl,.tchip{color:#003047;}}
 
+/* ════ v12 — left sidebar layout · compact timebar · language toggle ════ */
+.applayout{display:flex;align-items:flex-start;}
+.sidebar{width:194px;flex-shrink:0;background:var(--sf);border-right:1px solid var(--br);position:sticky;top:0;align-self:flex-start;height:100vh;overflow-y:auto;padding:14px 11px 26px;scrollbar-width:thin;}
+.sidebar::-webkit-scrollbar{width:7px;}
+.sidebar::-webkit-scrollbar-thumb{background:var(--br);border-radius:5px;}
+.sb-tabttl{font-size:12px;font-weight:900;color:var(--navy);text-transform:uppercase;letter-spacing:.03em;margin:2px 3px 4px;line-height:1.25;}
+html[data-theme="dark"] .sb-tabttl{color:var(--sky);}
+.sb-tabsub{font-size:10px;color:var(--t3);font-weight:600;margin:0 3px 12px;line-height:1.35;}
+.sb-grp{margin-bottom:16px;}
+.sb-lbl{font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--blue);margin:0 4px 7px;display:block;}
+.sb-side{display:flex;flex-direction:column;gap:5px;}
+.sb-side .chip{width:100%;text-align:left;border-radius:9px;padding:8px 12px;font-size:13px;}
+.sb-side .chip.on{box-shadow:0 2px 8px rgba(58,92,170,.28);}
+.sb-side .sel{width:100%;min-width:0!important;margin-bottom:2px;}
+.sb-side .mp-btn{width:100%;justify-content:flex-start;}
+.sb-divx{height:1px;background:var(--br);margin:14px 2px;}
+.sb-field{margin-bottom:11px;}
+.sb-field>label{font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--t3);display:block;margin:0 2px 5px;}
+.sb-postgl{display:flex;align-items:flex-start;gap:7px;font-size:12px;font-weight:600;color:var(--t2);padding:4px;cursor:pointer;line-height:1.4;}
+.sb-postgl input{margin-top:2px;flex-shrink:0;}
+.maincol{flex:1;min-width:0;}
+.maincol .main{max-width:1480px;}
+@media(max-width:1080px){
+  .applayout{flex-direction:column;}
+  .sidebar{width:auto;position:static;height:auto;border-right:none;border-bottom:1px solid var(--br);display:flex;flex-wrap:wrap;gap:12px;align-items:flex-start;}
+  .sb-grp{margin-bottom:0;flex:1;min-width:170px;}
+  .sb-side{flex-direction:row;flex-wrap:wrap;}
+  .sb-side .chip{width:auto;}
+  .sb-tabttl,.sb-tabsub{flex-basis:100%;}
+}
+/* sidebar panes — only the active tab's controls show */
+.sb-pane{display:block;}
+.ctrl.sb-host{display:flex;flex-direction:column;align-items:stretch;gap:7px;background:transparent;border:none;box-shadow:none;padding:0;margin:0;}
+.ctrl.sb-host .cl{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--blue);margin:9px 2px 1px;display:block;}
+.ctrl.sb-host .cl:first-child{margin-top:2px;}
+.ctrl.sb-host .chip{width:100%;text-align:left;border-radius:8px;padding:7px 10px;font-size:12.5px;}
+.ctrl.sb-host .chip.on{box-shadow:0 2px 8px rgba(58,92,170,.28);}
+.ctrl.sb-host .sel{width:100%;min-width:0!important;margin:1px 0;font-size:12.5px;padding:7px 9px;}
+.ctrl.sb-host .mp-btn{width:100%;justify-content:flex-start;margin:1px 0;font-size:12px;}
+.ctrl.sb-host .rowbk{display:none;}
+.ctrl.sb-host .divx{width:auto;height:1px;background:var(--br);margin:8px 2px;}
+.ctrl.sb-host .postgl{display:flex;align-items:flex-start;gap:6px;font-size:11.5px;font-weight:600;color:var(--t2);padding:6px 2px;cursor:pointer;line-height:1.35;border-top:1px solid var(--br);margin-top:8px;}
+.ctrl.sb-host .postgl input{margin-top:2px;flex-shrink:0;}
+.ctrl.sb-host > span[style*="margin-left:auto"]{margin-left:0!important;font-size:10.5px;color:var(--t3);margin-top:6px;}
+
+.langseg{display:flex;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.16);border-radius:9px;overflow:hidden;}
+.langseg button{background:transparent;border:none;color:rgba(255,255,255,.6);font-family:var(--ff);font-size:11.5px;font-weight:800;padding:7px 11px;cursor:pointer;transition:.12s;}
+.langseg button.on{background:var(--yellow);color:var(--navy);}
+
+/* compact timebar */
+.timebar.compact{padding:7px 18px;gap:7px;}
+.timebar.compact .tchip{padding:4px 10px;font-size:12px;}
+.timebar.compact .tlbl{font-size:10px;}
+
+
 .shbar{display:flex;align-items:center;gap:7px;min-width:120px;}
 .shbar .trk{flex:1;height:8px;border-radius:5px;background:var(--sf2);overflow:hidden;border:1px solid var(--br);}
 .shbar .fil{height:100%;border-radius:5px;transition:width .5s ease;}
@@ -605,6 +660,10 @@ html[data-theme="dark"] .ss-drop{box-shadow:0 14px 42px rgba(0,0,0,.55);}
     </div>
     <div class="hdr-r">
       <span class="src"><span class="dot"></span><span id="src-tx">Live data</span></span>
+      <div class="langseg" title="Language / Ngôn ngữ">
+        <button id="lang-en" class="on" onclick="setLang('en')">EN</button>
+        <button id="lang-vi" onclick="setLang('vi')">VN</button>
+      </div>
       <div class="useg" title="Value / Quantity">
         <button id="u-val" class="on" onclick="setMetric('val')">₫ Value</button>
         <button id="u-qty" onclick="setMetric('qty')"># Quantity</button>
@@ -614,56 +673,78 @@ html[data-theme="dark"] .ss-drop{box-shadow:0 14px 42px rgba(0,0,0,.55);}
         <option value="USD">USD</option>
         <option value="JPY">JPY</option>
       </select>
-      <button class="hbtn" onclick="openTierModal()" title="Price-tier settings">⚙ Tiers</button>
-      <button class="hbtn gold" id="ppt-btn" onclick="exportPPT()" title="Export current tab to PowerPoint (MMH template)">📊 Export PPT</button>
-      <a class="hbtn" href="https://docs.google.com/spreadsheets/d/1lI1s1nEyRtSluQiCJu2sdkgZdP38A35qYFdzOvVXE7I/edit?gid=1603394577#gid=1603394577" target="_blank" rel="noopener" title="Open source spreadsheet" style="text-decoration:none">📋 Data source</a>
-      <button class="hbtn" onclick="reloadData()" title="Reload data">⟳ Refresh</button>
+      <button class="hbtn" onclick="openTierModal()" title="Price-tier settings"><span>⚙</span> <span data-i18n="btn.tiers">Tiers</span></button>
+      <button class="hbtn gold" id="ppt-btn" onclick="exportPPT()" title="Export current tab to PowerPoint (MMH template)"><span>📊</span> <span data-i18n="btn.ppt">Export PPT</span></button>
+      <a class="hbtn" href="https://docs.google.com/spreadsheets/d/1lI1s1nEyRtSluQiCJu2sdkgZdP38A35qYFdzOvVXE7I/edit?gid=1603394577#gid=1603394577" target="_blank" rel="noopener" title="Open source spreadsheet" style="text-decoration:none"><span>📋</span> <span data-i18n="btn.source">Data source</span></a>
+      <button class="hbtn" onclick="reloadData()" title="Reload data"><span>⟳</span> <span data-i18n="btn.refresh">Refresh</span></button>
       <button class="hbtn" id="theme-btn" onclick="toggleTheme()" title="Light / Dark">🌙</button>
       <button class="hbtn" onclick="window.print()" title="Print / Save PDF">🖨</button>
       <button class="hbtn" onclick="logout()" title="Sign out">⎋</button>
     </div>
   </div>
   <div class="nav">
-    <div class="nt on" id="nt-market" onclick="goTab('market')">Market Overview</div>
-    <div class="nt"    id="nt-brand"  onclick="goTab('brand')">Brand Positioning</div>
-    <div class="nt"    id="nt-acct"   onclick="goTab('acct')">Territory Tracking</div>
-    <div class="nt"    id="nt-vs"     onclick="goTab('vs')">Head-to-Head</div>
+    <div class="nt on" id="nt-market" onclick="goTab('market')" data-i18n="nav.market">Market Overview</div>
+    <div class="nt"    id="nt-brand"  onclick="goTab('brand')" data-i18n="nav.brand">Brand Positioning</div>
+    <div class="nt"    id="nt-acct"   onclick="goTab('acct')" data-i18n="nav.acct">Territory Tracking</div>
+    <div class="nt"    id="nt-vs"     onclick="goTab('vs')" data-i18n="nav.vs">Head-to-Head</div>
   </div>
-  <div class="timebar" id="time-bar"></div>
+  <div class="timebar compact" id="time-bar"></div>
 </div>
 
+<div class="applayout">
+  <aside class="sidebar" id="sidebar">
+    <div class="sb-pane" id="sbp-market">
+      <div class="sb-tabttl" data-i18n="nav.market">Market Overview</div>
+      <div class="sb-tabsub" data-i18n="sec.market.sub"></div>
+      <div class="ctrl sb-host" id="mk-ctrl"></div>
+    </div>
+    <div class="sb-pane" id="sbp-brand" style="display:none">
+      <div class="sb-tabttl" data-i18n="nav.brand">Brand Positioning</div>
+      <div class="sb-tabsub" data-i18n="sec.brand.sub"></div>
+      <div class="ctrl sb-host" id="br-ctrl"></div>
+    </div>
+    <div class="sb-pane" id="sbp-acct" style="display:none">
+      <div class="sb-tabttl" data-i18n="nav.acct">Territory Tracking</div>
+      <div class="sb-tabsub" data-i18n="sec.acct.sub"></div>
+      <div class="ctrl sb-host" id="ac-ctrl"></div>
+    </div>
+    <div class="sb-pane" id="sbp-vs" style="display:none">
+      <div class="sb-tabttl" data-i18n="nav.vs">Head-to-Head</div>
+      <div class="sb-tabsub" data-i18n="sec.vs.sub"></div>
+      <div class="ctrl sb-host" id="vs-ctrl"></div>
+    </div>
+  </aside>
+  <div class="maincol">
 <div class="main">
 
   <div class="sec on" id="sec-market">
-    <div class="sh"><div class="sl">Market Overview</div><div class="sp" id="mk-period">All years</div>
-      <div class="sub-t">Capacity · Segments · Brand share · Top buyers</div></div>
-    <div class="ctrl" id="mk-ctrl"></div>
+    <div class="sh"><div class="sl" data-i18n="sec.market.title">Market Overview</div><div class="sp" id="mk-period">All years</div>
+      <div class="sub-t" data-i18n="sec.market.sub">Capacity · Segments · Brand share · Top buyers</div></div>
     <div id="mk-body"></div>
   </div>
 
   <div class="sec" id="sec-brand">
-    <div class="sh"><div class="sl">Brand Positioning</div><div class="sp" id="br-name">Mani</div>
-      <div class="sub-t">Profile & competitive position of a single brand</div></div>
-    <div class="ctrl" id="br-ctrl"></div>
+    <div class="sh"><div class="sl" data-i18n="sec.brand.title">Brand Positioning</div><div class="sp" id="br-name">Mani</div>
+      <div class="sub-t" data-i18n="sec.brand.sub">Profile & competitive position of a single brand</div></div>
     <div class="kr" id="br-kpi"></div>
     <div id="br-body"></div>
   </div>
 
   <div class="sec" id="sec-acct">
-    <div class="sh"><div class="sl">Territory Tracking</div><div class="sp" id="ac-name">Mani</div>
-      <div class="sub-t">Buyer transition status by reference window — Retain / Convert / New / Loss / Untouched / No Tender</div></div>
-    <div class="ctrl" id="ac-ctrl"></div>
+    <div class="sh"><div class="sl" data-i18n="sec.acct.title">Territory Tracking</div><div class="sp" id="ac-name">Mani</div>
+      <div class="sub-t" data-i18n="sec.acct.sub">Buyer transition status by reference window — Retain / Convert / New / Loss / Untouched / No Tender</div></div>
     <div class="subnav" id="ac-subnav"></div>
     <div id="ac-body"></div>
   </div>
 
   <div class="sec" id="sec-vs">
-    <div class="sh"><div class="sl">Head-to-Head</div><div class="sp">Brand A vs Brand B</div>
-      <div class="sub-t">Results · Region · Loyal territories · Price by type · Territory competition</div></div>
-    <div class="ctrl" id="vs-ctrl"></div>
+    <div class="sh"><div class="sl" data-i18n="sec.vs.title">Head-to-Head</div><div class="sp">Brand A vs Brand B</div>
+      <div class="sub-t" data-i18n="sec.vs.sub">Results · Region · Loyal territories · Price by type · Territory competition</div></div>
     <div id="vs-body"></div>
   </div>
 
+</div>
+  </div>
 </div>
 
 <div id="drill"><div class="drill-bd" onclick="closeDrill()"></div>
@@ -713,6 +794,132 @@ html[data-theme="dark"] .ss-drop{box-shadow:0 14px 42px rgba(0,0,0,.55);}
    ════════════════════════════════════════════════════════════════════ */
 Chart.register(ChartDataLabels);
 var FF = "Aptos, Inter, Lexend, sans-serif";
+
+/* ════════════════════════════════════════════════════════════════════
+   v12 — Bilingual (EN / VN) + left-sidebar controls
+   ════════════════════════════════════════════════════════════════════ */
+var LANG = "en";
+var I18N = {
+  en:{
+    "nav.market":"Market Overview","nav.brand":"Brand Positioning","nav.acct":"Territory Tracking","nav.vs":"Head-to-Head",
+    "sec.market.title":"Market Overview","sec.market.sub":"Capacity · Segments · Brand share · Top buyers",
+    "sec.brand.title":"Brand Positioning","sec.brand.sub":"Profile & competitive position of a single brand",
+    "sec.acct.title":"Territory Tracking","sec.acct.sub":"Buyer transition status by reference window — Retain / Convert / New / Loss / Untouched / No Tender",
+    "sec.vs.title":"Head-to-Head","sec.vs.sub":"Results · Region · Loyal territories · Price by type · Territory competition",
+    "sb.filters":"Filters","sb.region":"Region","sb.ptype":"Product Type","sb.brand":"Brand","sb.brandA":"Brand A","sb.brandB":"Brand B",
+    "sb.refwin":"Reference window","sb.from":"From","sb.to":"to","sb.cutoff":"Cutoff","sb.view":"View",
+    "region.ALL":"Nationwide","region.North":"North","region.South":"South","region.Central":"Central","region.Unknown":"Unknown",
+    "ptype.ALL":"All",
+    "btn.tiers":"Tiers","btn.ppt":"Export PPT","btn.source":"Data source","btn.refresh":"Refresh","btn.exportcsv":"Export CSV",
+    "u.value":"₫ Value","u.qty":"# Quantity",
+    "post.top3":"Positioning map: Top 3 per tier only",
+    "vs.usetime":"⏱ Use the time bar above",
+    "sub.overview":"Overview","sub.detail":"Group detail","sub.risk":"Risk & Opportunity",
+    "kpi.totqty":"Total quantity awarded","kpi.totval":"Total awarded value","kpi.pkgs":"Tender packages","kpi.brands":"Brands with tender results",
+    "kpi.maniqty":"Mani quantity won","kpi.manival":"Mani value won","kpi.pkgswon":"Packages won","kpi.buyers":"Buyers",
+    "kpi.avgprice":"Average unit price",
+    "card.qtyTime":"Quantity awarded over time","card.valTime":"Value awarded over time","card.bpTime":"Buyers & Packages over time",
+    "card.manishare":"Mani share — Total vs High segment","card.evo":"Brand share evolution — 100% stacked",
+    "card.tierQ":"Price-tier structure — by Quantity","card.tierV":"Price-tier structure — by Value",
+    "card.ptmixQ":"Product-type mix — Quantity","card.ptmixV":"Product-type mix — Value",
+    "card.top10":"Top 10 buyers","card.conc":"Concentration — Pareto","card.brandtbl":"Full brand share table","card.heatmap":"Province × Brand heatmap",
+    "cs.pcs":"pcs","cs.bpcount":"buyer count vs package count","cs.evosub":"qty share · top 6 brands + others · click a block to drill",
+    "cs.concsub":"gold bar = buyer where Mani won · line = cumulative %",
+    "hint.brandmix":"Click to see brand mix","hint.drill":"Click to drill",
+    "ph.searchbuyer":"Search buyer…","ph.searchprov":"Search province…",
+    "sw.qty":"Qty","sw.val":"Value","sw.auto":"Auto","sw.fy":"FY","sw.year":"Year","sw.month":"Month",
+    "note.top10hold":"Top 10 buyers hold","note.concentrated":"highly concentrated","note.fragmented":"fragmented",
+    "th.brand":"Brand","th.qty":"Qty","th.qtypct":"Qty %","th.value":"Value","th.valpct":"Val %","th.packages":"Packages","th.buyers":"Buyers","th.avgprice":"Avg unit price","th.total":"TOTAL",
+    "tier.high":"HIGH","tier.mid":"MID","tier.low":"LOW",
+    "ppt.cover.tag":"MMH · TENDER INTELLIGENCE","ppt.cover.subtitle":"Ophthalmic Knife Tender Market Dashboard — Vietnam",
+    "ppt.exec":"Executive Insights & Key Metrics","ppt.keymetrics":"Key Metrics","ppt.buyerseg":"Buyer Segmentation",
+    "deck.time":"Time window","deck.ptype":"Product type","deck.region":"Region","deck.currency":"Currency","deck.tiers":"Price tiers",
+    "deck.alltypes":"All knife types","deck.nationwide":"Nationwide","deck.custom":"Custom price ranges","deck.anchor":"Anchor-based",
+    "ins.momentum":"Mani momentum","ins.rising":"Rising rival","ins.toprival":"Top rival","ins.engine":"Value engine","ins.keyacct":"Key account","ins.pricepulse":"Price pulse",
+    "ins.qtyshare":"Qty share","ins.highseg":"High seg","ins.holds":"holds","ins.qtysharelc":"qty share","ins.tier":"tier","ins.ofmktval":"of market value","ins.maniholds":"Mani holds","ins.qtyinside":"qty inside","ins.maniabsent":"Mani absent","ins.maniin":"Mani","ins.inside":"inside","ins.ofmarket":"of market","ins.avgprice":"Avg unit price",
+    "ins.leadsqty":"leads quantity","ins.leadsval":"leads value","ins.ofmktqty":"of market quantity","ins.ofmktvalue":"of market value","ins.tenderresults":"tender results",
+    "drill.breakdown":"Breakdown","drill.tapswitch":"Tap to switch dimension","drill.lineitems":"line items","drill.lineDetail":"Line-item detail","drill.byvalue":"by value · hover Product Type for spec",
+    "dim.brand":"By brand","dim.ptype":"By product type","dim.tier":"By tier","dim.year":"By year","dim.prov":"By province","dim.buyer":"By buyer",
+    "br.sharebypt":"share by product type","br.byregion":"by Region over years","br.last2y":"Last 2 years","br.shareQ":"share (Qty)","br.shareV":"share (Value)",
+    "br.tiermix":"tier mix","br.posmap":"Positioning map — Price vs Share","br.posmapsub":"X: avg unit price · Y: quantity share · size: volume","br.qvshare":"Quantity vs Value share over years","br.byptyears":"by product type over years","br.topbuyers":"Top buyers of",
+    "dk.quantity":"Quantity","dk.value":"Value","dk.packages":"Packages","dk.buyers":"Buyers","dk.brandswon":"Brands won","dk.unitprice":"Unit price","dk.year":"Year","dk.province":"Province","dk.tier":"Tier","dk.producttype":"Product Type","dk.buyer":"Buyer","dk.brand":"Brand","dk.buyerhist":"Buyer · all tender history","dk.top":"Top",
+    "hm.provinces":"provinces","hm.brands":"brands","hm.shareofprov":"share of province","hm.value":"value","hm.quantity":"quantity",
+    "br.gaptitle":"GAP — High-tier buyers without","br.gapsub":"High buyers untapped",
+    "ac.captured":"Territories CAPTURED","ac.lost":"Territories LOST","ac.netbal":"Net balance","ac.bystatus":"Buyers by status","ac.capfrom":"Competitors we just CAPTURED from","ac.lostto":"Territories LOST to","ac.widthnote":"Width = % of total buyers in window",
+    "vs.resultsyears":"Results over years","vs.byregion":"By region (North/South)","vs.avgpricept":"Avg unit price by product type","vs.bothcompete":"Among buyers where both compete","vs.topprov":"Top provinces (combined)","vs.beforeafter":"Before → after cut (full history)"
+  },
+  vi:{
+    "nav.market":"Tổng quan thị trường","nav.brand":"Định vị thương hiệu","nav.acct":"Theo dõi địa bàn","nav.vs":"So sánh trực tiếp",
+    "sec.market.title":"Tổng quan thị trường","sec.market.sub":"Dung lượng · Phân khúc · Thị phần · Chủ đầu tư lớn",
+    "sec.brand.title":"Định vị thương hiệu","sec.brand.sub":"Hồ sơ & vị thế cạnh tranh của một thương hiệu",
+    "sec.acct.title":"Theo dõi địa bàn","sec.acct.sub":"Trạng thái dịch chuyển chủ đầu tư theo kỳ tham chiếu — Giữ / Chuyển đổi / Mới / Mất / Chưa chạm / Chưa có thầu",
+    "sec.vs.title":"So sánh trực tiếp","sec.vs.sub":"Kết quả · Khu vực · Địa bàn trung thành · Giá theo loại · Cạnh tranh địa bàn",
+    "sb.filters":"Bộ lọc","sb.region":"Khu vực","sb.ptype":"Loại sản phẩm","sb.brand":"Thương hiệu","sb.brandA":"Thương hiệu A","sb.brandB":"Thương hiệu B",
+    "sb.refwin":"Kỳ tham chiếu","sb.from":"Từ","sb.to":"đến","sb.cutoff":"Mốc cắt","sb.view":"Hiển thị",
+    "region.ALL":"Toàn quốc","region.North":"Miền Bắc","region.South":"Miền Nam","region.Central":"Miền Trung","region.Unknown":"Chưa rõ",
+    "ptype.ALL":"Tất cả",
+    "btn.tiers":"Phân khúc giá","btn.ppt":"Xuất PPT","btn.source":"Nguồn dữ liệu","btn.refresh":"Tải lại","btn.exportcsv":"Xuất CSV",
+    "u.value":"₫ Giá trị","u.qty":"# Số lượng",
+    "post.top3":"Bản đồ định vị: Chỉ Top 3 mỗi phân khúc",
+    "vs.usetime":"⏱ Dùng thanh thời gian phía trên",
+    "sub.overview":"Tổng quan","sub.detail":"Chi tiết nhóm","sub.risk":"Rủi ro & Cơ hội",
+    "kpi.totqty":"Tổng số lượng trúng thầu","kpi.totval":"Tổng giá trị trúng thầu","kpi.pkgs":"Gói thầu","kpi.brands":"Hãng có kết quả thầu",
+    "kpi.maniqty":"Số lượng Mani trúng","kpi.manival":"Giá trị Mani trúng","kpi.pkgswon":"Gói thầu đã thắng","kpi.buyers":"Chủ đầu tư",
+    "kpi.avgprice":"Đơn giá trung bình",
+    "card.qtyTime":"Số lượng trúng thầu theo thời gian","card.valTime":"Giá trị trúng thầu theo thời gian","card.bpTime":"Chủ đầu tư & Gói thầu theo thời gian",
+    "card.manishare":"Thị phần Mani — Toàn bộ vs Phân khúc cao","card.evo":"Diễn biến thị phần hãng — 100% chồng",
+    "card.tierQ":"Cơ cấu phân khúc giá — theo Số lượng","card.tierV":"Cơ cấu phân khúc giá — theo Giá trị",
+    "card.ptmixQ":"Cơ cấu loại sản phẩm — Số lượng","card.ptmixV":"Cơ cấu loại sản phẩm — Giá trị",
+    "card.top10":"Top 10 chủ đầu tư","card.conc":"Mức tập trung — Pareto","card.brandtbl":"Bảng thị phần hãng đầy đủ","card.heatmap":"Bản đồ nhiệt Tỉnh × Hãng",
+    "cs.pcs":"chiếc","cs.bpcount":"số chủ đầu tư vs số gói thầu","cs.evosub":"thị phần SL · top 6 hãng + còn lại · bấm để xem chi tiết",
+    "cs.concsub":"cột vàng = chủ đầu tư Mani đã thắng · đường = % lũy kế",
+    "hint.brandmix":"Bấm để xem cơ cấu hãng","hint.drill":"Bấm để xem chi tiết",
+    "ph.searchbuyer":"Tìm chủ đầu tư…","ph.searchprov":"Tìm tỉnh…",
+    "sw.qty":"SL","sw.val":"Giá trị","sw.auto":"Tự động","sw.fy":"NĐTC","sw.year":"Năm","sw.month":"Tháng",
+    "note.top10hold":"Top 10 chủ đầu tư nắm","note.concentrated":"tập trung cao","note.fragmented":"phân mảnh",
+    "th.brand":"Hãng","th.qty":"SL","th.qtypct":"% SL","th.value":"Giá trị","th.valpct":"% GT","th.packages":"Gói","th.buyers":"CĐT","th.avgprice":"Đơn giá TB","th.total":"TỔNG",
+    "tier.high":"CAO","tier.mid":"TRUNG","tier.low":"THẤP",
+    "ppt.cover.tag":"MMH · TÌNH BÁO ĐẤU THẦU","ppt.cover.subtitle":"Dashboard Thị trường Thầu Dao mổ Nhãn khoa — Việt Nam",
+    "ppt.exec":"Insight Điều hành & Chỉ số chính","ppt.keymetrics":"Chỉ số chính","ppt.buyerseg":"Phân khúc chủ đầu tư",
+    "deck.time":"Khoảng thời gian","deck.ptype":"Loại sản phẩm","deck.region":"Khu vực","deck.currency":"Tiền tệ","deck.tiers":"Phân khúc giá",
+    "deck.alltypes":"Tất cả loại dao","deck.nationwide":"Toàn quốc","deck.custom":"Khoảng giá tùy chỉnh","deck.anchor":"Theo hãng tham chiếu",
+    "ins.momentum":"Đà tăng Mani","ins.rising":"Đối thủ trỗi dậy","ins.toprival":"Đối thủ dẫn đầu","ins.engine":"Phân khúc tạo giá trị","ins.keyacct":"Khách hàng trọng điểm","ins.pricepulse":"Nhịp giá",
+    "ins.qtyshare":"Thị phần SL","ins.highseg":"PK cao","ins.holds":"nắm","ins.qtysharelc":"thị phần SL","ins.tier":"phân khúc","ins.ofmktval":"giá trị thị trường","ins.maniholds":"Mani nắm","ins.qtyinside":"thị phần SL bên trong","ins.maniabsent":"Mani vắng mặt","ins.maniin":"Mani","ins.inside":"bên trong","ins.ofmarket":"thị trường","ins.avgprice":"Đơn giá TB",
+    "ins.leadsqty":"dẫn đầu số lượng","ins.leadsval":"dẫn đầu giá trị","ins.ofmktqty":"thị phần SL","ins.ofmktvalue":"thị phần GT","ins.tenderresults":"kết quả thầu",
+    "drill.breakdown":"Phân rã","drill.tapswitch":"Chạm để đổi chiều phân tích","drill.lineitems":"dòng dữ liệu","drill.lineDetail":"Chi tiết từng dòng","drill.byvalue":"theo giá trị · rê chuột vào Loại SP để xem thông số",
+    "dim.brand":"Theo hãng","dim.ptype":"Theo loại SP","dim.tier":"Theo phân khúc","dim.year":"Theo năm","dim.prov":"Theo tỉnh","dim.buyer":"Theo CĐT",
+    "br.sharebypt":"thị phần theo loại sản phẩm","br.byregion":"theo Khu vực qua các năm","br.last2y":"2 năm gần nhất","br.shareQ":"thị phần (SL)","br.shareV":"thị phần (GT)",
+    "br.tiermix":"cơ cấu phân khúc","br.posmap":"Bản đồ định vị — Giá vs Thị phần","br.posmapsub":"X: đơn giá TB · Y: thị phần SL · kích thước: sản lượng","br.qvshare":"Thị phần SL vs GT qua các năm","br.byptyears":"theo loại SP qua các năm","br.topbuyers":"Top chủ đầu tư của",
+    "dk.quantity":"Số lượng","dk.value":"Giá trị","dk.packages":"Gói thầu","dk.buyers":"Chủ đầu tư","dk.brandswon":"Hãng đã thắng","dk.unitprice":"Đơn giá","dk.year":"Năm","dk.province":"Tỉnh","dk.tier":"Phân khúc","dk.producttype":"Loại SP","dk.buyer":"Chủ đầu tư","dk.brand":"Hãng","dk.buyerhist":"Chủ đầu tư · toàn bộ lịch sử thầu","dk.top":"Top",
+    "hm.provinces":"tỉnh","hm.brands":"hãng","hm.shareofprov":"thị phần của tỉnh theo","hm.value":"giá trị","hm.quantity":"số lượng",
+    "br.gaptitle":"KHOẢNG TRỐNG — CĐT phân khúc cao chưa có","br.gapsub":"CĐT phân khúc cao chưa khai thác",
+    "ac.captured":"Địa bàn GIÀNH ĐƯỢC","ac.lost":"Địa bàn ĐÁNH MẤT","ac.netbal":"Cân đối ròng","ac.bystatus":"Chủ đầu tư theo trạng thái","ac.capfrom":"Đối thủ vừa GIÀNH từ tay","ac.lostto":"Địa bàn ĐÁNH MẤT vào tay","ac.widthnote":"Độ rộng = % tổng CĐT trong kỳ",
+    "vs.resultsyears":"Kết quả qua các năm","vs.byregion":"Theo khu vực (Bắc/Nam)","vs.avgpricept":"Đơn giá TB theo loại SP","vs.bothcompete":"Trong các CĐT mà cả hai cùng cạnh tranh","vs.topprov":"Top tỉnh (gộp)","vs.beforeafter":"Trước → sau mốc cắt (toàn bộ lịch sử)"
+  }
+};
+function t(key){ var d=I18N[LANG]||I18N.en; return (key in d)?d[key]:(I18N.en[key]!=null?I18N.en[key]:key); }
+function tRegion(r){ var k="region."+r; return (I18N[LANG]&&I18N[LANG][k])?I18N[LANG][k]:r; }
+function tPtype(p){ if(p==="ALL") return t("ptype.ALL"); return p; }   /* knife type names kept as-is */
+function applyI18nStatic(){
+  document.querySelectorAll("[data-i18n]").forEach(function(el){
+    var k=el.getAttribute("data-i18n"); el.textContent=t(k);
+  });
+  /* header buttons / toggles that aren't data-i18n */
+  var uv=document.getElementById("u-val"), uq=document.getElementById("u-qty");
+  if(uv) uv.textContent=t("u.value"); if(uq) uq.textContent=t("u.qty");
+  document.documentElement.lang = LANG;
+}
+function setLang(l){
+  if(l!=="en"&&l!=="vi") l="en";
+  LANG=l;
+  try{ localStorage.setItem("mmh_lang", l); }catch(e){}
+  document.getElementById("lang-en").classList.toggle("on", l==="en");
+  document.getElementById("lang-vi").classList.toggle("on", l==="vi");
+  applyI18nStatic();
+  document.querySelectorAll("[data-counted]").forEach(function(el){el.dataset.counted="0";});
+  try{ renderAll(); }catch(e){}
+}
+
 
 /* ── Config ── */
 var GAS_URL = "https://script.google.com/macros/s/AKfycbx1sBIh2NirItxksWtKsDNRrw1reXKhugBndG_VEyLVD8Kb_BRH5K3iGZYhugUKGqEe/exec";
@@ -1529,12 +1736,14 @@ function setCurrency(c){
 }
 
 /* ── Nav ── */
-function goTab(t){
-  S.tab=t;document.querySelectorAll(".sec").forEach(function(s){s.classList.remove("on");});document.querySelectorAll(".nt").forEach(function(n){n.classList.remove("on");});
-  var sec=document.getElementById("sec-"+t);if(sec)sec.classList.add("on");var nt=document.getElementById("nt-"+t);if(nt)nt.classList.add("on");
-  document.querySelectorAll(".btmnav .bn").forEach(function(b){b.classList.toggle("on",b.id==="bn-"+t);});
+function goTab(tb){
+  S.tab=tb;document.querySelectorAll(".sec").forEach(function(s){s.classList.remove("on");});document.querySelectorAll(".nt").forEach(function(n){n.classList.remove("on");});
+  var sec=document.getElementById("sec-"+tb);if(sec)sec.classList.add("on");var nt=document.getElementById("nt-"+tb);if(nt)nt.classList.add("on");
+  document.querySelectorAll(".sb-pane").forEach(function(p){p.style.display="none";});
+  var sbp=document.getElementById("sbp-"+tb); if(sbp) sbp.style.display="block";
+  document.querySelectorAll(".btmnav .bn").forEach(function(b){b.classList.toggle("on",b.id==="bn-"+tb);});
   // Value/Quantity toggle hidden on Market tab (per spec)
-  document.querySelector(".useg").style.display = (t==="market") ? "none" : "flex";
+  document.querySelector(".useg").style.display = (tb==="market") ? "none" : "flex";
   if(sec){sec.querySelectorAll("[data-counted]").forEach(function(el){el.dataset.counted="0";});sec.querySelectorAll(".rkb[data-w]").forEach(function(el){el.dataset.an="0";});sec.querySelectorAll(".reveal").forEach(function(el){el.classList.remove("in");});
     setTimeout(function(){sec.querySelectorAll(".reveal").forEach(function(el){el.classList.add("in");});runCountUp(sec);animateBars(sec);},50);}
   setTimeout(function(){Object.keys(S.charts).forEach(function(k){try{S.charts[k].resize();}catch(e){}});},90);
@@ -1781,7 +1990,7 @@ function constDims(rows){
   dims.forEach(function(d){var v=rows.length?rows[0][d]:null;c[d]=rows.length>0&&rows.every(function(r){return r[d]===v;});});
   return c;
 }
-function buyerDrill(name){openDrill(ROWS.filter(function(r){return r.buyer===name;}),{kind:"buyer",title:name,sub:"Buyer · all tender history"});}
+function buyerDrill(name){openDrill(ROWS.filter(function(r){return r.buyer===name;}),{kind:"buyer",title:name,sub:t("dk.buyerhist")});}
 
 function openDrill(rows,o){
   o=o||{};
@@ -1792,11 +2001,11 @@ function openDrill(rows,o){
   document.getElementById("drill-t").textContent=S.drill.title;document.getElementById("drill-s").textContent=S.drill.sub;
   var qty=0,val=0,pk={},by={};rows.forEach(function(r){qty+=r.qty;val+=r.val;pk[r.kqtt]=1;by[r.buyer]=1;});
   var html='<div class="drill-kpi">'
-    +'<div class="drill-k"><div class="kl">Quantity</div><div class="kv">'+nf(qty)+'</div></div>'
-    +'<div class="drill-k"><div class="kl">Value</div><div class="kv">'+money(val)+'</div></div>'
-    +'<div class="drill-k"><div class="kl">Packages</div><div class="kv">'+Object.keys(pk).length+'</div></div>'
-    +'<div class="drill-k"><div class="kl">'+(S.drill.kind==="buyer"?"Brands won":"Buyers")+'</div><div class="kv">'+(S.drill.kind==="buyer"?Object.keys(aggBy(rows,function(r){return r.brand;})).length:Object.keys(by).length)+'</div></div></div>';
-  html+='<div class="dchart"><h4 id="dch-title">Breakdown</h4><div class="sub">Tap to switch dimension · '+rows.length+' line items</div>'
+    +'<div class="drill-k"><div class="kl">'+t("dk.quantity")+'</div><div class="kv">'+nf(qty)+'</div></div>'
+    +'<div class="drill-k"><div class="kl">'+t("dk.value")+'</div><div class="kv">'+money(val)+'</div></div>'
+    +'<div class="drill-k"><div class="kl">'+t("dk.packages")+'</div><div class="kv">'+Object.keys(pk).length+'</div></div>'
+    +'<div class="drill-k"><div class="kl">'+(S.drill.kind==="buyer"?t("dk.brandswon"):t("dk.buyers"))+'</div><div class="kv">'+(S.drill.kind==="buyer"?Object.keys(aggBy(rows,function(r){return r.brand;})).length:Object.keys(by).length)+'</div></div></div>';
+  html+='<div class="dchart"><h4 id="dch-title">'+t("drill.breakdown")+'</h4><div class="sub">'+t("drill.tapswitch")+' · '+rows.length+' '+t("drill.lineitems")+'</div>'
     +'<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px" id="dch-tabs"></div><div class="dchart-wrap"><canvas id="c-drill-bd"></canvas></div></div>';
   /* Table: includes Product Code + makes the "Product Type" cell tspec-hoverable */
   var srt=rows.slice().sort(function(a,b){return b.val-a.val;}).slice(0,80);
@@ -1807,8 +2016,8 @@ function openDrill(rows,o){
       +"<td class='tl'>"+esc(r.tier)+"</td><td class='tl'>"+esc(r.prov)+"</td><td>"+esc(r.year)+"</td>"
       +"<td>"+nf(r.qty)+"</td><td>"+money(r.price)+"</td><td>"+money(r.val)+"</td></tr>";
   }).join("");
-  html+='<div class="card" style="margin-bottom:0"><div class="ch"><div class="ct">Line-item detail</div><div class="cs">Top '+srt.length+' / '+rows.length+' by value · hover Product Type for spec</div><button class="dl-btn" onclick="drillDownload()">Export CSV</button></div>'
-    +'<div class="cb" style="padding:0"><div class="tw"><table><thead><tr><th class="tl">Buyer</th><th class="tl">Brand</th><th class="tl">Product Type</th><th class="tl">Tier</th><th class="tl">Province</th><th>Year</th><th>Qty</th><th>Unit price</th><th>Value</th></tr></thead><tbody>'+body+'</tbody></table></div></div></div>';
+  html+='<div class="card" style="margin-bottom:0"><div class="ch"><div class="ct">'+t("drill.lineDetail")+'</div><div class="cs">'+t("dk.top")+' '+srt.length+' / '+rows.length+' '+t("drill.byvalue")+'</div><button class="dl-btn" onclick="drillDownload()">Export CSV</button></div>'
+    +'<div class="cb" style="padding:0"><div class="tw"><table><thead><tr><th class="tl">'+t("dk.buyer")+'</th><th class="tl">'+t("dk.brand")+'</th><th class="tl">'+t("dk.producttype")+'</th><th class="tl">'+t("dk.tier")+'</th><th class="tl">'+t("dk.province")+'</th><th>'+t("dk.year")+'</th><th>'+t("th.qty")+'</th><th>'+t("dk.unitprice")+'</th><th>'+t("dk.value")+'</th></tr></thead><tbody>'+body+'</tbody></table></div></div></div>';
   document.getElementById("drill-body").innerHTML=html;
   document.getElementById("drill").classList.add("on");
   setTimeout(function(){
@@ -1818,12 +2027,12 @@ function openDrill(rows,o){
   },30);
 }
 function drillBreakdown(mode){
-  var all=[["brand","By brand"],["ptype","By product type"],["tier","By tier"],["year","By year"],["prov","By province"],["buyer","By buyer"]];
+  var all=[["brand",t("dim.brand")],["ptype",t("dim.ptype")],["tier",t("dim.tier")],["year",t("dim.year")],["prov",t("dim.prov")],["buyer",t("dim.buyer")]];
   var modes=all.filter(function(m){return (S.drill.exclude||[]).indexOf(m[0])<0;});
-  if(!modes.length)modes=[["brand","By brand"]];
+  if(!modes.length)modes=[["brand",t("dim.brand")]];
   if(!modes.some(function(m){return m[0]===mode;}))mode=modes[0][0];
   document.getElementById("dch-tabs").innerHTML=modes.map(function(m){return '<button class="chip '+(m[0]===mode?"on":"")+'" onclick="drillBreakdown(\''+m[0]+'\')">'+m[1]+'</button>';}).join("");
-  document.getElementById("dch-title").textContent="Breakdown — "+modes.find(function(m){return m[0]===mode;})[1].toLowerCase();
+  document.getElementById("dch-title").textContent=t("drill.breakdown")+" — "+modes.find(function(m){return m[0]===mode;})[1].toLowerCase();
   var agg=aggBy(S.drill.rows,function(r){return r[mode];});
   var arr=sortDesc(toArr(agg),"val").slice(0,12);
   if(mode==="year")arr=toArr(agg).sort(function(a,b){return (+a.key)-(+b.key);});
@@ -1845,8 +2054,8 @@ document.addEventListener("keydown",function(e){if(e.key==="Escape"){closeDrill(
    ════════════════════════════════════════════════════════════════════ */
 function renderMarket(){
   /* Controls: Region + Product Type (Value/Quantity toggle hidden on this tab) */
-  var rChips='<span class="cl">Region</span>'+["ALL"].concat(REGIONS).map(function(r){return '<button class="chip '+(S.mkRegion===r?"on":"")+'" onclick="S.mkRegion=\''+r+'\';renderMarket()">'+(r==="ALL"?"Nationwide":(r==="North"?"North":r==="South"?"South":r))+'</button>';}).join("");
-  var tChips='<span class="cl">Product Type</span>'+["ALL"].concat(PTYPES).map(function(p){return '<button class="chip '+(S.mkType===p?"on":"")+'" onclick="S.mkType=\''+esc(p)+'\';renderMarket()">'+esc(p==="ALL"?"All":p)+'</button>';}).join("");
+  var rChips='<span class="cl">'+t("sb.region")+'</span>'+["ALL"].concat(REGIONS).map(function(r){return '<button class="chip '+(S.mkRegion===r?"on":"")+'" onclick="S.mkRegion=\''+r+'\';renderMarket()">'+tRegion(r)+'</button>';}).join("");
+  var tChips='<span class="cl">'+t("sb.ptype")+'</span>'+["ALL"].concat(PTYPES).map(function(p){return '<button class="chip '+(S.mkType===p?"on":"")+'" onclick="S.mkType=\''+esc(p)+'\';renderMarket()">'+esc(tPtype(p))+'</button>';}).join("");
   document.getElementById("mk-ctrl").innerHTML=rChips+'<span class="rowbk"></span>'+tChips;
   document.getElementById("mk-period").textContent=timeLabel()+(S.mkType==="ALL"?"":" · "+S.mkType)+(S.mkRegion==="ALL"?"":" · "+(S.mkRegion==="North"?"North":"South"));
 
@@ -1969,17 +2178,17 @@ function renderMarket(){
   var pwTag = PW ? '<div class="kpw">'+esc(PW.label)+'</div>' : '';
 
   /* ── KPI ROW 1: market 4 cards ── */
-  var topNoteQ = '<b>'+esc(qLead.key)+'</b> leads quantity: '+qf(qLead.qty)+' pcs ('+pct(totQ?qLead.qty/totQ*100:0)+')';
-  var topNoteV = '<b>'+esc(vLead.key)+'</b> leads value: '+money(vLead.val)+' ('+pct(totV?vLead.val/totV*100:0)+')';
+  var topNoteQ = '<b>'+esc(qLead.key)+'</b> '+t("ins.leadsqty")+': '+qf(qLead.qty)+' '+t("cs.pcs")+' ('+pct(totQ?qLead.qty/totQ*100:0)+')';
+  var topNoteV = '<b>'+esc(vLead.key)+'</b> '+t("ins.leadsval")+': '+money(vLead.val)+' ('+pct(totV?vLead.val/totV*100:0)+')';
 
   var KPI = '<div class="kr">'
-    + kpiCard({lbl:"Total quantity awarded", val:totQ, mode:"q", suf:" pcs", note:topNoteQ+pwTag,
+    + kpiCard({lbl:t("kpi.totqty"), val:totQ, mode:"q", suf:" "+t("cs.pcs"), note:topNoteQ+pwTag,
         delta:prevM?mxDelta(totQ,prevM.totQ,"pct"):"", spark:sparkQ?mxSpark(sparkQ,"#3A5CAA"):""})
-    + kpiCard({lbl:"Total awarded value", val:totV, mode:"vnd", note:topNoteV+pwTag, cls:"y",
+    + kpiCard({lbl:t("kpi.totval"), val:totV, mode:"vnd", note:topNoteV+pwTag, cls:"y",
         delta:prevM?mxDelta(totV,prevM.totV,"pct"):"", spark:sparkV?mxSpark(sparkV,"#E0A800"):""})
-    + kpiCard({lbl:"Tender packages", val:nPkg, mode:"n", note:nf(nBuy)+" buyers · "+nf(nBrands)+" brands"+pwTag,
+    + kpiCard({lbl:t("kpi.pkgs"), val:nPkg, mode:"n", note:nf(nBuy)+" "+t("kpi.buyers").toLowerCase()+" · "+nf(nBrands)+" "+t("th.brand").toLowerCase()+pwTag,
         delta:prevM?mxDelta(nPkg,Object.keys(prevM.pk).length,"pct"):""})
-    + kpiCard({lbl:"Brands with tender results", val:nBrands, mode:"n", note:nf(R.length)+" line items"+pwTag,
+    + kpiCard({lbl:t("kpi.brands"), val:nBrands, mode:"n", note:nf(R.length)+" line items"+pwTag,
         delta:prevM?mxDelta(nBrands,Object.keys(prevM.brands).length,"n"):""})
     + '</div>';
 
@@ -1989,17 +2198,17 @@ function renderMarket(){
   var prevShareQ = (prevM && prevM.totQ) ? prevM.maniQ/prevM.totQ*100 : null;
   var prevShareV = (prevM && prevM.totV) ? prevM.maniV/prevM.totV*100 : null;
   var KPI2 = '<div class="kr">'
-    + kpiCard({lbl:"Mani quantity won", val:maniQ, mode:"q", suf:" pcs", cls:"y",
-        note:'<b>'+pct(shareQ)+'</b> of market quantity'+(prevShareQ!=null?(' '+mxDelta(shareQ,prevShareQ,"pp")):'')+pwTag,
+    + kpiCard({lbl:t("kpi.maniqty"), val:maniQ, mode:"q", suf:" "+t("cs.pcs"), cls:"y",
+        note:'<b>'+pct(shareQ)+'</b> '+(LANG==="vi"?"thị phần SL":"of market quantity")+(prevShareQ!=null?(' '+mxDelta(shareQ,prevShareQ,"pp")):'')+pwTag,
         delta:prevM?mxDelta(maniQ,prevM.maniQ,"pct"):"", spark:sparkMS?mxSpark(sparkMS,"#E0A800"):""})
-    + kpiCard({lbl:"Mani value won", val:maniV, mode:"vnd", cls:"y",
-        note:'<b>'+pct(shareV)+'</b> of market value'+(prevShareV!=null?(' '+mxDelta(shareV,prevShareV,"pp")):'')+pwTag,
+    + kpiCard({lbl:t("kpi.manival"), val:maniV, mode:"vnd", cls:"y",
+        note:'<b>'+pct(shareV)+'</b> '+(LANG==="vi"?"thị phần GT":"of market value")+(prevShareV!=null?(' '+mxDelta(shareV,prevShareV,"pp")):'')+pwTag,
         delta:prevM?mxDelta(maniV,prevM.maniV,"pct"):""})
-    + kpiCard({lbl:"Packages won", val:maniPkgN, mode:"n",
-        note:'<b>'+maniPkgN+' / '+totPkgAll+'</b> tender results'+pwTag,
+    + kpiCard({lbl:t("kpi.pkgswon"), val:maniPkgN, mode:"n",
+        note:'<b>'+maniPkgN+' / '+totPkgAll+'</b> '+(LANG==="vi"?"kết quả thầu":"tender results")+pwTag,
         delta:prevM?mxDelta(maniPkgN,Object.keys(prevM.maniPk).length,"pct"):""})
-    + kpiCard({lbl:"Buyers", val:maniBuyerIds.length, mode:"n",
-        note:'<b>New</b>: '+nNew+' · <b>Convert</b>: '+nConvert+' · <b>Retain</b>: '+nRetain + cutSelector,
+    + kpiCard({lbl:t("kpi.buyers"), val:maniBuyerIds.length, mode:"n",
+        note:'<b>'+(LANG==="vi"?"Mới":"New")+'</b>: '+nNew+' · <b>'+(LANG==="vi"?"Chuyển":"Convert")+'</b>: '+nConvert+' · <b>'+(LANG==="vi"?"Giữ":"Retain")+'</b>: '+nRetain + cutSelector,
         delta:prevM?mxDelta(maniBuyerIds.length,Object.keys(prevM.maniBy).length,"n"):""})
     + '</div>';
 
@@ -2008,9 +2217,9 @@ function renderMarket(){
 
   /* Row of 3 time-series charts: qty bars · value bars · combined buyers+packages */
   H += '<div class="g3">'
-    + '<div class="card reveal"><div class="ch"><div class="ct">Quantity awarded over time</div><div class="cs">pcs</div>'+cvswHtml("tsQ")+'</div><div class="cb"><div class="cw t"><canvas id="c-mk-tsQ"></canvas></div><div class="fy-note" id="note-tsQ"></div></div></div>'
-    + '<div class="card reveal"><div class="ch"><div class="ct">Value awarded over time</div><div class="cs">'+S.currency+'</div>'+cvswHtml("tsV")+'</div><div class="cb"><div class="cw t"><canvas id="c-mk-tsV"></canvas></div><div class="fy-note" id="note-tsV"></div></div></div>'
-    + '<div class="card reveal"><div class="ch"><div class="ct">Buyers &amp; Packages over time</div><div class="cs">buyer count vs package count</div>'+cvswHtml("tsBP")+'</div><div class="cb"><div class="cw t"><canvas id="c-mk-tsBP"></canvas></div><div class="fy-note" id="note-tsBP"></div></div></div>'
+    + '<div class="card reveal"><div class="ch"><div class="ct">'+t("card.qtyTime")+'</div><div class="cs">'+t("cs.pcs")+'</div>'+cvswHtml("tsQ")+'</div><div class="cb"><div class="cw t"><canvas id="c-mk-tsQ"></canvas></div><div class="fy-note" id="note-tsQ"></div></div></div>'
+    + '<div class="card reveal"><div class="ch"><div class="ct">'+t("card.valTime")+'</div><div class="cs">'+S.currency+'</div>'+cvswHtml("tsV")+'</div><div class="cb"><div class="cw t"><canvas id="c-mk-tsV"></canvas></div><div class="fy-note" id="note-tsV"></div></div></div>'
+    + '<div class="card reveal"><div class="ch"><div class="ct">'+t("card.bpTime")+'</div><div class="cs">'+t("cs.bpcount")+'</div>'+cvswHtml("tsBP")+'</div><div class="cb"><div class="cw t"><canvas id="c-mk-tsBP"></canvas></div><div class="fy-note" id="note-tsBP"></div></div></div>'
     + '</div>';
 
   /* ── Strategic trend row (UX v10): Mani share trend + brand share evolution ── */
@@ -2019,39 +2228,39 @@ function renderMarket(){
         S.mxMS = S.mxMS || {metric:"qty", per:(S.time&&S.time.mode==="fy")?"fy":"year"};
         function b(g,v,t){return '<button'+(S.mxMS[g]===v?' class="on"':'')+' onclick="mxMSSet(\''+g+'\',\''+v+'\')">'+t+'</button>';}
         return '<div class="card reveal"><div class="ch" style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:8px">'
-          + '<div><div class="ct">Mani share — Total vs High segment</div><div class="cs" id="ms-sub"></div></div>'
+          + '<div><div class="ct">'+t("card.manishare")+'</div><div class="cs" id="ms-sub"></div></div>'
           + '<div style="display:flex;gap:6px;flex-wrap:wrap">'
             + '<div class="msw" id="msw-metric">'+b("metric","qty","Qty")+b("metric","val","Value")+'</div>'
             + '<div class="msw" id="msw-per">'+b("per","year","Year")+b("per","fy","FY")+'</div>'
           + '</div></div><div class="cb"><div class="cw t"><canvas id="c-mk-mshare"></canvas></div></div></div>';
       })()
-    + '<div class="card reveal"><div class="ch"><div class="ct">Brand share evolution — 100% stacked</div><div class="cs">qty share · top 6 brands + others · click a block to drill</div>'+cvswHtml("evo")+'</div><div class="cb"><div class="cw t"><canvas id="c-mk-evo"></canvas></div><div class="fy-note" id="note-evo"></div></div></div>'
+    + '<div class="card reveal"><div class="ch"><div class="ct">'+t("card.evo")+'</div><div class="cs">'+t("cs.evosub")+'</div>'+cvswHtml("evo")+'</div><div class="cb"><div class="cw t"><canvas id="c-mk-evo"></canvas></div><div class="fy-note" id="note-evo"></div></div></div>'
     + '</div>';
 
   /* Two pairs of segment charts: Quantity-based & Value-based.
      Each pair = Tier donut + Brand-leader-per-tier (with % labels, click drill). */
-  H += '<div class="card reveal"><div class="ch"><div class="ct">Price-tier structure — by Quantity</div></div><div class="cb"><div class="tier-layout">'
+  H += '<div class="card reveal"><div class="ch"><div class="ct">'+t("card.tierQ")+'</div></div><div class="cb"><div class="tier-layout">'
     + '<div class="tier-donut"><div class="cw" style="height:280px"><canvas id="c-mk-tierQ"></canvas></div></div>'
     + '<div class="tier-leaders"><div class="tlgrid">'
-      + '<div><div class="tl-hd" style="color:#5B7DB1">HIGH</div><div class="cw tlbar"><canvas id="c-mk-segQH"></canvas></div></div>'
-      + '<div><div class="tl-hd" style="color:#C9A961">MID</div><div class="cw tlbar"><canvas id="c-mk-segQM"></canvas></div></div>'
-      + '<div><div class="tl-hd" style="color:#7BAE7E">LOW</div><div class="cw tlbar"><canvas id="c-mk-segQL"></canvas></div></div>'
+      + '<div><div class="tl-hd" style="color:#5B7DB1">'+t("tier.high")+'</div><div class="cw tlbar"><canvas id="c-mk-segQH"></canvas></div></div>'
+      + '<div><div class="tl-hd" style="color:#C9A961">'+t("tier.mid")+'</div><div class="cw tlbar"><canvas id="c-mk-segQM"></canvas></div></div>'
+      + '<div><div class="tl-hd" style="color:#7BAE7E">'+t("tier.low")+'</div><div class="cw tlbar"><canvas id="c-mk-segQL"></canvas></div></div>'
     + '</div></div>'
     + '</div></div></div>';
 
-  H += '<div class="card reveal"><div class="ch"><div class="ct">Price-tier structure — by Value</div></div><div class="cb"><div class="tier-layout">'
+  H += '<div class="card reveal"><div class="ch"><div class="ct">'+t("card.tierV")+'</div></div><div class="cb"><div class="tier-layout">'
     + '<div class="tier-donut"><div class="cw" style="height:280px"><canvas id="c-mk-tierV"></canvas></div></div>'
     + '<div class="tier-leaders"><div class="tlgrid">'
-      + '<div><div class="tl-hd" style="color:#5B7DB1">HIGH</div><div class="cw tlbar"><canvas id="c-mk-segVH"></canvas></div></div>'
-      + '<div><div class="tl-hd" style="color:#C9A961">MID</div><div class="cw tlbar"><canvas id="c-mk-segVM"></canvas></div></div>'
-      + '<div><div class="tl-hd" style="color:#7BAE7E">LOW</div><div class="cw tlbar"><canvas id="c-mk-segVL"></canvas></div></div>'
+      + '<div><div class="tl-hd" style="color:#5B7DB1">'+t("tier.high")+'</div><div class="cw tlbar"><canvas id="c-mk-segVH"></canvas></div></div>'
+      + '<div><div class="tl-hd" style="color:#C9A961">'+t("tier.mid")+'</div><div class="cw tlbar"><canvas id="c-mk-segVM"></canvas></div></div>'
+      + '<div><div class="tl-hd" style="color:#7BAE7E">'+t("tier.low")+'</div><div class="cw tlbar"><canvas id="c-mk-segVL"></canvas></div></div>'
     + '</div></div>'
     + '</div></div></div>';
 
   /* Two pairs of product-type mix charts: by Qty + by Value */
   H += '<div class="g2">'
-    + '<div class="card reveal"><div class="ch"><div class="ct">Product-type mix — Quantity</div></div><div class="cb"><div class="g2" style="margin:0"><div><div class="cw t"><canvas id="c-mk-ptypeQ"></canvas></div></div><div><div class="cw t"><canvas id="c-mk-pttQ"></canvas></div></div></div></div></div>'
-    + '<div class="card reveal"><div class="ch"><div class="ct">Product-type mix — Value</div></div><div class="cb"><div class="g2" style="margin:0"><div><div class="cw t"><canvas id="c-mk-ptypeV"></canvas></div></div><div><div class="cw t"><canvas id="c-mk-pttV"></canvas></div></div></div></div></div>'
+    + '<div class="card reveal"><div class="ch"><div class="ct">'+t("card.ptmixQ")+'</div></div><div class="cb"><div class="g2" style="margin:0"><div><div class="cw t"><canvas id="c-mk-ptypeQ"></canvas></div></div><div><div class="cw t"><canvas id="c-mk-pttQ"></canvas></div></div></div></div></div>'
+    + '<div class="card reveal"><div class="ch"><div class="ct">'+t("card.ptmixV")+'</div></div><div class="cb"><div class="g2" style="margin:0"><div><div class="cw t"><canvas id="c-mk-ptypeV"></canvas></div></div><div><div class="cw t"><canvas id="c-mk-pttV"></canvas></div></div></div></div></div>'
     + '</div>';
 
   /* Brand share table + Top buyers + concentration */
@@ -2065,21 +2274,21 @@ function renderMarket(){
   var top10share = top10Q/(totQ||1)*100;
 
   H += '<div class="g23">'
-    + '<div class="card reveal"><div class="ch"><div class="ct">Top 10 buyers</div><div class="hint">Click to see brand mix</div>'
+    + '<div class="card reveal"><div class="ch"><div class="ct">'+t("card.top10")+'</div><div class="hint">'+t("hint.brandmix")+'</div>'
       + '<div style="margin-left:auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap">'
       + metricSwHtml("mkBuyerMetric","mkBuyerMetricSet")
-      + ssHtml("ss-buyer","Search buyer…","mkBuyerSuggest")
+      + ssHtml("ss-buyer",t("ph.searchbuyer"),"mkBuyerSuggest")
       + '</div></div><div class="cb" id="mk-topbuyer"></div></div>'
-    + '<div class="card reveal"><div class="ch"><div class="ct">Concentration — Pareto</div><div class="cs">gold bar = buyer where Mani won · line = cumulative %</div></div><div class="cb">'
-      + '<div class="mstat" style="margin-bottom:10px"><div class="ml">Top 10 buyers hold</div><div class="mv" style="color:var(--blue)">'+pct(top10share)+'</div><div class="ms">'+qf(top10Q)+' / '+qf(totQ)+' pcs total</div></div>'
+    + '<div class="card reveal"><div class="ch"><div class="ct">'+t("card.conc")+'</div><div class="cs">'+t("cs.concsub")+'</div></div><div class="cb">'
+      + '<div class="mstat" style="margin-bottom:10px"><div class="ml">'+t("note.top10hold")+'</div><div class="mv" style="color:var(--blue)">'+pct(top10share)+'</div><div class="ms">'+qf(top10Q)+' / '+qf(totQ)+' pcs total</div></div>'
       + '<div class="cw" style="height:200px"><canvas id="c-mk-conc"></canvas></div>'
-      + '<div style="font-size:11.5px;color:var(--t2);margin-top:8px">Market is <b>'+(top10share>40?"highly concentrated":"fragmented")+'</b> — '+top10.length+' largest buyers hold '+pct(top10share)+' of capacity.</div>'
+      + '<div style="font-size:11.5px;color:var(--t2);margin-top:8px">'+(LANG==="vi"?("Thị trường <b>"+(top10share>40?t("note.concentrated"):t("note.fragmented"))+"</b> — "+top10.length+" chủ đầu tư lớn nhất nắm "+pct(top10share)+" dung lượng."):("Market is <b>"+(top10share>40?"highly concentrated":"fragmented")+"</b> — "+top10.length+" largest buyers hold "+pct(top10share)+" of capacity."))+'</div>'
     + '</div></div></div>';
 
   /* ── Province × Brand heatmap (UX v10) ── */
   H += mxHeatmapCard(R);
 
-  H += '<div class="card reveal"><div class="ch"><div class="ct">Full brand share table</div><div class="cs">'+bAgg.length+' brands</div><button class="dl-btn" onclick="exportTable(\'t-mk-brandtbl\',\'brand_share\')">Export CSV</button></div>'
+  H += '<div class="card reveal"><div class="ch"><div class="ct">'+t("card.brandtbl")+'</div><div class="cs">'+bAgg.length+' brands</div><button class="dl-btn" onclick="exportTable(\'t-mk-brandtbl\',\'brand_share\')">Export CSV</button></div>'
     + '<div class="cb" style="padding:0"><div class="tw" id="t-mk-brandtbl">'+brandTable(bAgg,totQ,totV)+'</div></div></div>';
 
   document.getElementById("mk-body").innerHTML = H;
@@ -2365,8 +2574,8 @@ function brandTable(bAgg,totQ,totV){
       +"<td>"+nf(a.qty)+"</td><td>"+pct(sq)+"</td><td>"+money(a.val)+"</td><td>"+pct(sv)+"</td><td>"+nf(a.npkg)+"</td><td>"+nf(a.nbuyer)+"</td><td>"+money(a.qty?a.val/a.qty:0)+"</td>"
       +"<td class='qa-td'><button class='qa' title='Open Brand Positioning' onclick=\"event.stopPropagation();goBrandTab('"+bq+"')\">🎯</button> <button class='qa' title='Head-to-Head vs Mani' onclick=\"event.stopPropagation();goVS('"+bq+"')\">⚔️</button></td></tr>";
   }).join("");
-  return "<table><thead><tr><th>#</th><th class='tl'>Brand</th><th>Qty</th><th>Qty %</th><th>Value</th><th>Val %</th><th>Packages</th><th>Buyers</th><th>Avg unit price</th><th></th></tr></thead><tbody>"+rows
-    +"<tr class='grand'><td></td><td class='tl'>TOTAL</td><td>"+nf(totQ)+"</td><td>100%</td><td>"+money(totV)+"</td><td>100%</td><td></td><td></td><td>"+money(totQ?totV/totQ:0)+"</td><td></td></tr></tbody></table>";
+  return "<table><thead><tr><th>#</th><th class='tl'>"+t("th.brand")+"</th><th>"+t("th.qty")+"</th><th>"+t("th.qtypct")+"</th><th>"+t("th.value")+"</th><th>"+t("th.valpct")+"</th><th>"+t("th.packages")+"</th><th>"+t("th.buyers")+"</th><th>"+t("th.avgprice")+"</th><th></th></tr></thead><tbody>"+rows
+    +"<tr class='grand'><td></td><td class='tl'>"+t("th.total")+"</td><td>"+nf(totQ)+"</td><td>100%</td><td>"+money(totV)+"</td><td>100%</td><td></td><td></td><td>"+money(totQ?totV/totQ:0)+"</td><td></td></tr></tbody></table>";
 }
 
 /* ════════════════════════════════════════════════════════════════════
@@ -2467,13 +2676,16 @@ function mxInsights(R,bAgg,bAggQty,totQ,totV){
   var msNow=shareOf(curSet,"Mani"), msPrev=cmpSet?shareOf(cmpSet,"Mani"):null;
   var hsNow=hiShareOf(curSet,"Mani"), hsPrev=cmpSet?hiShareOf(cmpSet,"Mani"):null;
   if(msNow!=null){
-    var h1='Qty share <b>'+msNow.toFixed(1)+'%</b>', tone1="gold";
-    if(msPrev!=null){ h1+=' '+mxDelta(msNow,msPrev,"pp")+' <span style="color:var(--t3)">'+esc(cmpLbl)+'</span>'; tone1=(msNow-msPrev)>=-0.05?"pos":"neg"; }
+    var perTag = (msPrev!=null && cmpLbl) ? '<div style="font-size:10.5px;color:var(--t3);font-weight:700;margin-bottom:3px">'+esc(cmpLbl)+'</div>' : '';
+    var lblQty = t("ins.qtyshare");
+    var lblHi  = t("ins.highseg");
+    var h1 = perTag + lblQty+' <b>'+msNow.toFixed(1)+'%</b>', tone1="gold";
+    if(msPrev!=null){ h1+=' '+mxDelta(msNow,msPrev,"pp"); tone1=(msNow-msPrev)>=-0.05?"pos":"neg"; }
     if(hsNow!=null){
-      h1+='<br>High seg <b style="color:#B98A00">'+hsNow.toFixed(1)+'%</b>';
+      h1+='<br>'+lblHi+' <b style="color:#B98A00">'+hsNow.toFixed(1)+'%</b>';
       if(hsPrev!=null) h1+=' '+mxDelta(hsNow,hsPrev,"pp");
     }
-    out.push({ic:"📈",t:"Mani momentum",x:h1,tone:tone1,
+    out.push({ic:"📈",t:t("ins.momentum"),x:h1,tone:tone1,
       click:"openDrill(filterRows({brand:'Mani',ptype:'"+esc(S.mkType)+"',region:'"+S.mkRegion+"'}),{title:'Mani',sub:'Brand'})"});
   }
 
@@ -2490,8 +2702,8 @@ function mxInsights(R,bAgg,bAggQty,totQ,totV){
       var d=s1-s0; if(!best||d>best.d) best={b:b,d:d,s1:s1};
     });
     if(best && best.d>0.2){
-      out.push({ic:"⚠️",t:"Rising rival",
-        x:'<b>'+esc(best.b)+'</b> '+mxDelta(best.s1,best.s1-best.d,"pp")+' → <b>'+best.s1.toFixed(1)+'%</b> qty share <span style="color:var(--t3)">'+esc(cmpLbl)+'</span>',
+      out.push({ic:"⚠️",t:t("ins.rising"),
+        x:'<b>'+esc(best.b)+'</b> '+mxDelta(best.s1,best.s1-best.d,"pp")+' → <b>'+best.s1.toFixed(1)+'%</b> '+t("ins.qtysharelc")+' <span style="color:var(--t3)">'+esc(cmpLbl)+'</span>',
         tone:"warn",
         click:"openDrill(filterRows({brand:'"+qesc(best.b)+"',ptype:'"+esc(S.mkType)+"',region:'"+S.mkRegion+"'}),{title:'"+qesc(best.b)+"',sub:'Brand'})"});
       pushedRival=true;
@@ -2499,8 +2711,8 @@ function mxInsights(R,bAgg,bAggQty,totQ,totV){
   }
   if(!pushedRival){
     var rival=bAggQty.filter(function(a){return a.key!=="Mani"&&a.key!=="Không rõ";})[0];
-    if(rival) out.push({ic:"🥈",t:"Top rival",
-      x:'<b>'+esc(rival.key)+'</b> holds <b>'+pct(totQ?rival.qty/totQ*100:0)+'</b> qty share ('+qf(rival.qty)+' pcs)',tone:"warn",
+    if(rival) out.push({ic:"🥈",t:t("ins.toprival"),
+      x:'<b>'+esc(rival.key)+'</b> '+t("ins.holds")+' <b>'+pct(totQ?rival.qty/totQ*100:0)+'</b> '+t("ins.qtysharelc")+' ('+qf(rival.qty)+' '+t("cs.pcs")+')',tone:"warn",
       click:"openDrill(filterRows({brand:'"+qesc(rival.key)+"',ptype:'"+esc(S.mkType)+"',region:'"+S.mkRegion+"'}),{title:'"+qesc(rival.key)+"',sub:'Brand'})"});
   }
 
@@ -2511,8 +2723,8 @@ function mxInsights(R,bAgg,bAggQty,totQ,totV){
     var topT=tArr.slice().sort(function(a,b){return b.v-a.v;})[0];
     var maniInT=topT.rows.filter(function(r){return r.brand==="Mani";}).reduce(function(s,r){return s+r.qty;},0);
     var mSh=topT.q?maniInT/topT.q*100:0;
-    out.push({ic:"💎",t:"Value engine",
-      x:'<b>'+topT.t+'</b> tier = <b>'+pct(totV?topT.v/totV*100:0)+'</b> of market value · Mani holds <b>'+mSh.toFixed(1)+'%</b> qty inside',
+    out.push({ic:"💎",t:t("ins.engine"),
+      x:'<b>'+t("tier."+topT.t.toLowerCase())+'</b> '+t("ins.tier")+' = <b>'+pct(totV?topT.v/totV*100:0)+'</b> '+t("ins.ofmktval")+' · '+t("ins.maniholds")+' <b>'+mSh.toFixed(1)+'%</b> '+t("ins.qtyinside")+'',
       tone:"pos",
       click:"openDrill(filterRows({tier:'"+topT.t+"',ptype:'"+esc(S.mkType)+"',region:'"+S.mkRegion+"'}),{title:'Tier "+topT.t+"',sub:'Price tier'})"});
   }
@@ -2522,9 +2734,9 @@ function mxInsights(R,bAgg,bAggQty,totQ,totV){
   if(byTop){
     var mQ=byTop.rows.filter(function(r){return r.brand==="Mani";}).reduce(function(s,r){return s+r.qty;},0);
     var bn=byTop.key.length>36?byTop.key.slice(0,35)+"…":byTop.key;
-    out.push({ic:"🏥",t:"Key account",
-      x:'<b>'+esc(bn)+'</b> — '+qf(byTop.qty)+' pcs ('+pct(totQ?byTop.qty/totQ*100:0)+' of market)'
-        +(mQ>0?' · Mani <b>'+pct(byTop.qty?mQ/byTop.qty*100:0)+'</b> inside':' · <b style="color:var(--neg)">Mani absent</b>'),
+    out.push({ic:"🏥",t:t("ins.keyacct"),
+      x:'<b>'+esc(bn)+'</b> — '+qf(byTop.qty)+' '+t("cs.pcs")+' ('+pct(totQ?byTop.qty/totQ*100:0)+' '+t("ins.ofmarket")+')'
+        +(mQ>0?' · '+t("ins.maniin")+' <b>'+pct(byTop.qty?mQ/byTop.qty*100:0)+'</b> '+t("ins.inside"):' · <b style="color:var(--neg)">'+t("ins.maniabsent")+'</b>'),
       tone:mQ>0?"pos":"neg",
       click:"buyerDrill('"+qesc(byTop.key)+"')"});
   }
@@ -2532,12 +2744,12 @@ function mxInsights(R,bAgg,bAggQty,totQ,totV){
   /* 5 · Price pulse (avg unit price, qty-weighted) */
   var q1=0,v1=0; curSet.forEach(function(r){q1+=r.qty;v1+=r.val;});
   if(q1){
-    var asp=v1/q1, h5='Avg unit price <b>'+money(asp)+'</b>', tone5="";
+    var asp=v1/q1, h5=t("ins.avgprice")+' <b>'+money(asp)+'</b>', tone5="";
     if(cmpSet&&cmpSet.length){
       var q0=0,v0=0; cmpSet.forEach(function(r){q0+=r.qty;v0+=r.val;});
       if(q0){var asp0=v0/q0; h5+=' '+mxDelta(asp,asp0,"pct")+' <span style="color:var(--t3)">'+esc(cmpLbl)+'</span>'; tone5=(asp-asp0)>=0?"pos":"neg";}
     }
-    out.push({ic:"💰",t:"Price pulse",x:h5,tone:tone5});
+    out.push({ic:"💰",t:t("ins.pricepulse"),x:h5,tone:tone5});
   }
   return out.slice(0,5);
 }
@@ -2769,12 +2981,12 @@ function mxHeatmapCard(R){
       h+='<div class="hc" style="'+(bg?("background:"+bg+";"):"")+'color:'+fg+'" onclick="hmDrill('+pi+','+bi+')" title="'+esc(b)+' @ '+esc(p)+' · '+tt+' ('+sh.toFixed(1)+'%)">'+(q?sh.toFixed(0)+"%":"·")+'</div>';
     });
   });
-  h+='</div><div class="hm-lg"><span class="sw"></span> brand share of province '+(hv?"value":"quantity")+'<span class="sw swy" style="margin-left:10px"></span> Mani column · click a cell to drill line items</div>';
-  return '<div class="card reveal"><div class="ch"><div class="ct">Province × Brand heatmap</div>'
-    + '<div class="cs">Top '+pAg.length+' provinces'+(pinned.length?(" +"+pinned.length+" pinned"):"")+' · top '+brands.length+' brands · % = share of province '+(hv?"value":"quantity")+'</div>'
+  h+='</div><div class="hm-lg"><span class="sw"></span> '+(LANG==="vi"?"thị phần hãng theo tỉnh":"brand share of province")+' '+(hv?t("hm.value"):t("hm.quantity"))+'<span class="sw swy" style="margin-left:10px"></span> Mani column · click a cell to drill line items</div>';
+  return '<div class="card reveal"><div class="ch"><div class="ct">'+t("card.heatmap")+'</div>'
+    + '<div class="cs">'+t("dk.top")+' '+pAg.length+' '+t("hm.provinces")+(pinned.length?(" +"+pinned.length+" pinned"):"")+' · top '+brands.length+' '+t("hm.brands")+' · % = '+t("hm.shareofprov")+' '+(hv?t("hm.value"):t("hm.quantity"))+'</div>'
     + '<div style="margin-left:auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap">'
       + metricSwHtml("hmMetric","hmMetricSet")
-      + ssHtml("ss-prov","Search province…","hmSuggest")
+      + ssHtml("ss-prov",t("ph.searchprov"),"hmSuggest")
     + '</div></div><div class="cb hm-wrap">'+h+'</div></div>';
 }
 function hmDrill(pi,bi){
@@ -2838,12 +3050,12 @@ function cvswHtml(key){
     var on = (v===null && cur==null) || (v!==null && cur===v);
     return '<button class="'+(on?"on":"")+'" onclick="mkViewSet(\''+key+'\','+(v?("'"+v+"'"):"null")+')">'+t+'</button>';
   }
-  return '<div class="cvsw" title="Chart time axis">'+b(null,"Auto")+b("fy","FY")+b("year","Year")+b("month","Month")+'</div>';
+  return '<div class="cvsw" title="Chart time axis">'+b(null,t("sw.auto"))+b("fy",t("sw.fy"))+b("year",t("sw.year"))+b("month",t("sw.month"))+'</div>';
 }
 function mkViewSet(key,v){ S.mkView[key]=v; renderMarket(); }
 function metricSwHtml(stateKey, fn){
   function b(v,t){return '<button class="'+(S[stateKey]===v?"on":"")+'" onclick="'+fn+'(\''+v+'\')">'+t+'</button>';}
-  return '<div class="msw">'+b("qty","Qty")+b("val","Value")+'</div>';
+  return '<div class="msw">'+b("qty",t("sw.qty"))+b("val",t("sw.val"))+'</div>';
 }
 function mkBuyerMetricSet(v){ if(S.mkBuyerMetric===v) return; S.mkBuyerMetric=v; renderMarket(); }
 function ssHtml(id, ph, fn){
@@ -2917,8 +3129,8 @@ function tierThresholds(rows){
 
 function renderBrand(){
   var opts=BRANDS.map(function(b){return '<option value="'+esc(b)+'"'+(b===S.brand?" selected":"")+'>'+esc(b)+'</option>';}).join("");
-  document.getElementById("br-ctrl").innerHTML='<span class="cl">Brand</span><select class="sel" style="min-width:240px" onchange="S.brand=this.value;renderBrand()">'+opts+'</select>'
-    +'<label class="postgl"><input type="checkbox" '+(S.brTop3?"checked":"")+' onchange="S.brTop3=this.checked;renderBrand()"> Positioning map: Top 3 per tier only</label>';
+  document.getElementById("br-ctrl").innerHTML='<span class="cl">'+t("sb.brand")+'</span><select class="sel" style="min-width:240px" onchange="S.brand=this.value;renderBrand()">'+opts+'</select>'
+    +'<label class="postgl"><input type="checkbox" '+(S.brTop3?"checked":"")+' onchange="S.brTop3=this.checked;renderBrand()"> '+t("post.top3")+'</label>';
   document.getElementById("br-name").textContent=S.brand+" · "+timeLabel();
 
   var R=filterRows({});
@@ -2931,24 +3143,24 @@ function renderBrand(){
   var rankQ=bAggAll.findIndex(function(a){return a.key===S.brand;})+1;
 
   document.getElementById("br-kpi").innerHTML=
-      kpiCard({lbl:S.brand+" share (Qty)", val:bQ/(totQ||1)*100, mode:"p", cls:isMani(S.brand)?"y":"", note:qf(bQ)+" pcs · rank "+(rankQ||"—")})
-    + kpiCard({lbl:S.brand+" share (Value)", val:bV/(totV||1)*100, mode:"p", cls:"pos", note:money(bV)})
-    + kpiCard({lbl:"Packages won", val:Object.keys(pk).length, mode:"n", note:Object.keys(by).length+" buyers · "+Object.keys(pv).length+" provinces"})
-    + kpiCard({lbl:"Average unit price", val:avgP, mode:"vnd", note:""});
+      kpiCard({lbl:S.brand+" "+t("br.shareQ"), val:bQ/(totQ||1)*100, mode:"p", cls:isMani(S.brand)?"y":"", note:qf(bQ)+" "+t("cs.pcs")+" · "+(LANG==="vi"?"hạng ":"rank ")+(rankQ||"—")})
+    + kpiCard({lbl:S.brand+" "+t("br.shareV"), val:bV/(totV||1)*100, mode:"p", cls:"pos", note:money(bV)})
+    + kpiCard({lbl:t("kpi.pkgswon"), val:Object.keys(pk).length, mode:"n", note:Object.keys(by).length+" "+t("kpi.buyers").toLowerCase()+" · "+Object.keys(pv).length+" "+(LANG==="vi"?"tỉnh":"provinces")})
+    + kpiCard({lbl:t("kpi.avgprice"), val:avgP, mode:"vnd", note:""});
 
   var H="";
   H+='<div class="g23">'
-    +'<div class="card reveal"><div class="ch"><div class="ct">️ Positioning map — Price vs Share</div><div class="cs">X: avg unit price · Y: quantity share · size: volume</div></div><div class="cb"><div class="cw t"><canvas id="c-br-pos"></canvas></div>'
+    +'<div class="card reveal"><div class="ch"><div class="ct">'+t("br.posmap")+'</div><div class="cs">'+t("br.posmapsub")+'</div></div><div class="cb"><div class="cw t"><canvas id="c-br-pos"></canvas></div>'
       +'<div class="poslg"><span class="z" style="background:#FFF6C2;color:#8A6D00">LOW</span><span class="z" style="background:#E5F0E8;color:#2E7D32">MID</span><span class="z" style="background:#E4ECF8;color:#3A5CAA">HIGH</span><span style="margin-left:auto">🟡 = '+esc(S.brand)+'</span></div></div></div>'
-    +'<div class="card reveal"><div class="ch"><div class="ct">'+esc(S.brand)+' tier mix</div></div><div class="cb"><div class="cw t"><canvas id="c-br-mix"></canvas></div></div></div>'
+    +'<div class="card reveal"><div class="ch"><div class="ct">'+esc(S.brand)+' '+t("br.tiermix")+'</div></div><div class="cb"><div class="cw t"><canvas id="c-br-mix"></canvas></div></div></div>'
     +'</div>';
   H+='<div class="g2">'
-    +'<div class="card reveal"><div class="ch"><div class="ct">Quantity vs Value share over years</div></div><div class="cb"><div class="cw"><canvas id="c-br-sv"></canvas></div></div></div>'
-    +'<div class="card reveal"><div class="ch"><div class="ct">'+esc(S.brand)+' by product type over years</div></div><div class="cb"><div class="cw"><canvas id="c-br-pt"></canvas></div></div></div>'
+    +'<div class="card reveal"><div class="ch"><div class="ct">'+t("br.qvshare")+'</div></div><div class="cb"><div class="cw"><canvas id="c-br-sv"></canvas></div></div></div>'
+    +'<div class="card reveal"><div class="ch"><div class="ct">'+esc(S.brand)+' '+t("br.byptyears")+'</div></div><div class="cb"><div class="cw"><canvas id="c-br-pt"></canvas></div></div></div>'
     +'</div>';
   H+='<div class="g2">'
-    +'<div class="card reveal"><div class="ch"><div class="ct">'+esc(S.brand)+' share by product type</div><div class="cs">Last 2 years</div></div><div class="cb"><div class="cw"><canvas id="c-br-ptshare"></canvas></div></div></div>'
-    +'<div class="card reveal"><div class="ch"><div class="ct">'+esc(S.brand)+' by Region over years</div></div><div class="cb"><div class="cw"><canvas id="c-br-reg"></canvas></div></div></div>'
+    +'<div class="card reveal"><div class="ch"><div class="ct">'+esc(S.brand)+' '+t("br.sharebypt")+'</div><div class="cs">'+t("br.last2y")+'</div></div><div class="cb"><div class="cw"><canvas id="c-br-ptshare"></canvas></div></div></div>'
+    +'<div class="card reveal"><div class="ch"><div class="ct">'+esc(S.brand)+' '+t("br.byregion")+'</div></div><div class="cb"><div class="cw"><canvas id="c-br-reg"></canvas></div></div></div>'
     +'</div>';
   var byAgg=sortDesc(toArr(aggBy(BR,function(r){return r.buyer;})),"qty").slice(0,12);
   var highBuyers={};R.forEach(function(r){if(r.tier==="High")highBuyers[r.buyer]=1;});
@@ -2957,8 +3169,8 @@ function renderBrand(){
   var gapRows=R.filter(function(r){return r.tier==="High"&&gapHigh.indexOf(r.buyer)>=0;});
   var gapAgg=sortDesc(toArr(aggBy(gapRows,function(r){return r.buyer;})),"qty").slice(0,12);
   H+='<div class="g2">'
-    +'<div class="card reveal"><div class="ch"><div class="ct">Top buyers of '+esc(S.brand)+'</div><div class="hint">Click to drill</div></div><div class="cb" id="br-topbuyer"></div></div>'
-    +'<div class="card reveal"><div class="ch"><div class="ct">GAP — High-tier buyers without '+esc(S.brand)+'</div><div class="cs">'+gapHigh.length+' High buyers untapped</div><button class="dl-btn" onclick="rowsToCSV(window._brGap||[],\'GAP_High_'+esc(S.brand)+'\')">Export CSV</button></div><div class="cb" id="br-gap"></div></div>'
+    +'<div class="card reveal"><div class="ch"><div class="ct">'+t("br.topbuyers")+' '+esc(S.brand)+'</div><div class="hint">'+t("hint.drill")+'</div></div><div class="cb" id="br-topbuyer"></div></div>'
+    +'<div class="card reveal"><div class="ch"><div class="ct">'+t("br.gaptitle")+' '+esc(S.brand)+'</div><div class="cs">'+gapHigh.length+' '+t("br.gapsub")+'</div><button class="dl-btn" onclick="rowsToCSV(window._brGap||[],\'GAP_High_'+esc(S.brand)+'\')">Export CSV</button></div><div class="cb" id="br-gap"></div></div>'
     +'</div>';
   window._brGap=gapRows;
   document.getElementById("br-body").innerHTML=H;
@@ -3105,15 +3317,15 @@ function renderAcct(){
   var brandOpts=BRANDS.map(function(b){return '<option value="'+esc(b)+'"'+(b===S.acBrand?" selected":"")+'>'+esc(b)+'</option>';}).join("");
   var minMo = MONTHS_SORTED[0], maxMo = MONTHS_SORTED[MONTHS_SORTED.length-1];
   document.getElementById("ac-ctrl").innerHTML=
-    '<span class="cl">Brand</span><select class="sel" style="min-width:170px" onchange="S.acBrand=this.value;renderAcct()">'+brandOpts+'</select>'
+    '<span class="cl">'+t("sb.brand")+'</span><select class="sel" style="min-width:170px" onchange="S.acBrand=this.value;renderAcct()">'+brandOpts+'</select>'
    +'<span class="divx"></span>'
-   +'<span class="cl">Reference window</span>'
-   +'<span style="font-size:11.5px;color:var(--t3);margin-right:4px">From</span>'+mpickBtnHtml("mp-ac-from", seg.from, minMo, maxMo, "onAcFrom")
-   +'<span style="font-size:11.5px;color:var(--t3);margin:0 4px">to</span>'+mpickBtnHtml("mp-ac-to", seg.to, seg.from, maxMo, "onAcTo")
+   +'<span class="cl">'+t("sb.refwin")+'</span>'
+   +'<span style="font-size:11.5px;color:var(--t3);margin-right:4px">'+t("sb.from")+'</span>'+mpickBtnHtml("mp-ac-from", seg.from, minMo, maxMo, "onAcFrom")
+   +'<span style="font-size:11.5px;color:var(--t3);margin:0 4px">'+t("sb.to")+'</span>'+mpickBtnHtml("mp-ac-to", seg.to, seg.from, maxMo, "onAcTo")
    +'<span class="divx"></span>'
-   +'<span class="cl">Cutoff</span>'+mpickBtnHtml("mp-ac-cut", seg.cut, seg.from, seg.to, "onAcCut");
+   +'<span class="cl">'+t("sb.cutoff")+'</span>'+mpickBtnHtml("mp-ac-cut", seg.cut, seg.from, seg.to, "onAcCut");
   document.getElementById("ac-name").textContent=S.acBrand+" · "+moLabel(seg.from)+" → "+moLabel(seg.to)+" · cut "+moLabel(seg.cut);
-  var subs=[["overview","Overview"],["detail","Group detail"],["risk","Risk & Opportunity"]];
+  var subs=[["overview",t("sub.overview")],["detail",t("sub.detail")],["risk",t("sub.risk")]];
   document.getElementById("ac-subnav").innerHTML=subs.map(function(s){return '<button class="subt '+(S.acSub===s[0]?"on":"")+'" onclick="S.acSub=\''+s[0]+'\';renderAcct()">'+s[1]+'</button>';}).join("");
   if(S.acSub==="overview")acOverview();
   else if(S.acSub==="detail")acDetail();
@@ -3131,7 +3343,7 @@ function acOverview(){
     var n=c[g.k],p=totBuyers?(n/totBuyers*100):0;
     return '<div class="grpc tight" style="border-top-color:'+g.col+'" onclick="S.acSub=\'detail\';S.acGroup=\''+g.k+'\';renderAcct()"><div class="gic">'+g.ic+'</div><div class="gnm">'+g.nm+'</div><div class="gct" style="color:'+g.col+'">'+n+'</div><div class="gpct">'+p.toFixed(1)+'%</div></div>';
   }).join("")+'</div>';
-  H+='<div class="card reveal" style="margin-bottom:14px"><div class="ch"><div class="ct">'+totBuyers+' buyers by status</div><div class="cs">Width = % of total buyers in window '+moLabel(seg.from)+' → '+moLabel(seg.to)+'</div></div><div class="cb"><div class="distbar">';
+  H+='<div class="card reveal" style="margin-bottom:14px"><div class="ch"><div class="ct">'+totBuyers+' '+t("ac.bystatus").toLowerCase()+'</div><div class="cs">'+t("ac.widthnote")+' '+moLabel(seg.from)+' → '+moLabel(seg.to)+'</div></div><div class="cb"><div class="distbar">';
   ACG.forEach(function(g){
     var n=c[g.k];if(n<=0)return;var p=totBuyers?(n/totBuyers*100):0;
     H+='<div class="distseg" style="background:'+g.col+';flex:'+p+'" title="'+g.nm+': '+n+' ('+p.toFixed(1)+'%)">'+(p>=2.5?n:"")+'</div>';
@@ -3141,14 +3353,14 @@ function acOverview(){
   H+='</div></div></div>';
   H+='<div class="kr">'
     + kpiCard({lbl:S.acBrand+" buyers held",val:brandBuyers,mode:"n",cls:"y",note:"of "+totBuyers+" total buyers"})
-    + kpiCard({lbl:"Territories CAPTURED",val:gained,mode:"n",cls:"pos",note:c.Convert+" convert + "+c.New+" new"})
-    + kpiCard({lbl:"Territories LOST",val:lost,mode:"n",cls:"neg",note:"competitor took back"})
-    + kpiCard({lbl:"Net balance",val:net,mode:"n",cls:net>=0?"pos":"neg",note:net>=0?"net gain":"net loss"})
+    + kpiCard({lbl:t("ac.captured"),val:gained,mode:"n",cls:"pos",note:c.Convert+" convert + "+c.New+" new"})
+    + kpiCard({lbl:t("ac.lost"),val:lost,mode:"n",cls:"neg",note:"competitor took back"})
+    + kpiCard({lbl:t("ac.netbal"),val:net,mode:"n",cls:net>=0?"pos":"neg",note:net>=0?"net gain":"net loss"})
     +'</div>';
-  H+='<div class="g2"><div class="card reveal"><div class="ch"><div class="ct">Buyers by status</div></div><div class="cb"><div class="cw s" style="height:260px"><canvas id="c-ac-flow"></canvas></div></div></div>'
+  H+='<div class="g2"><div class="card reveal"><div class="ch"><div class="ct">'+t("ac.bystatus")+'</div></div><div class="cb"><div class="cw s" style="height:260px"><canvas id="c-ac-flow"></canvas></div></div></div>'
     +'<div class="card reveal"><div class="ch"><div class="ct">️ By region</div></div><div class="cb"><div class="cw s" style="height:260px"><canvas id="c-ac-reg"></canvas></div></div></div></div>';
-  H+='<div class="g2"><div class="card reveal"><div class="ch"><div class="ct">Competitors we just CAPTURED from</div></div><div class="cb"><div id="ac-takefrom"></div></div></div>'
-    +'<div class="card reveal"><div class="ch"><div class="ct">Territories LOST to</div></div><div class="cb"><div id="ac-lostto"></div></div></div></div>';
+  H+='<div class="g2"><div class="card reveal"><div class="ch"><div class="ct">'+t("ac.capfrom")+'</div></div><div class="cb"><div id="ac-takefrom"></div></div></div>'
+    +'<div class="card reveal"><div class="ch"><div class="ct">'+t("ac.lostto")+'</div></div><div class="cb"><div id="ac-lostto"></div></div></div></div>';
   document.getElementById("ac-body").innerHTML=H;
   barChart("c-ac-flow",{labels:["Convert","New","Retain","Loss","Untouched","No Tender"],
     datasets:[{label:"Buyers",data:[c.Convert,c.New,c.Retain,c.Loss,c.Untouched,c["No Tender"]],
@@ -3272,10 +3484,10 @@ function renderVS(){
   var oA=BRANDS.map(function(b){return '<option value="'+esc(b)+'"'+(b===S.vsA?" selected":"")+'>'+esc(b)+'</option>';}).join("");
   var oB=BRANDS.map(function(b){return '<option value="'+esc(b)+'"'+(b===S.vsB?" selected":"")+'>'+esc(b)+'</option>';}).join("");
   var colA=brandColor(S.vsA),colB=brandColor(S.vsB);
-  document.getElementById("vs-ctrl").innerHTML='<span class="cl">Brand A</span><select class="sel" style="min-width:185px;border-color:'+colA+';border-width:2px" onchange="S.vsA=this.value;renderVS()">'+oA+'</select>'
+  document.getElementById("vs-ctrl").innerHTML='<span class="cl">'+t("sb.brandA")+'</span><select class="sel" style="min-width:185px;border-color:'+colA+';border-width:2px" onchange="S.vsA=this.value;renderVS()">'+oA+'</select>'
     +'<span style="font-weight:900;color:var(--t3);padding:0 4px">VS</span>'
-    +'<span class="cl">Brand B</span><select class="sel" style="min-width:185px;border-color:'+colB+';border-width:2px" onchange="S.vsB=this.value;renderVS()">'+oB+'</select>'
-    +'<span style="margin-left:auto;font-size:11.5px;color:var(--t2)">⏱ Use the time bar above</span>';
+    +'<span class="cl">'+t("sb.brandB")+'</span><select class="sel" style="min-width:185px;border-color:'+colB+';border-width:2px" onchange="S.vsB=this.value;renderVS()">'+oB+'</select>'
+    +'<span style="margin-left:auto;font-size:11.5px;color:var(--t2)">'+t("vs.usetime")+'</span>';
 
   var RA=filterRows({brand:S.vsA}),RB=filterRows({brand:S.vsB});
   var A=brandStats(RA),B=brandStats(RB);
@@ -3293,14 +3505,14 @@ function renderVS(){
   }
   var H='<div class="cmpcols n2">'+col(S.vsA,A,"cA",colA)+col(S.vsB,B,"cB",colB)+'</div>';
   H+='<div class="g2">'
-    +'<div class="card reveal"><div class="ch"><div class="ct">Results over years — '+metricLabel()+'</div></div><div class="cb"><div class="cw"><canvas id="c-vs-year"></canvas></div></div></div>'
-    +'<div class="card reveal"><div class="ch"><div class="ct">By region (North/South)</div></div><div class="cb"><div class="cw"><canvas id="c-vs-reg"></canvas></div></div></div>'
+    +'<div class="card reveal"><div class="ch"><div class="ct">'+t("vs.resultsyears")+' — '+metricLabel()+'</div></div><div class="cb"><div class="cw"><canvas id="c-vs-year"></canvas></div></div></div>'
+    +'<div class="card reveal"><div class="ch"><div class="ct">'+t("vs.byregion")+'</div></div><div class="cb"><div class="cw"><canvas id="c-vs-reg"></canvas></div></div></div>'
     +'</div>';
   H+='<div class="g2">'
-    +'<div class="card reveal"><div class="ch"><div class="ct">Avg unit price by product type</div></div><div class="cb"><div class="cw"><canvas id="c-vs-price"></canvas></div></div></div>'
+    +'<div class="card reveal"><div class="ch"><div class="ct">'+t("vs.avgpricept")+'</div></div><div class="cb"><div class="cw"><canvas id="c-vs-price"></canvas></div></div></div>'
     +'<div class="card reveal"><div class="ch"><div class="ct">️ Territory advantage</div><div class="cs">Among buyers where both compete</div></div><div class="cb"><div class="cw"><canvas id="c-vs-terr"></canvas></div></div></div>'
     +'</div>';
-  H+='<div class="card reveal"><div class="ch"><div class="ct">Top provinces (combined)</div></div><div class="cb"><div class="cw t"><canvas id="c-vs-prov"></canvas></div></div></div>';
+  H+='<div class="card reveal"><div class="ch"><div class="ct">'+t("vs.topprov")+'</div></div><div class="cb"><div class="cw t"><canvas id="c-vs-prov"></canvas></div></div></div>';
   var loyA=loyalBuyers(RA),loyB=loyalBuyers(RB);
   H+='<div class="g2">'
     +'<div class="card reveal"><div class="ch"><div class="ct" style="color:'+colA+'">Loyal buyers — '+esc(S.vsA)+'</div><div class="cs">'+loyA.length+' buyers with ≥2 packages</div></div><div class="cb" style="padding:0"><div class="tw">'+loyalTable(loyA,colA)+'</div></div></div>'
@@ -3312,7 +3524,7 @@ function renderVS(){
   var onlyB=Object.keys(buyersB).filter(function(b){return buyersA[b]==null;}).length;
   var advA=0,advB=0;shared.forEach(function(b){if(buyersA[b]>=buyersB[b])advA++;else advB++;});
   if(!S.vsCut)S.vsCut=MONTHS_SORTED[Math.floor(MONTHS_SORTED.length*0.66)]||MONTHS_SORTED[MONTHS_SORTED.length-1];
-  H+='<div class="card reveal"><div class="ch"><div class="ct">️ Territory shifts across a cutoff</div><div class="cs">Before → after cut (full history)</div>'
+  H+='<div class="card reveal"><div class="ch"><div class="ct">️ Territory shifts across a cutoff</div><div class="cs">'+t("vs.beforeafter")+'</div>'
     +'<span style="margin-left:auto;font-size:12px;color:var(--t2);font-weight:700;display:inline-flex;align-items:center;gap:6px">Cut '+mpickBtnHtml("mp-vs-cut", S.vsCut, MONTHS_SORTED[0], MONTHS_SORTED[MONTHS_SORTED.length-1], "onVsCut")+'</span></div>'
     +'<div class="cb"><div class="cw"><canvas id="c-vs-compete"></canvas></div><div id="vs-compete-ins" style="font-size:12.5px;color:var(--t2);margin-top:10px;line-height:1.55"></div></div></div>';
   document.getElementById("vs-body").innerHTML=H;
@@ -3397,6 +3609,8 @@ function bootDashboard(){
     var tm=localStorage.getItem("mmh_tier_mode"); if(tm==="custom") TIER_MODE="custom";
     var tc=localStorage.getItem("mmh_tier_custom");
     if(tc){ try{ var o=JSON.parse(tc); if(o && typeof o==="object"){ TIER_CUSTOM={}; Object.keys(o).forEach(function(pt){ TIER_CUSTOM[pt]={low:+o[pt].low||0, high:+o[pt].high||0}; }); } }catch(e2){} }
+    var lg=localStorage.getItem("mmh_lang"); if(lg==="vi"||lg==="en"){ LANG=lg; document.getElementById("lang-en").classList.toggle("on",lg==="en"); document.getElementById("lang-vi").classList.toggle("on",lg==="vi"); }
+    applyI18nStatic();
   }catch(e){}
   fetchData().then(function(){
     renderAll();
@@ -3442,7 +3656,7 @@ var PPT = {
   maniRow:"FFF6C2", font:"Aptos"
 };
 var PPT_W = 13.333, PPT_H = 7.5;
-var TAB_TITLES = {market:"Market Overview", brand:"Brand Positioning", acct:"Territory Tracking", vs:"Head-to-Head"};
+function tabTitle(tab){ return t("nav."+(tab==="acct"?"acct":tab)); }
 
 function pTxt(s){ return String(s==null?"":s).replace(/\s+/g," ").trim(); }
 function blendHex(a,b,t){
@@ -3451,6 +3665,112 @@ function blendHex(a,b,t){
   function p2(n){var s=Math.round(n).toString(16);return s.length<2?"0"+s:s;}
   return p2(A[0]+(B[0]-A[0])*t)+p2(A[1]+(B[1]-A[1])*t)+p2(A[2]+(B[2]-A[2])*t);
 }
+/* ── Native chart conversion: read live Chart.js instance → PptxGenJS chart spec ──
+   Produces EDITABLE charts in PowerPoint (not images). Falls back to image if a
+   chart type isn't mappable. */
+function _hex(c){
+  if(!c) return PPT.blue;
+  c=String(c);
+  if(c.charAt(0)==="#") return c.slice(1).toUpperCase();
+  var m=c.match(/rgba?\(([^)]+)\)/);
+  if(m){ var p=m[1].split(",");
+    function h(n){var s=Math.round(parseFloat(n)).toString(16);return s.length<2?"0"+s:s;}
+    return (h(p[0])+h(p[1])+h(p[2])).toUpperCase();
+  }
+  return PPT.blue;
+}
+function _firstColor(bg, i){
+  if(Array.isArray(bg)) return _hex(bg[i%bg.length]);
+  return _hex(bg);
+}
+function chartSpec(id){
+  var ch=S.charts[id]; if(!ch||!ch.config) return null;
+  var type=ch.config.type, d=ch.data||{}, labels=(d.labels||[]).map(function(x){return String(x);});
+  var dss=(d.datasets||[]);
+  if(!labels.length||!dss.length) return null;
+
+  if(type==="doughnut"||type==="pie"){
+    var ds0=dss[0];
+    var dataPts=labels.map(function(l,i){return {name:l, labels:[l], values:[ds0.data[i]||0]};});
+    /* pptx doughnut wants one data series with name/labels/values */
+    var colors=labels.map(function(l,i){return _firstColor(ds0.backgroundColor,i);});
+    return {kind:"doughnut", data:[{name:id, labels:labels, values:ds0.data.map(function(v){return +v||0;})}],
+      opts:{ chartColors:colors, holeSize:60, showLegend:true, legendPos:"r", legendFontSize:8,
+             showValue:false, showPercent:true, dataLabelColor:"FFFFFF", dataLabelFontSize:8, dataLabelFontFace:PPT.font }};
+  }
+
+  /* bar / line / combo */
+  var isHoriz = (ch.config.options && ch.config.options.indexAxis==="y");
+  var stacked = !!(ch.config.options && ch.config.options.scales && ch.config.options.scales.x && ch.config.options.scales.x.stacked);
+  var hasLine = dss.some(function(x){return x.type==="line";});
+  var chartTypes=[];
+  dss.forEach(function(ds,i){
+    var isLine = (ds.type==="line");
+    var col = isLine ? _hex(ds.borderColor) : _firstColor(ds.backgroundColor,0);
+    var pd = labels.map(function(l,li){return (+ds.data[li]||0);});
+    chartTypes.push({
+      type: isLine ? "line" : "bar",
+      data: [{ name: pTxt(ds.label||("Series "+(i+1))), labels: labels, values: pd }],
+      options: isLine
+        ? { chartColors:[col], lineSize:2, lineSmooth:true, secondaryValAxis:!!hasLine, secondaryCatAxis:!!hasLine }
+        : { chartColors:[col] }
+    });
+  });
+  return {kind: hasLine ? "combo" : "bar",
+    barDir: isHoriz ? "bar" : "col",
+    barGrouping: stacked ? "stacked" : "clustered",
+    chartTypes: chartTypes,
+    single: (dss.length===1 && !hasLine),
+    singleColors: (dss.length===1 && !hasLine) ? labels.map(function(l,i){return _firstColor(dss[0].backgroundColor,i);}) : null,
+    labels: labels, dss: dss, isHoriz:isHoriz, stacked:stacked };
+}
+function addNativeChart(pres, slide, id, x, y, w, h){
+  var spec=chartSpec(id); if(!spec) return false;
+  var base={ x:x, y:y, w:w, h:h, chartColorsOpacity:100,
+    showLegend:true, legendPos:"b", legendFontFace:PPT.font, legendFontSize:8, legendColor:PPT.navy,
+    catAxisLabelFontFace:PPT.font, catAxisLabelFontSize:8, catAxisLabelColor:"595959",
+    valAxisLabelFontFace:PPT.font, valAxisLabelFontSize:8, valAxisLabelColor:"595959",
+    dataLabelFontFace:PPT.font, dataLabelFontSize:8,
+    valGridLine:{style:"solid", color:"E6EBF2", size:0.5}, catGridLine:{style:"none"} };
+  try{
+    if(spec.kind==="doughnut"){
+      var o=Object.assign({}, base, spec.opts);
+      slide.addChart("doughnut", spec.data, o);
+      return true;
+    }
+    if(spec.kind==="combo"){
+      slide.addChart(spec.chartTypes, Object.assign({}, base, {
+        barDir:spec.barDir, barGrouping:spec.barGrouping, barGapWidthPct:55,
+        showLegend:true, legendPos:"b",
+        valAxes:[
+          { showValAxisTitle:false, valGridLine:{style:"solid",color:"E6EBF2",size:0.5} },
+          { showValAxisTitle:false, valGridLine:{style:"none"}, valAxisMaxVal:100, valAxisMinVal:0 }
+        ],
+        catAxes:[ {catAxisLabelColor:"595959",catAxisLabelFontFace:PPT.font,catAxisLabelFontSize:8}, {catAxisHidden:true} ]
+      }));
+      return true;
+    }
+    /* bar */
+    var data, opts=Object.assign({}, base, {
+      barDir:spec.barDir, barGrouping:spec.barGrouping, barGapWidthPct:spec.stacked?30:45 });
+    if(spec.single){
+      data=[{ name:pTxt(spec.dss[0].label||"Series"), labels:spec.labels, values:spec.labels.map(function(l,i){return +spec.dss[0].data[i]||0;}) }];
+      /* per-point colors */
+      opts.chartColors = spec.singleColors;
+      opts.showLegend = false;
+      opts.showValue = false;
+    } else {
+      data=spec.dss.map(function(ds,i){
+        return { name:pTxt(ds.label||("Series "+(i+1))), labels:spec.labels, values:spec.labels.map(function(l,li){return +ds.data[li]||0;}) };
+      });
+      opts.chartColors = spec.dss.map(function(ds){return _firstColor(ds.backgroundColor,0);});
+    }
+    if(spec.stacked){ opts.valAxisMaxVal=undefined; }
+    slide.addChart("bar", data, opts);
+    return true;
+  }catch(e){ console.warn("native chart failed for "+id, e); return false; }
+}
+
 function chartImgInfo(id){
   var ch=S.charts[id], el=document.getElementById(id);
   if(!ch||!el||!el.width||!el.height) return null;
@@ -3485,9 +3805,9 @@ function pptSubHead(slide, x, y, w, text){
 }
 function deckFilterLines(){
   var L=[];
-  L.push("Time window:  "+timeLabel());
-  L.push("Product type:  "+(S.mkType==="ALL"?"All knife types":S.mkType)+"     Region:  "+(S.mkRegion==="ALL"?"Nationwide":S.mkRegion));
-  L.push("Currency:  "+S.currency+"     Price tiers:  "+(TIER_MODE==="custom"?"Custom price ranges":("Anchor-based (±"+Math.round((window.TIER_BAND||0.35)*100)+"%)")));
+  L.push(t("deck.time")+":  "+timeLabel());
+  L.push(t("deck.ptype")+":  "+(S.mkType==="ALL"?t("deck.alltypes"):S.mkType)+"     "+t("deck.region")+":  "+(S.mkRegion==="ALL"?t("deck.nationwide"):tRegion(S.mkRegion)));
+  L.push(t("deck.currency")+":  "+S.currency+"     "+t("deck.tiers")+":  "+(TIER_MODE==="custom"?t("deck.custom"):(t("deck.anchor")+" (±"+Math.round((window.TIER_BAND||0.35)*100)+"%)")));
   return L;
 }
 function pptCover(pres, ref, tab){
@@ -3496,12 +3816,12 @@ function pptCover(pres, ref, tab){
   /* yellow column on the right — per MMH title-slide layout */
   s.addShape("rect",{x:10.0,y:0,w:3.333,h:7.5,fill:{color:PPT.yellow},line:{type:"none"}});
   s.addShape("rect",{x:1.056,y:1.62,w:1.1,h:0.05,fill:{color:PPT.blue},line:{type:"none"}});
-  s.addText("MMH · TENDER INTELLIGENCE",{x:1.056,y:1.0,w:8.3,h:0.4,fontFace:PPT.font,fontSize:14,bold:true,color:PPT.blue,charSpacing:2});
-  s.addText((TAB_TITLES[tab]||"Dashboard").toUpperCase(),{x:1.056,y:2.0,w:8.5,h:1.9,fontFace:PPT.font,fontSize:45,bold:true,color:PPT.navy,charSpacing:1,fit:"shrink",valign:"top"});
-  s.addText("Ophthalmic Knife Tender Market Dashboard — Vietnam",{x:1.056,y:3.95,w:8.3,h:0.45,fontFace:PPT.font,fontSize:18,color:PPT.navy2});
+  s.addText(t("ppt.cover.tag"),{x:1.056,y:1.0,w:8.3,h:0.4,fontFace:PPT.font,fontSize:14,bold:true,color:PPT.blue,charSpacing:2});
+  s.addText((tabTitle(tab)||"Dashboard").toUpperCase(),{x:1.056,y:2.0,w:8.5,h:1.9,fontFace:PPT.font,fontSize:45,bold:true,color:PPT.navy,charSpacing:1,fit:"shrink",valign:"top"});
+  s.addText(t("ppt.cover.subtitle"),{x:1.056,y:3.95,w:8.3,h:0.45,fontFace:PPT.font,fontSize:18,color:PPT.navy2});
   var fl = deckFilterLines();
   s.addText(fl.join("\n"),{x:1.056,y:4.75,w:8.3,h:1.3,fontFace:PPT.font,fontSize:13,color:PPT.navy,lineSpacing:24});
-  s.addText("Generated "+new Date().toISOString().slice(0,10)+" · Source: KQTT live data ("+nf(ROWS.length)+" line items)",{x:1.056,y:6.45,w:8.3,h:0.35,fontFace:PPT.font,fontSize:10.5,color:PPT.gray,italic:true});
+  s.addText((LANG==="vi"?"Tạo ngày ":"Generated ")+new Date().toISOString().slice(0,10)+" · "+(LANG==="vi"?"Nguồn: dữ liệu KQTT trực tiếp (":"Source: KQTT live data (")+nf(ROWS.length)+" "+(LANG==="vi"?"dòng)":"line items)"),{x:1.056,y:6.45,w:8.3,h:0.35,fontFace:PPT.font,fontSize:10.5,color:PPT.gray,italic:true});
   s.addText("MANI MEDICAL HANOI",{x:10.35,y:6.7,w:2.7,h:0.4,fontFace:PPT.font,fontSize:11,bold:true,color:PPT.navy,align:"left",charSpacing:1});
   ref.n++;
 }
@@ -3551,7 +3871,7 @@ function pptKpiCard(slide, x, y, w, h, c){
   }
 }
 function pptKpiSlide(pres, ref, ins, kpiRows, titleOverride){
-  var title = titleOverride || (ins && ins.length ? "Executive Insights & Key Metrics" : "Key Metrics");
+  var title = titleOverride || (ins && ins.length ? t("ppt.exec") : t("ppt.keymetrics"));
   var slide = cSlide(pres, ref, title, timeLabel()+" · "+(S.mkType==="ALL"?"All types":S.mkType)+" · "+(S.mkRegion==="ALL"?"Nationwide":S.mkRegion));
   var y = 1.3;
   if(ins && ins.length){
@@ -3591,8 +3911,12 @@ function pptChartSlide(pres, ref, title, sub, items){
     var b=boxes[i], iy=b.y, ih=b.h;
     if(it.label){ pptSubHead(slide,b.x,iy,b.w,it.label); iy+=0.34; ih-=0.34; }
     slide.addShape("roundRect",{x:b.x,y:iy,w:b.w,h:ih,rectRadius:0.06,fill:{color:"FFFFFF"},line:{color:PPT.line,width:1}});
-    var r=fitRect(b.x+0.08,iy+0.08,b.w-0.16,ih-0.16,it.ratio);
-    slide.addImage({data:it.img,x:r.x,y:r.y,w:r.w,h:r.h});
+    var ok=false;
+    if(it.cid){ ok=addNativeChart(pres, slide, it.cid, b.x+0.12, iy+0.12, b.w-0.24, ih-0.24); }
+    if(!ok && it.img){
+      var r=fitRect(b.x+0.08,iy+0.08,b.w-0.16,ih-0.16,it.ratio);
+      slide.addImage({data:it.img,x:r.x,y:r.y,w:r.w,h:r.h});
+    }
   });
 }
 function pptTableSlide(pres, ref, title, sub, tableEl){
@@ -3695,7 +4019,7 @@ function pptHeatmapSlide(pres, ref, title, sub, card){
   var n=headers.length, firstW=2.6, restW=+((12.14-firstW)/n).toFixed(2);
   var colW=[firstW]; for(var i=0;i<n;i++) colW.push(restW);
   slide.addTable(rows,{x:0.595,y:1.32,w:12.14,colW:colW,fontFace:PPT.font,border:{type:"solid",color:"FFFFFF",pt:1},rowH:0.32,autoPage:false});
-  slide.addText("Cell = brand share of province "+(S.hmMetric==="val"?"value":"quantity")+" · yellow scale = Mani",{x:0.595,y:6.62,w:12.14,h:0.28,fontFace:PPT.font,fontSize:9,color:PPT.gray,italic:true});
+  slide.addText((LANG==="vi"?"Ô = thị phần hãng theo tỉnh ":"Cell = brand share of province ")+(S.hmMetric==="val"?(LANG==="vi"?"giá trị":"value"):(LANG==="vi"?"số lượng":"quantity"))+(LANG==="vi"?" · thang vàng = Mani":" · yellow scale = Mani"),{x:0.595,y:6.62,w:12.14,h:0.28,fontFace:PPT.font,fontSize:9,color:PPT.gray,italic:true});
 }
 function pptCmpSlide(pres, ref, el){
   var cols=el.querySelectorAll(".cmpcol"); if(!cols.length) return;
@@ -3741,12 +4065,12 @@ function walkExport(pres, ref, root){
       var labels=Array.prototype.map.call(card.querySelectorAll(".tl-hd"),function(e){return pTxt(e.textContent);});
       var items=[];
       canvases.slice(0,4).forEach(function(c,i){
-        var info=chartImgInfo(c.id); if(!info) return;
+        var info=chartImgInfo(c.id);
         var lb="";
         if(canvases.length>1){
           if(labels.length) lb=(i===0?"":(labels[i-1]||""));
         }
-        items.push({img:info.data,ratio:info.ratio,label:lb});
+        items.push({cid:c.id, img:info?info.data:null, ratio:info?info.ratio:1.6, label:lb});
       });
       if(items.length) pptChartSlide(pres,ref,cardTitle(card,"Chart"),cardSub(card),items);
       return;
@@ -3769,7 +4093,7 @@ function walkExport(pres, ref, root){
       var items=[];
       singles.slice(0,4).forEach(function(card){
         var c=card.querySelector("canvas"), info=chartImgInfo(c.id);
-        if(info) items.push({img:info.data,ratio:info.ratio,label:cardTitle(card,"")});
+        items.push({cid:c.id, img:info?info.data:null, ratio:info?info.ratio:1.6, label:cardTitle(card,"")});
       });
       var t=items.map(function(i){return i.label;}).filter(Boolean).join("  ·  ");
       if(t.length>78) t=t.slice(0,76)+"…";
@@ -3795,7 +4119,7 @@ function walkExport(pres, ref, root){
         var g=scrapeGrpCards(el);
         if(g.length){
           var rows=[]; for(var i=0;i<g.length;i+=4) rows.push(g.slice(i,i+4));
-          pptKpiSlide(pres,ref,null,rows.slice(0,2),"Buyer Segmentation");
+          pptKpiSlide(pres,ref,null,rows.slice(0,2),t("ppt.buyerseg"));
         }
         return;
       }
@@ -3814,8 +4138,8 @@ function exportPPT(){
   var sec=document.querySelector(".sec.on");
   if(!sec){ showToast("Nothing to export","warn"); return; }
   var btn=document.getElementById("ppt-btn");
-  if(btn){ btn.disabled=true; btn.textContent="⏳ Building…"; }
-  showToast("Building PowerPoint of "+(TAB_TITLES[S.tab]||"current tab")+"…","load");
+  if(btn){ btn.disabled=true; btn.innerHTML="<span>⏳</span> <span>"+(LANG==="vi"?"Đang tạo…":"Building…")+"</span>"; }
+  showToast("Building PowerPoint of "+(tabTitle(S.tab)||"current tab")+"…","load");
   setTimeout(function(){
     try{
       var pres=new PptxGenJS();
@@ -3823,23 +4147,23 @@ function exportPPT(){
       pres.layout="MMH_WIDE";
       pres.author="MANI Medical Hanoi";
       pres.company="MANI Medical Hanoi";
-      pres.title="MMH · "+(TAB_TITLES[S.tab]||"Dashboard");
+      pres.title="MMH · "+(tabTitle(S.tab)||"Dashboard");
       var ref={n:1};
       pptCover(pres, ref, S.tab);
       walkExport(pres, ref, sec);
-      var fname="MMH_"+(TAB_TITLES[S.tab]||"Dashboard").replace(/[^\w]+/g,"_")+"_"+new Date().toISOString().slice(0,10)+".pptx";
+      var fname="MMH_"+(tabTitle(S.tab)||"Dashboard").replace(/[^\w]+/g,"_")+"_"+new Date().toISOString().slice(0,10)+".pptx";
       pres.writeFile({fileName:fname}).then(function(){
         showToast("PowerPoint exported: "+fname,"success");
-        if(btn){ btn.disabled=false; btn.textContent="📊 Export PPT"; }
+        if(btn){ btn.disabled=false; btn.innerHTML="<span>📊</span> <span>"+t("btn.ppt")+"</span>"; }
       }).catch(function(e){
         console.error(e);
         showToast("Export failed: "+(e&&e.message||e),"warn");
-        if(btn){ btn.disabled=false; btn.textContent="📊 Export PPT"; }
+        if(btn){ btn.disabled=false; btn.innerHTML="<span>📊</span> <span>"+t("btn.ppt")+"</span>"; }
       });
     }catch(e){
       console.error(e);
       showToast("Export failed: "+(e&&e.message||e),"warn");
-      if(btn){ btn.disabled=false; btn.textContent="📊 Export PPT"; }
+      if(btn){ btn.disabled=false; btn.innerHTML="<span>📊</span> <span>"+t("btn.ppt")+"</span>"; }
     }
   }, 80);
 }

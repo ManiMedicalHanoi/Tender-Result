@@ -232,6 +232,12 @@ tr.mani:hover td{background:rgba(255,225,0,.16);}
 .subt:hover{border-color:var(--blue);color:var(--blue);}
 .subt.on{background:var(--navy);color:#fff;border-color:var(--navy);}
 
+/* metric/period switch (Mani share chart) */
+.msw{display:inline-flex;background:var(--pale);border:1px solid var(--br);border-radius:9px;padding:3px;gap:2px}
+.msw button{border:0;background:transparent;color:var(--t2);font:700 11.5px/1 var(--ff);padding:5px 11px;border-radius:7px;cursor:pointer;transition:background .15s,color .15s}
+.msw button.on{background:var(--sf);color:var(--blue);box-shadow:0 1px 3px rgba(0,48,71,.18)}
+.msw button:hover:not(.on){color:var(--t1)}
+
 /* group cards (segmentation) */
 .grpgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:11px;margin-bottom:14px;}
 .grpgrid.tight{grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:9px;}
@@ -461,6 +467,45 @@ html[data-theme="dark"] .mp-pop{box-shadow:0 14px 42px rgba(0,0,0,.55);}
 .tchip-fy{background:rgba(255,225,0,.12);border-color:rgba(255,225,0,.4);color:#FFE15A;}
 .tchip-fy.on{background:var(--yellow);color:#003047;border-color:var(--yellow);}
 .fy-note{font-size:10.5px;color:var(--t3);font-style:italic;margin-top:4px;text-align:center;}
+
+/* ════ UX UPGRADE v10 — insights · deltas · sparklines · heatmap · quick actions ════ */
+.kpi{position:relative;overflow:hidden;transition:transform .18s ease,box-shadow .18s ease;}
+.kpi:hover{transform:translateY(-2px);box-shadow:var(--sh2);}
+.kpi .kl{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+.kdelta{display:inline-flex;align-items:center;gap:3px;font-size:10.5px;font-weight:900;padding:1.5px 7px;border-radius:20px;letter-spacing:.2px;white-space:nowrap;vertical-align:middle;}
+.kdelta.up{background:var(--pb);color:var(--pos);}
+.kdelta.dn{background:var(--nb);color:var(--neg);}
+.kdelta.fl{background:var(--sf2);color:var(--t3);}
+svg.kspark{display:block;width:100%;height:30px;margin-top:7px;opacity:.95;}
+.kpw{font-size:10px;color:var(--t3);font-weight:700;margin-top:2px;}
+
+.ins-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(218px,1fr));gap:11px;margin-bottom:15px;}
+.ins{background:var(--sf);border:1px solid var(--br);border-left:4px solid var(--blue);border-radius:var(--rs);padding:11px 13px;display:flex;gap:10px;align-items:flex-start;cursor:pointer;transition:transform .16s,box-shadow .16s;box-shadow:var(--sh);min-width:0;}
+.ins:hover{transform:translateY(-2px);box-shadow:var(--sh2);}
+.ins.pos{border-left-color:var(--pos);}
+.ins.neg{border-left-color:var(--neg);}
+.ins.warn{border-left-color:var(--warn);}
+.ins.gold{border-left-color:var(--yellow);}
+.ins-ic{font-size:19px;line-height:1.1;margin-top:1px;flex-shrink:0;}
+.ins-bd{min-width:0;flex:1;}
+.ins-t{font-size:10px;font-weight:900;letter-spacing:1px;color:var(--t3);text-transform:uppercase;margin-bottom:3px;}
+.ins-x{font-size:12.5px;color:var(--t1);line-height:1.45;font-weight:600;overflow-wrap:break-word;}
+.ins-x b{color:var(--blue);font-weight:900;}
+html[data-theme="dark"] .ins-x b{color:#9DB8E8;}
+
+.hm-wrap{overflow-x:auto;}
+.hm{display:grid;gap:3px;min-width:700px;}
+.hm .hc{border-radius:6px;padding:7px 3px;font-size:10.5px;font-weight:800;text-align:center;cursor:pointer;transition:transform .12s,box-shadow .12s;color:var(--t1);background:var(--sf2);}
+.hm .hc:hover{transform:scale(1.08);box-shadow:var(--sh2);position:relative;z-index:2;}
+.hm .hh{background:transparent;font-size:10px;font-weight:900;color:var(--t2);text-transform:uppercase;letter-spacing:.3px;display:flex;align-items:flex-end;justify-content:center;padding:3px 2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.hm .hr{background:transparent;font-size:11.5px;font-weight:800;color:var(--t1);display:flex;align-items:center;padding:0 6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.hm-lg{display:flex;align-items:center;gap:7px;font-size:10.5px;color:var(--t3);font-weight:700;margin-top:10px;flex-wrap:wrap;}
+.hm-lg .sw{width:34px;height:9px;border-radius:4px;background:linear-gradient(90deg,var(--sf2),#3A5CAA);flex-shrink:0;}
+.hm-lg .swy{background:linear-gradient(90deg,var(--sf2),#E8C800);}
+
+td.qa-td{white-space:nowrap;text-align:center;}
+.qa{background:var(--sf2);border:1px solid var(--br);border-radius:7px;width:27px;height:25px;cursor:pointer;font-size:12px;line-height:1;transition:.13s;padding:0;}
+.qa:hover{background:var(--lblue);border-color:var(--blue);transform:translateY(-1px);}
 </style>
 </head>
 <body>
@@ -966,7 +1011,7 @@ function downloadCSV(rows,name){
 }
 function exportTable(id,name){
   var w=document.getElementById(id);if(!w)return;var tb=w.querySelector("table");if(!tb)return;
-  var rows=[];tb.querySelectorAll("tr").forEach(function(tr){var row=[];tr.querySelectorAll("th,td").forEach(function(c){row.push(c.innerText.trim().replace(/[↑↓→🔍]/g,"").trim());});if(row.some(function(x){return x;}))rows.push(row);});
+  var rows=[];tb.querySelectorAll("tr").forEach(function(tr){var row=[];tr.querySelectorAll("th,td").forEach(function(c){if(c.classList&&c.classList.contains("qa-td"))return;row.push(c.innerText.trim().replace(/[↑↓→🔍]/g,"").trim());});if(row.some(function(x){return x;}))rows.push(row);});
   downloadCSV(rows,"MMH_"+name+"_"+new Date().toISOString().slice(0,10));
 }
 /* CSV from raw rows — INCLUDES product code + tspec per requirement */
@@ -1640,39 +1685,90 @@ function renderMarket(){
   var winFirst = winMonthsArr[0] || MONTHS_SORTED[0], winLast = winMonthsArr[winMonthsArr.length-1] || MONTHS_SORTED[MONTHS_SORTED.length-1];
   var cutSelector = '<div style="margin-top:8px;font-size:11px;color:var(--t3);font-weight:700;display:flex;align-items:center;justify-content:center;gap:6px">Cutoff: '+mpickBtnHtml("mp-mk-cut", S.mkCutoff, winFirst, winLast, "onMarketCutoff", {small:true})+'</div>';
 
+  /* ── Previous-window comparison + sparklines (UX v10) ── */
+  var PW = mxPrevWindow(), prevM = null;
+  if(PW){
+    var _pr = ROWS.filter(function(r){
+      if(!PW.test(r)) return false;
+      if(S.mkType!=="ALL" && r.ptype!==S.mkType) return false;
+      if(S.mkRegion!=="ALL" && r.region!==S.mkRegion) return false;
+      return true;
+    });
+    prevM = {totQ:0,totV:0,pk:{},by:{},brands:{},maniQ:0,maniV:0,maniPk:{},maniBy:{}};
+    _pr.forEach(function(r){
+      prevM.totQ+=r.qty; prevM.totV+=r.val; prevM.pk[r.kqtt]=1; prevM.by[r.buyer]=1; prevM.brands[r.brand]=1;
+      if(r.brand==="Mani"){prevM.maniQ+=r.qty; prevM.maniV+=r.val; prevM.maniPk[r.kqtt]=1; prevM.maniBy[r.buyer]=1;}
+    });
+  }
+  var _bk0 = marketBuckets(), sparkQ=null, sparkV=null, sparkMS=null;
+  if(_bk0.kind!=="compare" && _bk0.buckets && _bk0.buckets.length>1){
+    sparkQ=[]; sparkV=[]; sparkMS=[];
+    _bk0.buckets.forEach(function(b){
+      var sub=R.filter(b.match), q=0,v=0,mq=0;
+      sub.forEach(function(r){q+=r.qty;v+=r.val;if(r.brand==="Mani")mq+=r.qty;});
+      sparkQ.push(q); sparkV.push(v); sparkMS.push(q?mq/q*100:0);
+    });
+  }
+  var pwTag = PW ? '<div class="kpw">'+esc(PW.label)+'</div>' : '';
+
   /* ── KPI ROW 1: market 4 cards ── */
   var topNoteQ = '<b>'+esc(qLead.key)+'</b> leads quantity: '+qf(qLead.qty)+' pcs ('+pct(totQ?qLead.qty/totQ*100:0)+')';
   var topNoteV = '<b>'+esc(vLead.key)+'</b> leads value: '+money(vLead.val)+' ('+pct(totV?vLead.val/totV*100:0)+')';
 
   var KPI = '<div class="kr">'
-    + kpiCard({lbl:"Total quantity awarded", val:totQ, mode:"q", suf:" pcs", note:topNoteQ})
-    + kpiCard({lbl:"Total awarded value", val:totV, mode:"vnd", note:topNoteV, cls:"y"})
-    + kpiCard({lbl:"Tender packages", val:nPkg, mode:"n", note:nf(nBuy)+" buyers · "+nf(nBrands)+" brands"})
-    + kpiCard({lbl:"Brands with tender results", val:nBrands, mode:"n", note:nf(R.length)+" line items"})
+    + kpiCard({lbl:"Total quantity awarded", val:totQ, mode:"q", suf:" pcs", note:topNoteQ+pwTag,
+        delta:prevM?mxDelta(totQ,prevM.totQ,"pct"):"", spark:sparkQ?mxSpark(sparkQ,"#3A5CAA"):""})
+    + kpiCard({lbl:"Total awarded value", val:totV, mode:"vnd", note:topNoteV+pwTag, cls:"y",
+        delta:prevM?mxDelta(totV,prevM.totV,"pct"):"", spark:sparkV?mxSpark(sparkV,"#E0A800"):""})
+    + kpiCard({lbl:"Tender packages", val:nPkg, mode:"n", note:nf(nBuy)+" buyers · "+nf(nBrands)+" brands"+pwTag,
+        delta:prevM?mxDelta(nPkg,Object.keys(prevM.pk).length,"pct"):""})
+    + kpiCard({lbl:"Brands with tender results", val:nBrands, mode:"n", note:nf(R.length)+" line items"+pwTag,
+        delta:prevM?mxDelta(nBrands,Object.keys(prevM.brands).length,"n"):""})
     + '</div>';
 
   /* ── KPI ROW 2: Mani 4 cards (last one shows cutoff selector) ── */
   var totPkgAll = nPkg;
   var maniPkgN = maniPkgIds.length;
+  var prevShareQ = (prevM && prevM.totQ) ? prevM.maniQ/prevM.totQ*100 : null;
+  var prevShareV = (prevM && prevM.totV) ? prevM.maniV/prevM.totV*100 : null;
   var KPI2 = '<div class="kr">'
     + kpiCard({lbl:"Mani quantity won", val:maniQ, mode:"q", suf:" pcs", cls:"y",
-        note:'<b>'+pct(shareQ)+'</b> of market quantity'})
+        note:'<b>'+pct(shareQ)+'</b> of market quantity'+(prevShareQ!=null?(' '+mxDelta(shareQ,prevShareQ,"pp")):'')+pwTag,
+        delta:prevM?mxDelta(maniQ,prevM.maniQ,"pct"):"", spark:sparkMS?mxSpark(sparkMS,"#E0A800"):""})
     + kpiCard({lbl:"Mani value won", val:maniV, mode:"vnd", cls:"y",
-        note:'<b>'+pct(shareV)+'</b> of market value'})
+        note:'<b>'+pct(shareV)+'</b> of market value'+(prevShareV!=null?(' '+mxDelta(shareV,prevShareV,"pp")):'')+pwTag,
+        delta:prevM?mxDelta(maniV,prevM.maniV,"pct"):""})
     + kpiCard({lbl:"Packages won", val:maniPkgN, mode:"n",
-        note:'<b>'+maniPkgN+' / '+totPkgAll+'</b> tender results'})
+        note:'<b>'+maniPkgN+' / '+totPkgAll+'</b> tender results'+pwTag,
+        delta:prevM?mxDelta(maniPkgN,Object.keys(prevM.maniPk).length,"pct"):""})
     + kpiCard({lbl:"Buyers", val:maniBuyerIds.length, mode:"n",
-        note:'<b>New</b>: '+nNew+' · <b>Convert</b>: '+nConvert+' · <b>Retain</b>: '+nRetain + cutSelector})
+        note:'<b>New</b>: '+nNew+' · <b>Convert</b>: '+nConvert+' · <b>Retain</b>: '+nRetain + cutSelector,
+        delta:prevM?mxDelta(maniBuyerIds.length,Object.keys(prevM.maniBy).length,"n"):""})
     + '</div>';
 
-  /* ── Body ── */
-  var H = KPI + KPI2;
+  /* ── Body: executive insight strip first, then KPI rows ── */
+  var H = mxInsightStrip(mxInsights(R,bAgg,bAggQty,totQ,totV)) + KPI + KPI2;
 
   /* Row of 3 time-series charts: qty bars · value bars · combined buyers+packages */
   H += '<div class="g3">'
     + '<div class="card reveal"><div class="ch"><div class="ct">Quantity awarded over time</div><div class="cs">pcs</div></div><div class="cb"><div class="cw t"><canvas id="c-mk-tsQ"></canvas></div></div></div>'
     + '<div class="card reveal"><div class="ch"><div class="ct">Value awarded over time</div><div class="cs">'+S.currency+'</div></div><div class="cb"><div class="cw t"><canvas id="c-mk-tsV"></canvas></div></div></div>'
     + '<div class="card reveal"><div class="ch"><div class="ct">Buyers &amp; Packages over time</div><div class="cs">buyer count vs package count</div></div><div class="cb"><div class="cw t"><canvas id="c-mk-tsBP"></canvas></div></div></div>'
+    + '</div>';
+
+  /* ── Strategic trend row (UX v10): Mani share trend + brand share evolution ── */
+  H += '<div class="g2">'
+    + (function(){
+        S.mxMS = S.mxMS || {metric:"qty", per:(S.time&&S.time.mode==="fy")?"fy":"year"};
+        function b(g,v,t){return '<button'+(S.mxMS[g]===v?' class="on"':'')+' onclick="mxMSSet(\''+g+'\',\''+v+'\')">'+t+'</button>';}
+        return '<div class="card reveal"><div class="ch" style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:8px">'
+          + '<div><div class="ct">Mani share — Total vs High segment</div><div class="cs" id="ms-sub"></div></div>'
+          + '<div style="display:flex;gap:6px;flex-wrap:wrap">'
+            + '<div class="msw" id="msw-metric">'+b("metric","qty","Qty")+b("metric","val","Value")+'</div>'
+            + '<div class="msw" id="msw-per">'+b("per","year","Year")+b("per","fy","FY")+'</div>'
+          + '</div></div><div class="cb"><div class="cw t"><canvas id="c-mk-mshare"></canvas></div></div></div>';
+      })()
+    + '<div class="card reveal"><div class="ch"><div class="ct">Brand share evolution — 100% stacked</div><div class="cs">qty share · top 6 brands + others · click a block to drill</div></div><div class="cb"><div class="cw t"><canvas id="c-mk-evo"></canvas></div></div></div>'
     + '</div>';
 
   /* Two pairs of segment charts: Quantity-based & Value-based.
@@ -1709,11 +1805,14 @@ function renderMarket(){
 
   H += '<div class="g23">'
     + '<div class="card reveal"><div class="ch"><div class="ct">Top 10 buyers (by quantity)</div><div class="hint">Click to see brand mix</div></div><div class="cb" id="mk-topbuyer"></div></div>'
-    + '<div class="card reveal"><div class="ch"><div class="ct">Concentration</div></div><div class="cb">'
+    + '<div class="card reveal"><div class="ch"><div class="ct">Concentration — Pareto</div><div class="cs">gold bar = buyer where Mani won · line = cumulative %</div></div><div class="cb">'
       + '<div class="mstat" style="margin-bottom:10px"><div class="ml">Top 10 buyers hold</div><div class="mv" style="color:var(--blue)">'+pct(top10share)+'</div><div class="ms">'+qf(top10Q)+' / '+qf(totQ)+' pcs total</div></div>'
       + '<div class="cw" style="height:200px"><canvas id="c-mk-conc"></canvas></div>'
       + '<div style="font-size:11.5px;color:var(--t2);margin-top:8px">Market is <b>'+(top10share>40?"highly concentrated":"fragmented")+'</b> — '+top10.length+' largest buyers hold '+pct(top10share)+' of capacity.</div>'
     + '</div></div></div>';
+
+  /* ── Province × Brand heatmap (UX v10) ── */
+  H += mxHeatmapCard(R);
 
   H += '<div class="card reveal"><div class="ch"><div class="ct">Full brand share table</div><div class="cs">'+bAgg.length+' brands</div><button class="dl-btn" onclick="exportTable(\'t-mk-brandtbl\',\'brand_share\')">Export CSV</button></div>'
     + '<div class="cb" style="padding:0"><div class="tw" id="t-mk-brandtbl">'+brandTable(bAgg,totQ,totV)+'</div></div></div>';
@@ -1872,7 +1971,11 @@ function renderMarket(){
     subFn:function(a){var m=a.rows.filter(function(r){return r.brand==="Mani";}).reduce(function(s,r){return s+r.qty;},0); return m>0?("Mani "+qf(m)):"";},
     fmtFn:function(v){return qf(v);}
   });
-  donutChart("c-mk-conc", ["Top 10","Others"], [top10Q, Math.max(totQ-top10Q,0)], ["#3A5CAA","#D5DCE8"], {fmt:qf,legendPos:"bottom",cutout:"66%"});
+  mxPareto("c-mk-conc", byAgg, totQ);
+
+  /* New strategic charts (UX v10) */
+  mxManiShare();
+  mxBrandEvo("c-mk-evo", buckets, R);
 
   afterRender("sec-market");
 }
@@ -1952,8 +2055,9 @@ function drawSegLeader(canvasId, ag, tier, metricKey, totMetric){
 /* KPI card (flat — no flip, per request: card sizes consistent) */
 function kpiCard(o){
   return '<div class="kpi '+(o.cls||"")+'">'
-    + '<div class="kl">'+esc(o.lbl)+'</div>'
+    + '<div class="kl">'+esc(o.lbl)+(o.delta?(' '+o.delta):'')+'</div>'
     + '<div class="kv"><span data-count="'+(o.val||0)+'" data-mode="'+(o.mode||"n")+'" data-pre="'+(o.pre||"")+'" data-suf="'+(o.suf||"")+'">'+(o.pre||"")+'0'+(o.suf||"")+'</span></div>'
+    + (o.spark||'')
     + (o.note ? '<div class="knote">'+o.note+'</div>' : (o.sub?'<div class="ks">'+o.sub+'</div>':''))
     + '</div>';
 }
@@ -1963,13 +2067,413 @@ function brandTable(bAgg,totQ,totV){
   var rows=bAgg.map(function(a,i){
     var sq=a.qty/(totQ||1)*100,sv=a.val/(totV||1)*100;
     var cls=a.key==="Mani"?' class="mani clk"':' class="clk"';
-    return "<tr"+cls+" onclick=\"openDrill(filterRows({brand:'"+esc(a.key).replace(/'/g,"\\'")+"',ptype:'"+esc(S.mkType)+"',region:'"+S.mkRegion+"'}),{title:'"+esc(a.key).replace(/'/g,"\\'")+"',sub:'Brand'})\">"
+    var bq=esc(a.key).replace(/'/g,"\\'");
+    return "<tr"+cls+" onclick=\"openDrill(filterRows({brand:'"+bq+"',ptype:'"+esc(S.mkType)+"',region:'"+S.mkRegion+"'}),{title:'"+bq+"',sub:'Brand'})\">"
       +"<td>"+(i+1)+"</td><td class='tl'><span class='badge' style='background:"+brandColor(a.key)+";color:"+(isMani(a.key)?"#003047":"#fff")+"'>"+esc(a.key)+"</span></td>"
-      +"<td>"+nf(a.qty)+"</td><td>"+pct(sq)+"</td><td>"+money(a.val)+"</td><td>"+pct(sv)+"</td><td>"+nf(a.npkg)+"</td><td>"+nf(a.nbuyer)+"</td><td>"+money(a.qty?a.val/a.qty:0)+"</td></tr>";
+      +"<td>"+nf(a.qty)+"</td><td>"+pct(sq)+"</td><td>"+money(a.val)+"</td><td>"+pct(sv)+"</td><td>"+nf(a.npkg)+"</td><td>"+nf(a.nbuyer)+"</td><td>"+money(a.qty?a.val/a.qty:0)+"</td>"
+      +"<td class='qa-td'><button class='qa' title='Open Brand Positioning' onclick=\"event.stopPropagation();goBrandTab('"+bq+"')\">🎯</button> <button class='qa' title='Head-to-Head vs Mani' onclick=\"event.stopPropagation();goVS('"+bq+"')\">⚔️</button></td></tr>";
   }).join("");
-  return "<table><thead><tr><th>#</th><th class='tl'>Brand</th><th>Qty</th><th>Qty %</th><th>Value</th><th>Val %</th><th>Packages</th><th>Buyers</th><th>Avg unit price</th></tr></thead><tbody>"+rows
-    +"<tr class='grand'><td></td><td class='tl'>TOTAL</td><td>"+nf(totQ)+"</td><td>100%</td><td>"+money(totV)+"</td><td>100%</td><td></td><td></td><td>"+money(totQ?totV/totQ:0)+"</td></tr></tbody></table>";
+  return "<table><thead><tr><th>#</th><th class='tl'>Brand</th><th>Qty</th><th>Qty %</th><th>Value</th><th>Val %</th><th>Packages</th><th>Buyers</th><th>Avg unit price</th><th></th></tr></thead><tbody>"+rows
+    +"<tr class='grand'><td></td><td class='tl'>TOTAL</td><td>"+nf(totQ)+"</td><td>100%</td><td>"+money(totV)+"</td><td>100%</td><td></td><td></td><td>"+money(totQ?totV/totQ:0)+"</td><td></td></tr></tbody></table>";
 }
+
+/* ════════════════════════════════════════════════════════════════════
+   UX UPGRADE v10 — analytics helpers
+   prev-window comparison · delta badges · sparklines · auto-insights ·
+   Mani share trend · brand evolution · Pareto · Province×Brand heatmap ·
+   cross-tab quick actions
+   (purely additive — no existing function modified except kpiCard/brandTable)
+   ════════════════════════════════════════════════════════════════════ */
+
+/* ── Previous comparable window for the current time selection ── */
+function mxPrevWindow(){
+  var T=S.time||{mode:"year",year:"ALL"};
+  function yearTest(y){return function(r){return r.year===y;};}
+  if(T.mode==="year" && T.year && T.year!=="ALL"){
+    var y=+T.year-1; if(YEARS.indexOf(y)<0) return null;
+    return {label:"vs "+y, test:yearTest(y)};
+  }
+  if(T.mode==="years" && T.years && T.years.length===1){
+    var y2=+T.years[0]-1; if(YEARS.indexOf(y2)<0) return null;
+    return {label:"vs "+y2, test:yearTest(y2)};
+  }
+  if(T.mode==="fy" && T.fys && T.fys.length===1){
+    var n=+String(T.fys[0]).replace("FY",""); var pf="FY"+(n-1);
+    var rng=fyRange(pf); if(!rng) return null;
+    var hasData=ROWS.some(function(r){var k=moKey(r.month);return k>=rng.fromKey&&k<=rng.toKey;});
+    if(!hasData) return null;
+    return {label:"vs "+pf, test:function(r){var k=moKey(r.month);return k>=rng.fromKey&&k<=rng.toKey;}};
+  }
+  if(T.mode==="range" && T.from && T.to){
+    var months=activeMonths(); if(!months.length) return null;
+    var i0=MONTHS_SORTED.indexOf(months[0]); if(i0<=0) return null;
+    var len=months.length, st=Math.max(0,i0-len);
+    var prev=MONTHS_SORTED.slice(st,i0); if(!prev.length) return null;
+    var set={}; prev.forEach(function(m){set[m]=1;});
+    return {label:"vs "+moLabel(prev[0])+"–"+moLabel(prev[prev.length-1]),
+            test:function(r){return set[r.month]===1;}};
+  }
+  return null; /* ALL years / multi-compare → handled by year-split fallback in insights */
+}
+
+/* ── Delta badge: kind = "pct" (% change) | "pp" (percentage points) | "n" (count) ── */
+function mxDelta(cur,prev,kind){
+  if(prev==null||!isFinite(prev)) return "";
+  var d,txt;
+  if(kind==="pp"){ d=cur-prev; txt=Math.abs(d).toFixed(1)+" pp"; }
+  else if(kind==="n"){ d=cur-prev; txt=nf(Math.abs(d)); }
+  else { if(!prev) return ""; d=(cur-prev)/prev*100; txt=Math.abs(d).toFixed(1)+"%"; }
+  var cls=d>0.05?"up":(d<-0.05?"dn":"fl");
+  var ar=cls==="up"?"▲":(cls==="dn"?"▼":"●");
+  return '<span class="kdelta '+cls+'" title="vs previous comparable period">'+ar+' '+txt+'</span>';
+}
+
+/* ── Inline SVG sparkline ── */
+function mxSpark(vals,color){
+  vals=(vals||[]).map(function(v){return +v||0;});
+  if(vals.length<2) return "";
+  var w=120,h=30,p=3,max=Math.max.apply(null,vals),min=Math.min.apply(null,vals);
+  if(max===min) max=min+1;
+  var pts=vals.map(function(v,i){
+    var x=p+i*(w-2*p)/(vals.length-1), y=h-p-(v-min)/(max-min)*(h-2*p);
+    return x.toFixed(1)+","+y.toFixed(1);
+  });
+  var last=pts[pts.length-1].split(",");
+  return '<svg class="kspark" viewBox="0 0 '+w+' '+h+'" preserveAspectRatio="none">'
+    +'<polygon points="'+p+','+(h-p)+' '+pts.join(" ")+' '+(w-p)+','+(h-p)+'" fill="'+hexA(color,.13)+'" stroke="none"/>'
+    +'<polyline points="'+pts.join(" ")+'" fill="none" stroke="'+color+'" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>'
+    +'<circle cx="'+last[0]+'" cy="'+last[1]+'" r="2.7" fill="'+color+'"/></svg>';
+}
+
+/* ── Executive auto-insights for Market tab ── */
+function mxInsights(R,bAgg,bAggQty,totQ,totV){
+  var out=[];
+  if(!R.length) return out;
+  var PW=mxPrevWindow();
+  var curSet=R, cmpSet=null, cmpLbl="";
+  if(PW){
+    cmpSet=ROWS.filter(function(r){
+      if(!PW.test(r)) return false;
+      if(S.mkType!=="ALL"&&r.ptype!==S.mkType) return false;
+      if(S.mkRegion!=="ALL"&&r.region!==S.mkRegion) return false;
+      return true;});
+    cmpLbl=PW.label;
+  } else {
+    var ys=activeYears();
+    if(ys.length>=2){
+      var y1=ys[ys.length-1], y0=ys[ys.length-2];
+      curSet=R.filter(function(r){return r.year===y1;});
+      cmpSet=R.filter(function(r){return r.year===y0;});
+      cmpLbl=y1+" vs "+y0;
+    }
+  }
+  function shareOf(rows,brand){var q=0,m=0;rows.forEach(function(r){q+=r.qty;if(r.brand===brand)m+=r.qty;});return q?m/q*100:null;}
+  function qesc(s){return esc(s).replace(/'/g,"\\'");}
+
+  /* 1 · Mani momentum (total + High-segment share) */
+  function hiShareOf(rows,brand){var q=0,m=0;rows.forEach(function(r){if(r.tier!=="High")return;q+=r.qty;if(r.brand===brand)m+=r.qty;});return q?m/q*100:null;}
+  var msNow=shareOf(curSet,"Mani"), msPrev=cmpSet?shareOf(cmpSet,"Mani"):null;
+  var hsNow=hiShareOf(curSet,"Mani"), hsPrev=cmpSet?hiShareOf(cmpSet,"Mani"):null;
+  if(msNow!=null){
+    var h1='Qty share <b>'+msNow.toFixed(1)+'%</b>', tone1="gold";
+    if(msPrev!=null){ h1+=' '+mxDelta(msNow,msPrev,"pp")+' <span style="color:var(--t3)">'+esc(cmpLbl)+'</span>'; tone1=(msNow-msPrev)>=-0.05?"pos":"neg"; }
+    if(hsNow!=null){
+      h1+='<br>High seg <b style="color:#B98A00">'+hsNow.toFixed(1)+'%</b>';
+      if(hsPrev!=null) h1+=' '+mxDelta(hsNow,hsPrev,"pp");
+    }
+    out.push({ic:"📈",t:"Mani momentum",x:h1,tone:tone1,
+      click:"openDrill(filterRows({brand:'Mani',ptype:'"+esc(S.mkType)+"',region:'"+S.mkRegion+"'}),{title:'Mani',sub:'Brand'})"});
+  }
+
+  /* 2 · Rising rival / top rival */
+  var pushedRival=false;
+  if(cmpSet && cmpSet.length){
+    var curAg=aggBy(curSet,function(r){return r.brand;}), cq=0; curSet.forEach(function(r){cq+=r.qty;});
+    var pAg=aggBy(cmpSet,function(r){return r.brand;}), pq=0; cmpSet.forEach(function(r){pq+=r.qty;});
+    var best=null;
+    Object.keys(curAg).forEach(function(b){
+      if(b==="Mani"||b==="Không rõ") return;
+      var s1=cq?curAg[b].qty/cq*100:0; if(s1<2) return;
+      var s0=(pq&&pAg[b])?pAg[b].qty/pq*100:0;
+      var d=s1-s0; if(!best||d>best.d) best={b:b,d:d,s1:s1};
+    });
+    if(best && best.d>0.2){
+      out.push({ic:"⚠️",t:"Rising rival",
+        x:'<b>'+esc(best.b)+'</b> '+mxDelta(best.s1,best.s1-best.d,"pp")+' → <b>'+best.s1.toFixed(1)+'%</b> qty share <span style="color:var(--t3)">'+esc(cmpLbl)+'</span>',
+        tone:"warn",
+        click:"openDrill(filterRows({brand:'"+qesc(best.b)+"',ptype:'"+esc(S.mkType)+"',region:'"+S.mkRegion+"'}),{title:'"+qesc(best.b)+"',sub:'Brand'})"});
+      pushedRival=true;
+    }
+  }
+  if(!pushedRival){
+    var rival=bAggQty.filter(function(a){return a.key!=="Mani"&&a.key!=="Không rõ";})[0];
+    if(rival) out.push({ic:"🥈",t:"Top rival",
+      x:'<b>'+esc(rival.key)+'</b> holds <b>'+pct(totQ?rival.qty/totQ*100:0)+'</b> qty share ('+qf(rival.qty)+' pcs)',tone:"warn",
+      click:"openDrill(filterRows({brand:'"+qesc(rival.key)+"',ptype:'"+esc(S.mkType)+"',region:'"+S.mkRegion+"'}),{title:'"+qesc(rival.key)+"',sub:'Brand'})"});
+  }
+
+  /* 3 · Value engine (tier driving the money) */
+  var tAg=aggBy(R,function(r){return r.tier;});
+  var tArr=["High","Mid","Low"].filter(function(t){return tAg[t];}).map(function(t){return {t:t,v:tAg[t].val,q:tAg[t].qty,rows:tAg[t].rows};});
+  if(tArr.length){
+    var topT=tArr.slice().sort(function(a,b){return b.v-a.v;})[0];
+    var maniInT=topT.rows.filter(function(r){return r.brand==="Mani";}).reduce(function(s,r){return s+r.qty;},0);
+    var mSh=topT.q?maniInT/topT.q*100:0;
+    out.push({ic:"💎",t:"Value engine",
+      x:'<b>'+topT.t+'</b> tier = <b>'+pct(totV?topT.v/totV*100:0)+'</b> of market value · Mani holds <b>'+mSh.toFixed(1)+'%</b> qty inside',
+      tone:"pos",
+      click:"openDrill(filterRows({tier:'"+topT.t+"',ptype:'"+esc(S.mkType)+"',region:'"+S.mkRegion+"'}),{title:'Tier "+topT.t+"',sub:'Price tier'})"});
+  }
+
+  /* 4 · Key account */
+  var byTop=sortDesc(toArr(aggBy(R,function(r){return r.buyer;})),"qty")[0];
+  if(byTop){
+    var mQ=byTop.rows.filter(function(r){return r.brand==="Mani";}).reduce(function(s,r){return s+r.qty;},0);
+    var bn=byTop.key.length>36?byTop.key.slice(0,35)+"…":byTop.key;
+    out.push({ic:"🏥",t:"Key account",
+      x:'<b>'+esc(bn)+'</b> — '+qf(byTop.qty)+' pcs ('+pct(totQ?byTop.qty/totQ*100:0)+' of market)'
+        +(mQ>0?' · Mani <b>'+pct(byTop.qty?mQ/byTop.qty*100:0)+'</b> inside':' · <b style="color:var(--neg)">Mani absent</b>'),
+      tone:mQ>0?"pos":"neg",
+      click:"buyerDrill('"+qesc(byTop.key)+"')"});
+  }
+
+  /* 5 · Price pulse (avg unit price, qty-weighted) */
+  var q1=0,v1=0; curSet.forEach(function(r){q1+=r.qty;v1+=r.val;});
+  if(q1){
+    var asp=v1/q1, h5='Avg unit price <b>'+money(asp)+'</b>', tone5="";
+    if(cmpSet&&cmpSet.length){
+      var q0=0,v0=0; cmpSet.forEach(function(r){q0+=r.qty;v0+=r.val;});
+      if(q0){var asp0=v0/q0; h5+=' '+mxDelta(asp,asp0,"pct")+' <span style="color:var(--t3)">'+esc(cmpLbl)+'</span>'; tone5=(asp-asp0)>=0?"pos":"neg";}
+    }
+    out.push({ic:"💰",t:"Price pulse",x:h5,tone:tone5});
+  }
+  return out.slice(0,5);
+}
+
+function mxInsightStrip(list){
+  if(!list||!list.length) return "";
+  return '<div class="ins-strip reveal in">'+list.map(function(c){
+    return '<div class="ins '+(c.tone||"")+'"'+(c.click?' onclick="'+c.click.replace(/"/g,'&quot;')+'"':'')+'>'
+      +'<div class="ins-ic">'+c.ic+'</div><div class="ins-bd"><div class="ins-t">'+esc(c.t)+'</div><div class="ins-x">'+c.x+'</div></div></div>';
+  }).join("")+'</div>';
+}
+
+/* ── Mani share — Total market vs High segment (grouped bars, Qty/Value × Year/FY) ── */
+function mxMSScope(r){
+  if(S.mkType!=="ALL"&&r.ptype!==S.mkType) return false;
+  if(S.mkRegion!=="ALL"&&r.region!==S.mkRegion) return false;
+  return true;
+}
+/* Build comparison periods: selected year/FY ± nearest neighbours (prev & next that exist).
+   Multi/ALL selection → last 5 years or last 4 FYs. */
+function mxMSPeriods(){
+  if(S.mxMS.per==="fy"){
+    var all=buildFyList(); if(!all.length) return [];
+    var list=null;
+    if(S.time&&S.time.mode==="fy"&&S.time.fys&&S.time.fys.length===1){
+      var i=all.indexOf(S.time.fys[0]);
+      if(i>=0){ list=all.slice(Math.max(0,i-1),Math.min(all.length,i+2));
+        if(list.length<3) list=all.slice(Math.max(0,all.length-3)); }
+    }
+    if(!list) list=all.slice(-4);
+    return list.map(function(fy){
+      var rng=fyRange(fy), note=fyCoverageNote(fy);
+      return {label:fy,note:note||"",test:function(r){var k=moKey(r.month);return k>=rng.fromKey&&k<=rng.toKey;}};
+    });
+  }
+  var ys=YEARS.slice(), act=activeYears(), list2=null;
+  if(act.length===1){
+    var j=ys.indexOf(act[0]);
+    if(j>=0){ list2=ys.slice(Math.max(0,j-1),Math.min(ys.length,j+2));
+      if(list2.length<3) list2=ys.slice(Math.max(0,ys.length-3)); }
+  }
+  if(!list2) list2=(act.length?act:ys).slice(-5);
+  return list2.map(function(y){
+    return {label:String(y),note:"",test:function(r){return r.year===y;}};
+  });
+}
+function mxMSCompute(periods){
+  var useVal=(S.mxMS.metric==="val");
+  return periods.map(function(p){
+    var tot=0,mani=0,hTot=0,hMani=0,maniRows=[],hManiRows=[];
+    ROWS.forEach(function(r){
+      if(!mxMSScope(r)||!p.test(r)) return;
+      var v=useVal?r.val:r.qty;
+      tot+=v;
+      if(r.brand==="Mani"){mani+=v;maniRows.push(r);}
+      if(r.tier==="High"){hTot+=v;if(r.brand==="Mani"){hMani+=v;hManiRows.push(r);}}
+    });
+    return {label:p.label,note:p.note,
+      total:tot?+(mani/tot*100).toFixed(1):null,
+      high:hTot?+(hMani/hTot*100).toFixed(1):null,
+      tot:tot,mani:mani,hTot:hTot,hMani:hMani,
+      maniRows:maniRows,hManiRows:hManiRows};
+  });
+}
+function mxMSSet(k,v){
+  S.mxMS=S.mxMS||{metric:"qty",per:"year"};
+  if(S.mxMS[k]===v) return;
+  S.mxMS[k]=v;
+  ["msw-metric","msw-per"].forEach(function(id,gi){
+    var box=document.getElementById(id); if(!box) return;
+    var vals=gi===0?["qty","val"]:["year","fy"], key=gi===0?"metric":"per";
+    var bs=box.getElementsByTagName("button");
+    for(var i=0;i<bs.length;i++) bs[i].className=(S.mxMS[key]===vals[i])?"on":"";
+  });
+  mxManiShare();
+}
+function mxManiShare(){
+  var id="c-mk-mshare";
+  killC(id); var el=document.getElementById(id); if(!el) return;
+  S.mxMS=S.mxMS||{metric:"qty",per:(S.time&&S.time.mode==="fy")?"fy":"year"};
+  var periods=mxMSPeriods(), D=mxMSCompute(periods);
+  var sub=document.getElementById("ms-sub");
+  if(sub) sub.textContent=(S.mxMS.metric==="val"?"% share by Value":"% share by Quantity")
+    +" · "+(S.mxMS.per==="fy"?"by fiscal year (Sep–Aug)":"by calendar year")
+    +" · vs nearest periods · click a bar to drill";
+  var fmtTot=S.mxMS.metric==="val"?function(v){return money(v);}:function(v){return qf(v)+" pcs";};
+  var ds=[
+    {label:"Share in Total market",data:D.map(function(d){return d.total;}),
+      backgroundColor:hexA("#3A5CAA",.85),borderColor:"#3A5CAA",borderWidth:1.5,borderRadius:7,maxBarThickness:54,
+      datalabels:{anchor:"end",align:"top",color:"#3A5CAA",font:{family:FF,size:11,weight:"900"},
+        formatter:function(v){return v==null?"":v.toFixed(1)+"%";}}},
+    {label:"Share in High segment",data:D.map(function(d){return d.high;}),
+      backgroundColor:hexA("#E0A800",.85),borderColor:"#C99700",borderWidth:1.5,borderRadius:7,maxBarThickness:54,
+      datalabels:{anchor:"end",align:"top",color:"#B98A00",font:{family:FF,size:11,weight:"900"},
+        formatter:function(v){return v==null?"":v.toFixed(1)+"%";}}}
+  ];
+  S.charts[id]=new Chart(el,{type:"bar",
+    data:{labels:D.map(function(d){return d.label;}),datasets:ds},
+    options:{responsive:true,maintainAspectRatio:false,animation:{duration:850},
+      onClick:function(e,els){ if(els&&els.length){
+        var di=els[0].datasetIndex, gi=els[0].index, d=D[gi];
+        var rows=di===0?d.maniRows:d.hManiRows;
+        if(rows.length) openDrill(rows,{title:"Mani · "+d.label,
+          sub:di===0?"Share in total market":"Share in High segment"});}},
+      onHover:function(e,els){e.native.target.style.cursor=els.length?"pointer":"default";},
+      plugins:{legend:{position:"bottom",labels:{font:{family:FF,size:11.5},boxWidth:12,padding:10,color:axisColor()}},
+        datalabels:{},
+        tooltip:{titleFont:{family:FF,size:13,weight:"800"},bodyFont:{family:FF,size:12},
+          callbacks:{
+            title:function(items){var d=D[items[0].dataIndex];return d.label+(d.note?" "+d.note:"");},
+            label:function(c){
+              var d=D[c.dataIndex];
+              if(c.datasetIndex===0)
+                return " Total: "+(d.total==null?"—":d.total+"%")+" ("+fmtTot(d.mani)+" / "+fmtTot(d.tot)+")";
+              return " High seg: "+(d.high==null?"—":d.high+"%")+" ("+fmtTot(d.hMani)+" / "+fmtTot(d.hTot)+")";
+            }}}},
+      scales:{x:{grid:{display:false},ticks:{font:{family:FF,size:11.5,weight:"700"},color:axisColor()}},
+              y:{beginAtZero:true,grid:{color:gridColor()},suggestedMax:Math.max.apply(null,D.map(function(d){return Math.max(d.total||0,d.high||0);}).concat([10]))*1.25,
+                 ticks:{font:{family:FF,size:11},color:axisColor(),callback:function(v){return v+"%";}}}},
+      layout:{padding:{top:18,right:8}}}});
+}
+
+/* ── Brand share evolution — 100% stacked (top 6 + Others) ── */
+function mxBrandEvo(id,buckets,R){
+  killC(id); var el=document.getElementById(id); if(!el) return;
+  function mkFilter(r){ if(S.mkType!=="ALL"&&r.ptype!==S.mkType) return false; if(S.mkRegion!=="ALL"&&r.region!==S.mkRegion) return false; return true; }
+  var groups=[];
+  if(buckets.kind==="compare"){
+    buckets.series.forEach(function(s){
+      var rows=[]; s.monthRows.forEach(function(a){a.forEach(function(r){if(mkFilter(r))rows.push(r);});});
+      groups.push({label:s.name,rows:rows});
+    });
+  } else {
+    buckets.buckets.forEach(function(b){ groups.push({label:b.label,rows:R.filter(b.match)}); });
+  }
+  var tops=sortDesc(toArr(aggBy(R,function(r){return r.brand;})),"qty").slice(0,6).map(function(a){return a.key;});
+  var names=tops.concat(["Others"]);
+  var ds=names.map(function(b){
+    var data=groups.map(function(g){
+      var tot=0,v=0;
+      g.rows.forEach(function(r){tot+=r.qty; if(b==="Others"){if(tops.indexOf(r.brand)<0)v+=r.qty;} else if(r.brand===b)v+=r.qty;});
+      return tot? +(v/tot*100).toFixed(1) : 0;
+    });
+    return {label:b,data:data,backgroundColor:b==="Others"?"#C2CBD9":brandColor(b),stack:"s",
+      datalabels:{display:b==="Mani",color:"#003047",font:{family:FF,size:10,weight:"900"},
+        formatter:function(v){return v>=6?v.toFixed(0)+"%":"";}}};
+  });
+  S.charts[id]=new Chart(el,{type:"bar",data:{labels:groups.map(function(g){return g.label;}),datasets:ds},
+    options:{responsive:true,maintainAspectRatio:false,animation:{duration:850},
+      onClick:function(e,els){ if(els&&els.length){
+        var gi=els[0].index, di=els[0].datasetIndex, b=names[di], g=groups[gi];
+        var rows=g.rows.filter(function(r){return b==="Others"?tops.indexOf(r.brand)<0:r.brand===b;});
+        if(rows.length) openDrill(rows,{title:b+" · "+g.label,sub:"Brand share evolution"});}},
+      onHover:function(e,els){e.native.target.style.cursor=els.length?"pointer":"default";},
+      plugins:{legend:{position:"bottom",labels:{font:{family:FF,size:11},boxWidth:11,padding:8,color:axisColor()}},
+        datalabels:{},
+        tooltip:{titleFont:{family:FF,size:13,weight:"800"},bodyFont:{family:FF,size:12},
+          callbacks:{label:function(c){return " "+c.dataset.label+": "+c.parsed.y+"%";}}}},
+      scales:{x:{stacked:true,grid:{display:false},ticks:{font:{family:FF,size:11},color:axisColor()}},
+              y:{stacked:true,max:100,beginAtZero:true,grid:{color:gridColor()},ticks:{font:{family:FF,size:11},color:axisColor(),callback:function(v){return v+"%";}}}},
+      layout:{padding:{top:6,right:8}}}});
+}
+
+/* ── Pareto: top-10 buyers + cumulative % ── */
+function mxPareto(id,byAgg,totQ){
+  killC(id); var el=document.getElementById(id); if(!el) return;
+  var top=byAgg.slice(0,10);
+  var cum=0, cumD=top.map(function(a){cum+=a.qty; return +(cum/(totQ||1)*100).toFixed(1);});
+  S.charts[id]=new Chart(el,{type:"bar",
+    data:{labels:top.map(function(a,i){return "#"+(i+1);}),datasets:[
+      {type:"line",label:"Cumulative %",data:cumD,yAxisID:"y1",borderColor:"#E0A800",backgroundColor:"#E0A800",tension:.3,pointRadius:3,borderWidth:2.5,datalabels:{display:false}},
+      {label:"Qty",data:top.map(function(a){return a.qty;}),
+        backgroundColor:top.map(function(a){return a.rows.some(function(r){return r.brand==="Mani";})?"#FFC400":"#3A5CAA";}),
+        borderRadius:4,datalabels:{display:false}}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,animation:{duration:850},
+      onClick:function(e,els){ if(els&&els.length){var a=top[els[0].index]; if(a) buyerDrill(a.key);} },
+      onHover:function(e,els){e.native.target.style.cursor=els.length?"pointer":"default";},
+      plugins:{legend:{display:false},datalabels:{},
+        tooltip:{titleFont:{family:FF,size:12,weight:"800"},bodyFont:{family:FF,size:11.5},
+          callbacks:{title:function(it){var a=top[it[0].dataIndex];return a?a.key:"";},
+            label:function(c){return c.dataset.type==="line"?(" Cumulative: "+c.parsed.y+"%"):(" Qty: "+qf(c.parsed.y));}}}},
+      scales:{x:{grid:{display:false},ticks:{font:{family:FF,size:10},color:axisColor()}},
+        y:{beginAtZero:true,grid:{color:gridColor()},ticks:{font:{family:FF,size:10},color:axisColor(),callback:function(v){return qf(v);}}},
+        y1:{position:"right",min:0,max:100,grid:{display:false},ticks:{font:{family:FF,size:10},color:"#E0A800",callback:function(v){return v+"%";}}}},
+      layout:{padding:{top:6,right:4}}}});
+}
+
+/* ── Province × Brand heatmap ── */
+function mxHeatmapCard(R){
+  var pAg=sortDesc(toArr(aggBy(R.filter(function(r){return r.prov;}),function(r){return r.prov;})),"qty").slice(0,12);
+  var bAg=sortDesc(toArr(aggBy(R,function(r){return r.brand;})),"qty").slice(0,7);
+  if(!pAg.length||!bAg.length) return "";
+  var provs=pAg.map(function(a){return a.key;}), brands=bAg.map(function(a){return a.key;});
+  window._HM={provs:provs,brands:brands};
+  var cell={};
+  R.forEach(function(r){
+    if(!r.prov||provs.indexOf(r.prov)<0||brands.indexOf(r.brand)<0) return;
+    var k=r.prov+"||"+r.brand; cell[k]=(cell[k]||0)+r.qty;
+  });
+  var h='<div class="hm" style="grid-template-columns:170px repeat('+brands.length+',minmax(62px,1fr))"><div class="hh"></div>';
+  brands.forEach(function(b){h+='<div class="hh" title="'+esc(b)+'">'+esc(b.length>10?b.slice(0,9)+"…":b)+'</div>';});
+  provs.forEach(function(p,pi){
+    var rowTot=pAg[pi].qty||1;
+    h+='<div class="hr" title="'+esc(p)+'">'+esc(p)+'</div>';
+    brands.forEach(function(b,bi){
+      var q=cell[p+"||"+b]||0, sh=q/rowTot*100, isM=(b==="Mani");
+      var a=q?Math.min(.92,.14+sh/100*.82):0;
+      var bg=q?(isM?hexA("#E8C800",a):hexA("#3A5CAA",a)):"";
+      var fg=(!isM&&sh>48)?"#fff":(isM?"#003047":"var(--t1)");
+      if(!q) fg="var(--t3)";
+      h+='<div class="hc" style="'+(bg?("background:"+bg+";"):"")+'color:'+fg+'" onclick="hmDrill('+pi+','+bi+')" title="'+esc(b)+' @ '+esc(p)+' · '+nf(q)+' pcs ('+sh.toFixed(1)+'%)">'+(q?sh.toFixed(0)+"%":"·")+'</div>';
+    });
+  });
+  h+='</div><div class="hm-lg"><span class="sw"></span> brand share of province qty<span class="sw swy" style="margin-left:10px"></span> Mani column · click a cell to drill line items</div>';
+  return '<div class="card reveal"><div class="ch"><div class="ct">Province × Brand heatmap</div><div class="cs">Top '+provs.length+' provinces · top '+brands.length+' brands · % = share of province quantity</div></div><div class="cb hm-wrap">'+h+'</div></div>';
+}
+function hmDrill(pi,bi){
+  var H=window._HM; if(!H) return;
+  var p=H.provs[pi], b=H.brands[bi];
+  var rows=filterRows({prov:p,brand:b,ptype:S.mkType,region:S.mkRegion});
+  if(!rows.length){showToast("No line items for "+b+" in "+p,"info");return;}
+  openDrill(rows,{title:b+" · "+p,sub:"Province × Brand"});
+}
+
+/* ── Cross-tab quick actions ── */
+function goBrandTab(b){ S.brand=b; goTab('brand'); try{renderBrand();}catch(e){} }
+function goVS(b){ if(b!=="Mani"){ S.vsA="Mani"; S.vsB=b; } goTab('vs'); try{renderVS();}catch(e){} }
 </script>
 <script>
 /* ════════════════════════════════════════════════════════════════════

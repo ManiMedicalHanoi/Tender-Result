@@ -98,10 +98,10 @@ html[data-theme="dark"] .shimmer::after{background:linear-gradient(105deg,transp
 .sec{display:none;}
 .sec.on{display:block;animation:secIn .42s cubic-bezier(.22,.61,.36,1);}
 @keyframes secIn{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
-.sh{display:flex;align-items:center;gap:11px;margin-bottom:13px;flex-wrap:wrap;}
-.sl{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--blue);border-left:3px solid var(--yellow);padding-left:10px;}
-.sp{background:var(--pale);border:1px solid var(--lblue);border-radius:20px;padding:4px 13px;font-size:13px;font-weight:700;color:var(--blue);}
-.sub-t{font-size:12.5px;color:var(--t2);font-weight:500;}
+.sh{display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap;padding:14px 18px;background:linear-gradient(120deg,var(--navy) 0%,var(--navy2) 100%);color:#fff;border-radius:var(--r);box-shadow:0 4px 16px rgba(0,48,71,.15);}
+.sl{font-size:14px;font-weight:800;letter-spacing:.5px;color:#fff;text-transform:uppercase;}
+.sh .sp{background:rgba(255,225,0,.18);border:1px solid rgba(255,225,0,.4);border-radius:20px;padding:4px 13px;font-size:12.5px;font-weight:700;color:var(--yellow);}
+.sub-t{font-size:12px;color:rgba(255,255,255,.65);font-weight:500;flex-basis:100%;margin-top:-4px;}
 
 /* controls bar */
 .ctrl{display:flex;gap:8px;align-items:center;flex-wrap:wrap;background:var(--sf);border:1px solid var(--br);border-radius:var(--r);padding:10px 14px;margin-bottom:14px;box-shadow:var(--sh);}
@@ -120,16 +120,21 @@ html[data-theme="dark"] .shimmer::after{background:linear-gradient(105deg,transp
 /* ════ KPI ════ */
 .kr{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px;}
 @media(max-width:900px){.kr{grid-template-columns:1fr 1fr;}}
-.kpi{background:var(--sf);border-radius:var(--r);padding:18px 18px 16px;box-shadow:var(--sh);border:1px solid var(--br);position:relative;overflow:hidden;min-height:148px;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;}
+.kpi{background:var(--sf);border-radius:var(--r);padding:18px 18px 16px;box-shadow:var(--sh);border:1px solid var(--br);position:relative;overflow:hidden;min-height:154px;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;transition:transform .18s ease, box-shadow .18s ease;}
+.kpi:hover{transform:translateY(-1px);box-shadow:0 2px 4px rgba(0,48,71,.08),0 8px 28px rgba(0,48,71,.09);}
 .kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:3.5px;background:var(--blue);}
 .kpi.y::before{background:var(--yellow);}.kpi.pos::before{background:var(--pos);}.kpi.neg::before{background:var(--neg);}
-.kl{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--t3);margin-bottom:8px;line-height:1.25;}
-.kv{font-size:30px;font-weight:900;color:var(--t1);letter-spacing:-.6px;line-height:1.04;}
+.kl{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.7px;color:var(--t3);margin-bottom:10px;line-height:1.3;}
+.kv{font-size:32px;font-weight:900;color:var(--t1);letter-spacing:-.7px;line-height:1.04;font-variant-numeric:tabular-nums;}
 .kv small{font-size:15px;font-weight:800;color:var(--t2);margin-left:3px;}
+.kpi.y .kv{color:#B8860B;}
+html[data-theme="dark"] .kpi.y .kv{color:#FFD24A;}
+.kpi.pos .kv{color:#16A085;}
+.kpi.neg .kv{color:#C0392B;}
 .ks{margin-top:8px;font-size:12px;color:var(--t2);line-height:1.4;}
 .ks b{color:var(--t1);font-weight:800;}
-.knote{margin-top:10px;font-size:11.5px;color:var(--t2);background:var(--pale);border:1px solid var(--lblue);border-radius:6px;padding:6px 9px;line-height:1.4;width:100%;}
-.knote b{color:var(--navy);}html[data-theme="dark"] .knote b{color:var(--sky);}
+.knote{margin-top:10px;font-size:11.5px;color:var(--t2);background:var(--pale);border:1px solid var(--lblue);border-radius:7px;padding:7px 10px;line-height:1.5;width:100%;}
+.knote b{color:var(--navy);font-weight:800;}html[data-theme="dark"] .knote b{color:var(--sky);}
 
 /* pills */
 .pill{display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:12px;font-weight:700;}
@@ -144,16 +149,17 @@ html[data-theme="dark"] .shimmer::after{background:linear-gradient(105deg,transp
 
 /* card */
 .card{background:var(--sf);border-radius:var(--r);box-shadow:var(--sh);border:1px solid var(--br);overflow:hidden;margin-bottom:14px;}
-.ch{padding:12px 16px 9px;border-bottom:1px solid var(--br);display:flex;align-items:center;gap:9px;flex-wrap:wrap;}
-.ct{font-size:13px;font-weight:800;color:var(--t1);text-transform:uppercase;letter-spacing:.3px;display:flex;align-items:center;gap:6px;}
-.cs{font-size:11px;color:var(--t3);}
+.ch{padding:13px 17px 11px;border-bottom:1px solid var(--br);display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:linear-gradient(180deg,var(--sf2) 0%,var(--sf) 100%);}
+html[data-theme="dark"] .ch{background:linear-gradient(180deg,rgba(255,255,255,.02) 0%,transparent 100%);}
+.ct{font-size:13.5px;font-weight:800;color:var(--t1);letter-spacing:.1px;display:flex;align-items:center;gap:6px;}
+.cs{font-size:11.5px;color:var(--t3);font-weight:600;}
 .cb{padding:14px 16px;}
 .cw{position:relative;height:300px;}
 .cw.s{height:240px;}.cw.t{height:360px;}.cw.xl{height:440px;}
 .cw.seglead{height:280px;}
-.dl-btn{margin-left:auto;background:var(--blue);color:#fff;border:none;border-radius:8px;padding:5px 12px;font-family:var(--ff);font-size:11.5px;font-weight:700;cursor:pointer;transition:.15s;display:inline-flex;align-items:center;gap:4px;}
-.dl-btn:hover{background:var(--navy);transform:translateY(-1px);}
-.hint{font-size:10.5px;color:var(--blue);background:var(--pale);border:1px solid var(--lblue);border-radius:20px;padding:2px 9px;font-weight:700;}
+.dl-btn{margin-left:auto;background:transparent;color:var(--blue);border:1.5px solid var(--br);border-radius:7px;padding:5px 11px;font-family:var(--ff);font-size:11.5px;font-weight:700;cursor:pointer;transition:.15s;display:inline-flex;align-items:center;gap:4px;}
+.dl-btn:hover{background:var(--blue);color:#fff;border-color:var(--blue);}
+.hint{font-size:10.5px;color:var(--blue);background:var(--pale);border:1px solid var(--lblue);border-radius:14px;padding:2px 9px;font-weight:700;}
 
 /* insight box */
 .ins{background:var(--pale);border:1px solid var(--lblue);border-left:4px solid var(--blue);border-radius:var(--rs);padding:12px 15px;margin-bottom:14px;}
@@ -166,33 +172,35 @@ html[data-theme="dark"] .shimmer::after{background:linear-gradient(105deg,transp
 /* tables */
 .tw{overflow-x:auto;}
 table{width:100%;border-collapse:collapse;font-size:13px;font-family:var(--ff);}
-thead th{background:var(--lblue);color:var(--navy);font-weight:800;font-size:11px;text-transform:uppercase;letter-spacing:.4px;padding:8px 11px;text-align:right;white-space:nowrap;position:sticky;top:0;z-index:2;}
+thead th{background:var(--sf2);color:var(--t1);font-weight:800;font-size:11px;text-transform:uppercase;letter-spacing:.5px;padding:10px 12px;text-align:right;white-space:nowrap;position:sticky;top:0;z-index:2;border-bottom:2px solid var(--br);}
 thead th:first-child,thead th.tl{text-align:left;}
-tbody tr:nth-child(even){background:var(--pale);}
-tbody tr:hover{background:var(--lblue);}
+tbody tr{border-bottom:1px solid var(--br);}
+tbody tr:hover{background:var(--pale);}
 tbody tr.clk{cursor:pointer;transition:.13s;}
-tbody tr.clk:hover{background:var(--lblue);box-shadow:inset 4px 0 0 var(--yellow);}
-td{padding:7px 11px;text-align:right;border-bottom:1px solid var(--br);white-space:nowrap;font-weight:600;font-variant-numeric:tabular-nums;}
+tbody tr.clk:hover{background:var(--pale);box-shadow:inset 3px 0 0 var(--blue);}
+td{padding:8px 12px;text-align:right;white-space:nowrap;font-weight:600;font-variant-numeric:tabular-nums;color:var(--t1);}
 td:first-child,td.tl{text-align:left;font-weight:700;}
-tr.tot td{background:var(--lblue);font-weight:800;color:var(--navy);}
-tr.grand td{background:var(--blue);color:#fff;font-weight:800;}
-tr.grand:hover td{background:var(--navy);}
-tr.mani td{background:rgba(255,225,0,.14);}
-tr.mani:hover td{background:rgba(255,225,0,.24);}
+tr.tot td{background:var(--sf2);font-weight:800;color:var(--t1);}
+tr.grand td{background:var(--navy);color:#fff;font-weight:800;border-bottom:none;}
+tr.grand:hover td{background:var(--navy2);}
+tr.mani td{background:rgba(255,225,0,.08);}
+tr.mani:hover td{background:rgba(255,225,0,.16);}
 /* ptype cell — hoverable for tspec tooltip */
 .pt-hov{cursor:help;border-bottom:1px dotted var(--blue);}
 .pt-hov:hover{color:var(--blue);}
 
 /* ranking bars */
-.rkr{display:flex;align-items:center;gap:9px;padding:5px 0;border-bottom:1px solid var(--br);cursor:pointer;transition:.13s;border-radius:5px;}
+.rkr{display:flex;align-items:center;gap:11px;padding:7px 4px;border-bottom:1px solid var(--br);cursor:pointer;transition:.13s;border-radius:5px;}
 .rkr:hover{background:var(--pale);}
 .rkr:last-child{border-bottom:none;}
-.rkn{width:150px;font-size:13px;color:var(--t1);font-weight:700;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding-left:4px;display:flex;align-items:center;gap:6px;}
+.rkn{width:280px;font-size:13px;color:var(--t1);font-weight:700;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding-left:4px;display:flex;align-items:center;gap:7px;}
 .rkn .sw{width:10px;height:10px;border-radius:3px;flex-shrink:0;}
 .rkn small{color:var(--t3);font-weight:600;}
-.rkt{flex:1;height:18px;background:var(--bg);border-radius:5px;overflow:hidden;}
+.rkt{flex:1;min-width:90px;height:18px;background:var(--bg);border-radius:5px;overflow:hidden;}
 .rkb{height:100%;border-radius:5px;width:0;transition:width 1s cubic-bezier(.22,.61,.36,1);display:flex;align-items:center;justify-content:flex-end;}
-.rkv{width:96px;text-align:right;font-size:13px;font-weight:800;flex-shrink:0;padding-right:4px;font-variant-numeric:tabular-nums;}
+.rkv{width:88px;text-align:right;font-size:13px;font-weight:800;flex-shrink:0;padding-right:4px;font-variant-numeric:tabular-nums;}
+@media(max-width:980px){.rkn{width:200px;}}
+@media(max-width:680px){.rkn{width:140px;font-size:12px;}.rkv{width:70px;font-size:12px;}}
 
 /* ════ DRILL ════ */
 #drill{position:fixed;inset:0;z-index:500;display:none;}
@@ -305,8 +313,8 @@ html[data-theme="dark"] .tdcard{background:var(--sf2);}
 .emptyside{padding:18px 10px;text-align:center;color:var(--t3);font-size:12px;font-style:italic;border:1px dashed var(--br);border-radius:6px;}
 .emptynote{padding:30px;text-align:center;color:var(--t3);background:var(--sf);border:1px dashed var(--br);border-radius:8px;margin-top:10px;}
 
-.tspec-tip{position:absolute;z-index:9999;max-width:460px;background:#003047;color:#fff;padding:12px 14px;border-radius:8px;font-size:12px;line-height:1.55;box-shadow:0 12px 32px rgba(0,0,0,.36);opacity:0;transition:opacity .15s;pointer-events:none;display:none;}
-.tspec-tip.show{opacity:1;}
+.tspec-tip{position:absolute;z-index:9999;max-width:460px;background:#003047;color:#fff;padding:12px 14px;border-radius:8px;font-size:12px;line-height:1.55;box-shadow:0 12px 32px rgba(0,0,0,.36);opacity:0;visibility:hidden;transition:opacity .15s ease, visibility .15s ease;pointer-events:none;}
+.tspec-tip.show{opacity:1;visibility:visible;}
 .tspec-tip .th{font-weight:800;font-size:10.5px;letter-spacing:.6px;opacity:.85;text-transform:uppercase;margin-bottom:6px;}
 .tspec-tip .pc{background:rgba(255,225,0,.16);color:var(--yellow);padding:3px 8px;border-radius:5px;font-weight:800;font-size:11.5px;display:inline-block;margin-bottom:7px;letter-spacing:.5px;}
 .tspec-tip .tb{white-space:pre-wrap;max-height:240px;overflow-y:auto;}
@@ -379,7 +387,7 @@ html[data-theme="dark"] .tdcard{background:var(--sf2);}
 @keyframes tslideOut{to{transform:translateX(120%);opacity:0;}}
 
 /* etip (chart tooltip) */
-.etip{position:absolute;z-index:700;background:#003047;color:#fff;padding:9px 12px;border-radius:8px;font-size:12px;line-height:1.5;box-shadow:0 8px 24px rgba(0,0,0,.32);opacity:0;pointer-events:none;transition:opacity .12s;max-width:300px;}
+.etip{position:absolute;z-index:700;background:#003047;color:#fff;padding:9px 12px;border-radius:8px;font-size:12px;line-height:1.5;box-shadow:0 8px 24px rgba(0,0,0,.32);opacity:0;pointer-events:none;transition:opacity .15s ease, left .08s linear, top .08s linear;max-width:300px;will-change:left,top,opacity;}
 .etip .eh{font-weight:800;font-size:12.5px;margin-bottom:5px;}
 .etip .er{display:flex;justify-content:space-between;gap:14px;padding:2px 0;}
 .etip .er b{font-weight:800;}
@@ -506,10 +514,10 @@ html[data-theme="dark"] .mp-pop{box-shadow:0 14px 42px rgba(0,0,0,.55);}
     </div>
   </div>
   <div class="nav">
-    <div class="nt on" id="nt-market" onclick="goTab('market')">🌏 Market Overview</div>
-    <div class="nt"    id="nt-brand"  onclick="goTab('brand')">🎯 Brand Positioning</div>
-    <div class="nt"    id="nt-acct"   onclick="goTab('acct')">📍 Territory Tracking</div>
-    <div class="nt"    id="nt-vs"     onclick="goTab('vs')">⚔️ Head-to-Head</div>
+    <div class="nt on" id="nt-market" onclick="goTab('market')">Market Overview</div>
+    <div class="nt"    id="nt-brand"  onclick="goTab('brand')">Brand Positioning</div>
+    <div class="nt"    id="nt-acct"   onclick="goTab('acct')">Territory Tracking</div>
+    <div class="nt"    id="nt-vs"     onclick="goTab('vs')">Head-to-Head</div>
   </div>
   <div class="timebar" id="time-bar"></div>
 </div>
@@ -552,7 +560,7 @@ html[data-theme="dark"] .mp-pop{box-shadow:0 14px 42px rgba(0,0,0,.55);}
   <div class="drill-pn" id="drill-pn">
     <div class="drill-hd">
       <div style="flex:1;min-width:0"><div class="dt" id="drill-t">Detail</div><div class="dsub" id="drill-s"></div></div>
-      <button class="drill-act" onclick="drillDownload()" title="Download CSV">⬇ CSV</button>
+      <button class="drill-act" onclick="drillDownload()" title="Download CSV">Export CSV</button>
       <button class="drill-act" id="drill-exp" onclick="toggleExpand()" title="Expand">⛶</button>
       <button class="drill-x" onclick="closeDrill()">✕</button>
     </div>
@@ -1133,9 +1141,16 @@ function animateBars(scope){
 
 /* ── Chart tooltip externals ── */
 function etipEl(){return document.getElementById("etip");}
+var _etipHideT=null;
 function chartTip(ctx,build){
   var tip=etipEl(),tt=ctx.tooltip;
-  if(!tt||tt.opacity===0){tip.style.opacity="0";return;}
+  if(!tt||tt.opacity===0){
+    // Delay hide to avoid flicker when moving between adjacent bars
+    if(_etipHideT) clearTimeout(_etipHideT);
+    _etipHideT = setTimeout(function(){tip.style.opacity="0";}, 60);
+    return;
+  }
+  if(_etipHideT){clearTimeout(_etipHideT); _etipHideT=null;}
   var idx=(tt.dataPoints&&tt.dataPoints.length)?tt.dataPoints[0].dataIndex:-1;
   if(idx<0){tip.style.opacity="0";return;}
   var info=null; try{info=build(idx,tt);}catch(e){info=null;}
@@ -1145,7 +1160,12 @@ function chartTip(ctx,build){
   }).join("");
   tip.innerHTML='<div class="eh">'+esc(info.title||"")+'</div>'+rows+(info.note?'<div class="ehint">'+esc(info.note)+'</div>':'');
   var cr=ctx.chart.canvas.getBoundingClientRect();
+  var tipW = tip.offsetWidth || 200, tipH = tip.offsetHeight || 80;
   var left=cr.left+window.scrollX+tt.caretX+14, top=cr.top+window.scrollY+tt.caretY-10;
+  // Keep tooltip inside viewport
+  var vw = window.innerWidth + window.scrollX;
+  if(left + tipW > vw - 12) left = cr.left + window.scrollX + tt.caretX - tipW - 14;
+  if(left < 8 + window.scrollX) left = 8 + window.scrollX;
   tip.style.opacity="1";tip.style.left=left+"px";tip.style.top=top+"px";
 }
 function gridColor(){return (getComputedStyle(document.documentElement).getPropertyValue('--br')||'#DDE5F2').trim();}
@@ -1435,19 +1455,19 @@ function showTspec(ev,el){
   if(!t && !code) return;
   var tip = document.getElementById("tspec-tip");
   if(!tip){tip=document.createElement("div");tip.id="tspec-tip";tip.className="tspec-tip";document.body.appendChild(tip);}
-  var html = '<div class="th">📋 Product Detail</div>';
+  var html = '<div class="th">Product Detail</div>';
   if(code) html += '<div class="pc">Code: '+esc(code)+'</div>';
   html += '<div class="tb">'+(t?esc(t):'<em style="opacity:.6">No technical specification on record</em>')+'</div>';
   tip.innerHTML = html;
   var r = el.getBoundingClientRect();
   var x = r.left + window.scrollX, y = r.bottom + window.scrollY + 8;
   if(x + 470 > window.innerWidth + window.scrollX) x = Math.max(8, window.innerWidth + window.scrollX - 480);
-  tip.style.left = x + "px"; tip.style.top = y + "px"; tip.style.display = "block";
-  setTimeout(function(){tip.classList.add("show");}, 10);
+  tip.style.left = x + "px"; tip.style.top = y + "px";
+  tip.classList.add("show");
 }
 function hideTspec(){
   var tip=document.getElementById("tspec-tip");
-  if(tip){tip.classList.remove("show");setTimeout(function(){tip.style.display="none";},150);}
+  if(tip) tip.classList.remove("show");
 }
 </script>
 <script>
@@ -1485,7 +1505,7 @@ function openDrill(rows,o){
       +"<td class='tl'>"+esc(r.tier)+"</td><td class='tl'>"+esc(r.prov)+"</td><td>"+esc(r.year)+"</td>"
       +"<td>"+nf(r.qty)+"</td><td>"+money(r.price)+"</td><td>"+money(r.val)+"</td></tr>";
   }).join("");
-  html+='<div class="card" style="margin-bottom:0"><div class="ch"><div class="ct">Line-item detail</div><div class="cs">Top '+srt.length+' / '+rows.length+' by value · hover Product Type for spec</div><button class="dl-btn" onclick="drillDownload()">⬇ CSV</button></div>'
+  html+='<div class="card" style="margin-bottom:0"><div class="ch"><div class="ct">Line-item detail</div><div class="cs">Top '+srt.length+' / '+rows.length+' by value · hover Product Type for spec</div><button class="dl-btn" onclick="drillDownload()">Export CSV</button></div>'
     +'<div class="cb" style="padding:0"><div class="tw"><table><thead><tr><th class="tl">Buyer</th><th class="tl">Brand</th><th class="tl">Product Type</th><th class="tl">Tier</th><th class="tl">Province</th><th>Year</th><th>Qty</th><th>Unit price</th><th>Value</th></tr></thead><tbody>'+body+'</tbody></table></div></div></div>';
   document.getElementById("drill-body").innerHTML=html;
   document.getElementById("drill").classList.add("on");
@@ -1650,14 +1670,14 @@ function renderMarket(){
 
   /* Row of 3 time-series charts: qty bars · value bars · combined buyers+packages */
   H += '<div class="g3">'
-    + '<div class="card reveal"><div class="ch"><div class="ct">📊 Quantity awarded over time</div><div class="cs">pcs</div></div><div class="cb"><div class="cw t"><canvas id="c-mk-tsQ"></canvas></div></div></div>'
-    + '<div class="card reveal"><div class="ch"><div class="ct">💰 Value awarded over time</div><div class="cs">'+S.currency+'</div></div><div class="cb"><div class="cw t"><canvas id="c-mk-tsV"></canvas></div></div></div>'
-    + '<div class="card reveal"><div class="ch"><div class="ct">🏥 Buyers & Packages over time</div><div class="cs">buyer count vs package count</div></div><div class="cb"><div class="cw t"><canvas id="c-mk-tsBP"></canvas></div></div></div>'
+    + '<div class="card reveal"><div class="ch"><div class="ct">Quantity awarded over time</div><div class="cs">pcs</div></div><div class="cb"><div class="cw t"><canvas id="c-mk-tsQ"></canvas></div></div></div>'
+    + '<div class="card reveal"><div class="ch"><div class="ct">Value awarded over time</div><div class="cs">'+S.currency+'</div></div><div class="cb"><div class="cw t"><canvas id="c-mk-tsV"></canvas></div></div></div>'
+    + '<div class="card reveal"><div class="ch"><div class="ct">Buyers &amp; Packages over time</div><div class="cs">buyer count vs package count</div></div><div class="cb"><div class="cw t"><canvas id="c-mk-tsBP"></canvas></div></div></div>'
     + '</div>';
 
   /* Two pairs of segment charts: Quantity-based & Value-based.
      Each pair = Tier donut + Brand-leader-per-tier (with % labels, click drill). */
-  H += '<div class="card reveal"><div class="ch"><div class="ct">🧩 Price-tier structure — by Quantity</div></div><div class="cb"><div class="tier-layout">'
+  H += '<div class="card reveal"><div class="ch"><div class="ct">Price-tier structure — by Quantity</div></div><div class="cb"><div class="tier-layout">'
     + '<div class="tier-donut"><div class="cw" style="height:280px"><canvas id="c-mk-tierQ"></canvas></div></div>'
     + '<div class="tier-leaders"><div class="tlgrid">'
       + '<div><div class="tl-hd" style="color:#5B7DB1">HIGH</div><div class="cw tlbar"><canvas id="c-mk-segQH"></canvas></div></div>'
@@ -1666,7 +1686,7 @@ function renderMarket(){
     + '</div></div>'
     + '</div></div></div>';
 
-  H += '<div class="card reveal"><div class="ch"><div class="ct">🧩 Price-tier structure — by Value</div></div><div class="cb"><div class="tier-layout">'
+  H += '<div class="card reveal"><div class="ch"><div class="ct">Price-tier structure — by Value</div></div><div class="cb"><div class="tier-layout">'
     + '<div class="tier-donut"><div class="cw" style="height:280px"><canvas id="c-mk-tierV"></canvas></div></div>'
     + '<div class="tier-leaders"><div class="tlgrid">'
       + '<div><div class="tl-hd" style="color:#5B7DB1">HIGH</div><div class="cw tlbar"><canvas id="c-mk-segVH"></canvas></div></div>'
@@ -1677,8 +1697,8 @@ function renderMarket(){
 
   /* Two pairs of product-type mix charts: by Qty + by Value */
   H += '<div class="g2">'
-    + '<div class="card reveal"><div class="ch"><div class="ct">🔪 Product-type mix — Quantity</div></div><div class="cb"><div class="g2" style="margin:0"><div><div class="cw t"><canvas id="c-mk-ptypeQ"></canvas></div></div><div><div class="cw t"><canvas id="c-mk-pttQ"></canvas></div></div></div></div></div>'
-    + '<div class="card reveal"><div class="ch"><div class="ct">🔪 Product-type mix — Value</div></div><div class="cb"><div class="g2" style="margin:0"><div><div class="cw t"><canvas id="c-mk-ptypeV"></canvas></div></div><div><div class="cw t"><canvas id="c-mk-pttV"></canvas></div></div></div></div></div>'
+    + '<div class="card reveal"><div class="ch"><div class="ct">Product-type mix — Quantity</div></div><div class="cb"><div class="g2" style="margin:0"><div><div class="cw t"><canvas id="c-mk-ptypeQ"></canvas></div></div><div><div class="cw t"><canvas id="c-mk-pttQ"></canvas></div></div></div></div></div>'
+    + '<div class="card reveal"><div class="ch"><div class="ct">Product-type mix — Value</div></div><div class="cb"><div class="g2" style="margin:0"><div><div class="cw t"><canvas id="c-mk-ptypeV"></canvas></div></div><div><div class="cw t"><canvas id="c-mk-pttV"></canvas></div></div></div></div></div>'
     + '</div>';
 
   /* Brand share table + Top buyers + concentration */
@@ -1688,14 +1708,14 @@ function renderMarket(){
   var top10share = top10Q/(totQ||1)*100;
 
   H += '<div class="g23">'
-    + '<div class="card reveal"><div class="ch"><div class="ct">🏥 Top 10 buyers (by quantity)</div><div class="hint">Click to see brand mix</div></div><div class="cb" id="mk-topbuyer"></div></div>'
-    + '<div class="card reveal"><div class="ch"><div class="ct">📌 Concentration</div></div><div class="cb">'
+    + '<div class="card reveal"><div class="ch"><div class="ct">Top 10 buyers (by quantity)</div><div class="hint">Click to see brand mix</div></div><div class="cb" id="mk-topbuyer"></div></div>'
+    + '<div class="card reveal"><div class="ch"><div class="ct">Concentration</div></div><div class="cb">'
       + '<div class="mstat" style="margin-bottom:10px"><div class="ml">Top 10 buyers hold</div><div class="mv" style="color:var(--blue)">'+pct(top10share)+'</div><div class="ms">'+qf(top10Q)+' / '+qf(totQ)+' pcs total</div></div>'
       + '<div class="cw" style="height:200px"><canvas id="c-mk-conc"></canvas></div>'
       + '<div style="font-size:11.5px;color:var(--t2);margin-top:8px">Market is <b>'+(top10share>40?"highly concentrated":"fragmented")+'</b> — '+top10.length+' largest buyers hold '+pct(top10share)+' of capacity.</div>'
     + '</div></div></div>';
 
-  H += '<div class="card reveal"><div class="ch"><div class="ct">📋 Full brand share table</div><div class="cs">'+bAgg.length+' brands</div><button class="dl-btn" onclick="exportTable(\'t-mk-brandtbl\',\'brand_share\')">⬇ CSV</button></div>'
+  H += '<div class="card reveal"><div class="ch"><div class="ct">Full brand share table</div><div class="cs">'+bAgg.length+' brands</div><button class="dl-btn" onclick="exportTable(\'t-mk-brandtbl\',\'brand_share\')">Export CSV</button></div>'
     + '<div class="cb" style="padding:0"><div class="tw" id="t-mk-brandtbl">'+brandTable(bAgg,totQ,totV)+'</div></div></div>';
 
   document.getElementById("mk-body").innerHTML = H;
@@ -1848,8 +1868,8 @@ function renderMarket(){
     title:"Buyer", kind:"buyer",
     valFn:function(a){return a.qty;},
     colorFn:function(a){return a.rows.some(function(r){return r.brand==="Mani";}) ? "#FFC400" : "#3A5CAA";},
-    labelFn:function(a){return a.key.length>26?a.key.slice(0,25)+"…":a.key;},
-    subFn:function(a){var m=a.rows.filter(function(r){return r.brand==="Mani";}).reduce(function(s,r){return s+r.qty;},0); return m>0?("Mani "+qf(m)):"no Mani";},
+    labelFn:function(a){return a.key.length>42?a.key.slice(0,41)+"…":a.key;},
+    subFn:function(a){var m=a.rows.filter(function(r){return r.brand==="Mani";}).reduce(function(s,r){return s+r.qty;},0); return m>0?("Mani "+qf(m)):"";},
     fmtFn:function(v){return qf(v);}
   });
   donutChart("c-mk-conc", ["Top 10","Others"], [top10Q, Math.max(totQ-top10Q,0)], ["#3A5CAA","#D5DCE8"], {fmt:qf,legendPos:"bottom",cutout:"66%"});
@@ -1985,17 +2005,17 @@ function renderBrand(){
 
   var H="";
   H+='<div class="g23">'
-    +'<div class="card reveal"><div class="ch"><div class="ct">🗺️ Positioning map — Price vs Share</div><div class="cs">X: avg unit price · Y: quantity share · size: volume</div></div><div class="cb"><div class="cw t"><canvas id="c-br-pos"></canvas></div>'
+    +'<div class="card reveal"><div class="ch"><div class="ct">️ Positioning map — Price vs Share</div><div class="cs">X: avg unit price · Y: quantity share · size: volume</div></div><div class="cb"><div class="cw t"><canvas id="c-br-pos"></canvas></div>'
       +'<div class="poslg"><span class="z" style="background:#FFF6C2;color:#8A6D00">LOW</span><span class="z" style="background:#E5F0E8;color:#2E7D32">MID</span><span class="z" style="background:#E4ECF8;color:#3A5CAA">HIGH</span><span style="margin-left:auto">🟡 = '+esc(S.brand)+'</span></div></div></div>'
-    +'<div class="card reveal"><div class="ch"><div class="ct">🧩 '+esc(S.brand)+' tier mix</div></div><div class="cb"><div class="cw t"><canvas id="c-br-mix"></canvas></div></div></div>'
+    +'<div class="card reveal"><div class="ch"><div class="ct">'+esc(S.brand)+' tier mix</div></div><div class="cb"><div class="cw t"><canvas id="c-br-mix"></canvas></div></div></div>'
     +'</div>';
   H+='<div class="g2">'
-    +'<div class="card reveal"><div class="ch"><div class="ct">📈 Quantity vs Value share over years</div></div><div class="cb"><div class="cw"><canvas id="c-br-sv"></canvas></div></div></div>'
-    +'<div class="card reveal"><div class="ch"><div class="ct">🔪 '+esc(S.brand)+' by product type over years</div></div><div class="cb"><div class="cw"><canvas id="c-br-pt"></canvas></div></div></div>'
+    +'<div class="card reveal"><div class="ch"><div class="ct">Quantity vs Value share over years</div></div><div class="cb"><div class="cw"><canvas id="c-br-sv"></canvas></div></div></div>'
+    +'<div class="card reveal"><div class="ch"><div class="ct">'+esc(S.brand)+' by product type over years</div></div><div class="cb"><div class="cw"><canvas id="c-br-pt"></canvas></div></div></div>'
     +'</div>';
   H+='<div class="g2">'
-    +'<div class="card reveal"><div class="ch"><div class="ct">📊 '+esc(S.brand)+' share by product type</div><div class="cs">Last 2 years</div></div><div class="cb"><div class="cw"><canvas id="c-br-ptshare"></canvas></div></div></div>'
-    +'<div class="card reveal"><div class="ch"><div class="ct">🌏 '+esc(S.brand)+' by Region over years</div></div><div class="cb"><div class="cw"><canvas id="c-br-reg"></canvas></div></div></div>'
+    +'<div class="card reveal"><div class="ch"><div class="ct">'+esc(S.brand)+' share by product type</div><div class="cs">Last 2 years</div></div><div class="cb"><div class="cw"><canvas id="c-br-ptshare"></canvas></div></div></div>'
+    +'<div class="card reveal"><div class="ch"><div class="ct">'+esc(S.brand)+' by Region over years</div></div><div class="cb"><div class="cw"><canvas id="c-br-reg"></canvas></div></div></div>'
     +'</div>';
   var byAgg=sortDesc(toArr(aggBy(BR,function(r){return r.buyer;})),"qty").slice(0,12);
   var highBuyers={};R.forEach(function(r){if(r.tier==="High")highBuyers[r.buyer]=1;});
@@ -2004,8 +2024,8 @@ function renderBrand(){
   var gapRows=R.filter(function(r){return r.tier==="High"&&gapHigh.indexOf(r.buyer)>=0;});
   var gapAgg=sortDesc(toArr(aggBy(gapRows,function(r){return r.buyer;})),"qty").slice(0,12);
   H+='<div class="g2">'
-    +'<div class="card reveal"><div class="ch"><div class="ct">🏥 Top buyers of '+esc(S.brand)+'</div><div class="hint">Click to drill</div></div><div class="cb" id="br-topbuyer"></div></div>'
-    +'<div class="card reveal"><div class="ch"><div class="ct">🎯 GAP — High-tier buyers without '+esc(S.brand)+'</div><div class="cs">'+gapHigh.length+' High buyers untapped</div><button class="dl-btn" onclick="rowsToCSV(window._brGap||[],\'GAP_High_'+esc(S.brand)+'\')">⬇ CSV</button></div><div class="cb" id="br-gap"></div></div>'
+    +'<div class="card reveal"><div class="ch"><div class="ct">Top buyers of '+esc(S.brand)+'</div><div class="hint">Click to drill</div></div><div class="cb" id="br-topbuyer"></div></div>'
+    +'<div class="card reveal"><div class="ch"><div class="ct">GAP — High-tier buyers without '+esc(S.brand)+'</div><div class="cs">'+gapHigh.length+' High buyers untapped</div><button class="dl-btn" onclick="rowsToCSV(window._brGap||[],\'GAP_High_'+esc(S.brand)+'\')">Export CSV</button></div><div class="cb" id="br-gap"></div></div>'
     +'</div>';
   window._brGap=gapRows;
   document.getElementById("br-body").innerHTML=H;
@@ -2073,8 +2093,8 @@ function renderBrand(){
     return {label:rg==="North"?"North":rg==="South"?"South":rg,data:yrs.map(function(y){var rr=BR.filter(function(r){return r.year===y&&r.region===rg;});return rr.reduce(function(s,r){return s+MV(r);},0);}),backgroundColor:REGION_COLOR[rg],stack:"s",
       datalabels:{display:true,color:"#fff",font:{family:FF,size:10,weight:"700"},formatter:function(v){return v>0?mval(v):"";}}};
   }),stacked:true,fmt:mval,padTop:8});
-  document.getElementById("br-topbuyer").innerHTML=byAgg.length?rankList("brbuyer",byAgg,{title:"Buyer of "+S.brand,kind:"buyer",valFn:function(a){return a.qty;},colorFn:function(){return brandColor(S.brand);},labelFn:function(a){return a.key.length>28?a.key.slice(0,27)+"…":a.key;},subFn:function(a){return money(a.val)+" · "+a.npkg+" pkgs";},fmtFn:function(v){return qf(v);}}):'<div style="color:var(--t3);padding:20px;text-align:center">No tenders in this period</div>';
-  document.getElementById("br-gap").innerHTML=gapAgg.length?rankList("brgap",gapAgg,{title:"High buyers without "+S.brand,kind:"buyer",valFn:function(a){return a.qty;},colorFn:function(){return "#C0392B";},labelFn:function(a){return a.key.length>28?a.key.slice(0,27)+"…":a.key;},subFn:function(a){var lead=sortDesc(toArr(aggBy(a.rows,function(r){return r.brand;})),"qty")[0];return "using "+(lead?lead.key:"?");},fmtFn:function(v){return qf(v);}}):'<div style="color:var(--t3);padding:20px;text-align:center">No untapped High-tier buyers 🎉</div>';
+  document.getElementById("br-topbuyer").innerHTML=byAgg.length?rankList("brbuyer",byAgg,{title:"Buyer of "+S.brand,kind:"buyer",valFn:function(a){return a.qty;},colorFn:function(){return brandColor(S.brand);},labelFn:function(a){return a.key.length>42?a.key.slice(0,41)+"…":a.key;},subFn:function(a){return money(a.val)+" · "+a.npkg+" pkgs";},fmtFn:function(v){return qf(v);}}):'<div style="color:var(--t3);padding:20px;text-align:center">No tenders in this period</div>';
+  document.getElementById("br-gap").innerHTML=gapAgg.length?rankList("brgap",gapAgg,{title:"High buyers without "+S.brand,kind:"buyer",valFn:function(a){return a.qty;},colorFn:function(){return "#C0392B";},labelFn:function(a){return a.key.length>42?a.key.slice(0,41)+"…":a.key;},subFn:function(a){var lead=sortDesc(toArr(aggBy(a.rows,function(r){return r.brand;})),"qty")[0];return "using "+(lead?lead.key:"?");},fmtFn:function(v){return qf(v);}}):'<div style="color:var(--t3);padding:20px;text-align:center">No untapped High-tier buyers</div>';
   afterRender("sec-brand");
 }
 
@@ -2160,7 +2180,7 @@ function renderAcct(){
    +'<span class="divx"></span>'
    +'<span class="cl">Cutoff</span>'+mpickBtnHtml("mp-ac-cut", seg.cut, seg.from, seg.to, "onAcCut");
   document.getElementById("ac-name").textContent=S.acBrand+" · "+moLabel(seg.from)+" → "+moLabel(seg.to)+" · cut "+moLabel(seg.cut);
-  var subs=[["overview","📊 Overview"],["detail","🏥 Group detail"],["risk","⚠️ Risk & Opportunity"]];
+  var subs=[["overview","Overview"],["detail","Group detail"],["risk","Risk & Opportunity"]];
   document.getElementById("ac-subnav").innerHTML=subs.map(function(s){return '<button class="subt '+(S.acSub===s[0]?"on":"")+'" onclick="S.acSub=\''+s[0]+'\';renderAcct()">'+s[1]+'</button>';}).join("");
   if(S.acSub==="overview")acOverview();
   else if(S.acSub==="detail")acDetail();
@@ -2178,7 +2198,7 @@ function acOverview(){
     var n=c[g.k],p=totBuyers?(n/totBuyers*100):0;
     return '<div class="grpc tight" style="border-top-color:'+g.col+'" onclick="S.acSub=\'detail\';S.acGroup=\''+g.k+'\';renderAcct()"><div class="gic">'+g.ic+'</div><div class="gnm">'+g.nm+'</div><div class="gct" style="color:'+g.col+'">'+n+'</div><div class="gpct">'+p.toFixed(1)+'%</div></div>';
   }).join("")+'</div>';
-  H+='<div class="card reveal" style="margin-bottom:14px"><div class="ch"><div class="ct">📊 '+totBuyers+' buyers by status</div><div class="cs">Width = % of total buyers in window '+moLabel(seg.from)+' → '+moLabel(seg.to)+'</div></div><div class="cb"><div class="distbar">';
+  H+='<div class="card reveal" style="margin-bottom:14px"><div class="ch"><div class="ct">'+totBuyers+' buyers by status</div><div class="cs">Width = % of total buyers in window '+moLabel(seg.from)+' → '+moLabel(seg.to)+'</div></div><div class="cb"><div class="distbar">';
   ACG.forEach(function(g){
     var n=c[g.k];if(n<=0)return;var p=totBuyers?(n/totBuyers*100):0;
     H+='<div class="distseg" style="background:'+g.col+';flex:'+p+'" title="'+g.nm+': '+n+' ('+p.toFixed(1)+'%)">'+(p>=2.5?n:"")+'</div>';
@@ -2192,10 +2212,10 @@ function acOverview(){
     + kpiCard({lbl:"Territories LOST",val:lost,mode:"n",cls:"neg",note:"competitor took back"})
     + kpiCard({lbl:"Net balance",val:net,mode:"n",cls:net>=0?"pos":"neg",note:net>=0?"net gain":"net loss"})
     +'</div>';
-  H+='<div class="g2"><div class="card reveal"><div class="ch"><div class="ct">📊 Buyers by status</div></div><div class="cb"><div class="cw s" style="height:260px"><canvas id="c-ac-flow"></canvas></div></div></div>'
-    +'<div class="card reveal"><div class="ch"><div class="ct">🗺️ By region</div></div><div class="cb"><div class="cw s" style="height:260px"><canvas id="c-ac-reg"></canvas></div></div></div></div>';
-  H+='<div class="g2"><div class="card reveal"><div class="ch"><div class="ct">⬆ Competitors we just CAPTURED from</div></div><div class="cb"><div id="ac-takefrom"></div></div></div>'
-    +'<div class="card reveal"><div class="ch"><div class="ct">⬇ Territories LOST to</div></div><div class="cb"><div id="ac-lostto"></div></div></div></div>';
+  H+='<div class="g2"><div class="card reveal"><div class="ch"><div class="ct">Buyers by status</div></div><div class="cb"><div class="cw s" style="height:260px"><canvas id="c-ac-flow"></canvas></div></div></div>'
+    +'<div class="card reveal"><div class="ch"><div class="ct">️ By region</div></div><div class="cb"><div class="cw s" style="height:260px"><canvas id="c-ac-reg"></canvas></div></div></div></div>';
+  H+='<div class="g2"><div class="card reveal"><div class="ch"><div class="ct">Competitors we just CAPTURED from</div></div><div class="cb"><div id="ac-takefrom"></div></div></div>'
+    +'<div class="card reveal"><div class="ch"><div class="ct">Territories LOST to</div></div><div class="cb"><div id="ac-lostto"></div></div></div></div>';
   document.getElementById("ac-body").innerHTML=H;
   barChart("c-ac-flow",{labels:["Convert","New","Retain","Loss","Untouched","No Tender"],
     datasets:[{label:"Buyers",data:[c.Convert,c.New,c.Retain,c.Loss,c.Untouched,c["No Tender"]],
@@ -2210,7 +2230,7 @@ function acOverview(){
   var tfArr=Object.keys(seg.takenFrom).map(function(k){return {key:k,n:seg.takenFrom[k]};}).sort(function(a,b){return b.n-a.n;});
   var ltArr=Object.keys(seg.lostTo).map(function(k){return {key:k,n:seg.lostTo[k]};}).sort(function(a,b){return b.n-a.n;});
   document.getElementById("ac-takefrom").innerHTML=tfArr.length?tfArr.map(function(a){var w=a.n/(tfArr[0].n||1)*100;return '<div class="rkr" style="cursor:default"><div class="rkn"><span class="sw" style="background:'+brandColor(a.key)+'"></span>'+esc(a.key)+'</div><div class="rkt"><div class="rkb" data-w="'+w+'" style="background:#2E7D32"></div></div><div class="rkv">'+a.n+' buyers</div></div>';}).join(""):'<div style="color:var(--t3);padding:18px;text-align:center">No territories captured in this window</div>';
-  document.getElementById("ac-lostto").innerHTML=ltArr.length?ltArr.map(function(a){var w=a.n/(ltArr[0].n||1)*100;return '<div class="rkr" style="cursor:default"><div class="rkn"><span class="sw" style="background:'+brandColor(a.key)+'"></span>'+esc(a.key)+'</div><div class="rkt"><div class="rkb" data-w="'+w+'" style="background:#C0392B"></div></div><div class="rkv">'+a.n+' buyers</div></div>';}).join(""):'<div style="color:var(--t3);padding:18px;text-align:center">No territories lost 🎉</div>';
+  document.getElementById("ac-lostto").innerHTML=ltArr.length?ltArr.map(function(a){var w=a.n/(ltArr[0].n||1)*100;return '<div class="rkr" style="cursor:default"><div class="rkn"><span class="sw" style="background:'+brandColor(a.key)+'"></span>'+esc(a.key)+'</div><div class="rkt"><div class="rkb" data-w="'+w+'" style="background:#C0392B"></div></div><div class="rkv">'+a.n+' buyers</div></div>';}).join(""):'<div style="color:var(--t3);padding:18px;text-align:center">No territories lost</div>';
 }
 
 function hospCard(b,idx,brand,cut){
@@ -2292,7 +2312,7 @@ function acRisk(){
   if(!S.acRiskGroup||!RG.some(function(g){return g.k===S.acRiskGroup;}))S.acRiskGroup="Loss";
   var sidebar=RG.map(function(g){return '<div class="grpli '+(S.acRiskGroup===g.k?"on":"")+'" style="border-left-color:'+g.col+'" onclick="S.acRiskGroup=\''+g.k+'\';renderAcct()"><div class="ic">'+g.ic+'</div><div class="meta"><div class="nm" style="color:'+g.col+'">'+g.nm+'</div><div class="cnt">'+g.list.length+' buyers</div></div></div>';}).join("");
   var cur=RG.find(function(g){return g.k===S.acRiskGroup;});
-  var hosp=cur.list.length?cur.list.slice(0,40).map(function(b,i){return hospCard(b,i+1,S.acBrand,seg.cut);}).join("")+(cur.list.length>40?'<div class="emptynote">Showing 40 / '+cur.list.length+'.</div>':''):'<div class="emptynote">No buyers in this group 🎉</div>';
+  var hosp=cur.list.length?cur.list.slice(0,40).map(function(b,i){return hospCard(b,i+1,S.acBrand,seg.cut);}).join("")+(cur.list.length>40?'<div class="emptynote">Showing 40 / '+cur.list.length+'.</div>':''):'<div class="emptynote">No buyers in this group</div>';
   document.getElementById("ac-body").innerHTML=
     '<div class="grpdt-layout">'
       +'<div class="grpdt-sidebar"><div class="sbtitle">Risk / opportunity</div>'+sidebar+'</div>'
@@ -2340,18 +2360,18 @@ function renderVS(){
   }
   var H='<div class="cmpcols n2">'+col(S.vsA,A,"cA",colA)+col(S.vsB,B,"cB",colB)+'</div>';
   H+='<div class="g2">'
-    +'<div class="card reveal"><div class="ch"><div class="ct">📈 Results over years — '+metricLabel()+'</div></div><div class="cb"><div class="cw"><canvas id="c-vs-year"></canvas></div></div></div>'
-    +'<div class="card reveal"><div class="ch"><div class="ct">🌏 By region (North/South)</div></div><div class="cb"><div class="cw"><canvas id="c-vs-reg"></canvas></div></div></div>'
+    +'<div class="card reveal"><div class="ch"><div class="ct">Results over years — '+metricLabel()+'</div></div><div class="cb"><div class="cw"><canvas id="c-vs-year"></canvas></div></div></div>'
+    +'<div class="card reveal"><div class="ch"><div class="ct">By region (North/South)</div></div><div class="cb"><div class="cw"><canvas id="c-vs-reg"></canvas></div></div></div>'
     +'</div>';
   H+='<div class="g2">'
-    +'<div class="card reveal"><div class="ch"><div class="ct">💰 Avg unit price by product type</div></div><div class="cb"><div class="cw"><canvas id="c-vs-price"></canvas></div></div></div>'
-    +'<div class="card reveal"><div class="ch"><div class="ct">⚔️ Territory advantage</div><div class="cs">Among buyers where both compete</div></div><div class="cb"><div class="cw"><canvas id="c-vs-terr"></canvas></div></div></div>'
+    +'<div class="card reveal"><div class="ch"><div class="ct">Avg unit price by product type</div></div><div class="cb"><div class="cw"><canvas id="c-vs-price"></canvas></div></div></div>'
+    +'<div class="card reveal"><div class="ch"><div class="ct">️ Territory advantage</div><div class="cs">Among buyers where both compete</div></div><div class="cb"><div class="cw"><canvas id="c-vs-terr"></canvas></div></div></div>'
     +'</div>';
-  H+='<div class="card reveal"><div class="ch"><div class="ct">📍 Top provinces (combined)</div></div><div class="cb"><div class="cw t"><canvas id="c-vs-prov"></canvas></div></div></div>';
+  H+='<div class="card reveal"><div class="ch"><div class="ct">Top provinces (combined)</div></div><div class="cb"><div class="cw t"><canvas id="c-vs-prov"></canvas></div></div></div>';
   var loyA=loyalBuyers(RA),loyB=loyalBuyers(RB);
   H+='<div class="g2">'
-    +'<div class="card reveal"><div class="ch"><div class="ct" style="color:'+colA+'">🤝 Loyal buyers — '+esc(S.vsA)+'</div><div class="cs">'+loyA.length+' buyers with ≥2 packages</div></div><div class="cb" style="padding:0"><div class="tw">'+loyalTable(loyA,colA)+'</div></div></div>'
-    +'<div class="card reveal"><div class="ch"><div class="ct" style="color:'+colB+'">🤝 Loyal buyers — '+esc(S.vsB)+'</div><div class="cs">'+loyB.length+' buyers with ≥2 packages</div></div><div class="cb" style="padding:0"><div class="tw">'+loyalTable(loyB,colB)+'</div></div></div>'
+    +'<div class="card reveal"><div class="ch"><div class="ct" style="color:'+colA+'">Loyal buyers — '+esc(S.vsA)+'</div><div class="cs">'+loyA.length+' buyers with ≥2 packages</div></div><div class="cb" style="padding:0"><div class="tw">'+loyalTable(loyA,colA)+'</div></div></div>'
+    +'<div class="card reveal"><div class="ch"><div class="ct" style="color:'+colB+'">Loyal buyers — '+esc(S.vsB)+'</div><div class="cs">'+loyB.length+' buyers with ≥2 packages</div></div><div class="cb" style="padding:0"><div class="tw">'+loyalTable(loyB,colB)+'</div></div></div>'
     +'</div>';
   var buyersA={},buyersB={};RA.forEach(function(r){buyersA[r.buyer]=(buyersA[r.buyer]||0)+r.qty;});RB.forEach(function(r){buyersB[r.buyer]=(buyersB[r.buyer]||0)+r.qty;});
   var shared=Object.keys(buyersA).filter(function(b){return buyersB[b]!=null;});
@@ -2359,7 +2379,7 @@ function renderVS(){
   var onlyB=Object.keys(buyersB).filter(function(b){return buyersA[b]==null;}).length;
   var advA=0,advB=0;shared.forEach(function(b){if(buyersA[b]>=buyersB[b])advA++;else advB++;});
   if(!S.vsCut)S.vsCut=MONTHS_SORTED[Math.floor(MONTHS_SORTED.length*0.66)]||MONTHS_SORTED[MONTHS_SORTED.length-1];
-  H+='<div class="card reveal"><div class="ch"><div class="ct">⚔️ Territory shifts across a cutoff</div><div class="cs">Before → after cut (full history)</div>'
+  H+='<div class="card reveal"><div class="ch"><div class="ct">️ Territory shifts across a cutoff</div><div class="cs">Before → after cut (full history)</div>'
     +'<span style="margin-left:auto;font-size:12px;color:var(--t2);font-weight:700;display:inline-flex;align-items:center;gap:6px">Cut '+mpickBtnHtml("mp-vs-cut", S.vsCut, MONTHS_SORTED[0], MONTHS_SORTED[MONTHS_SORTED.length-1], "onVsCut")+'</span></div>'
     +'<div class="cb"><div class="cw"><canvas id="c-vs-compete"></canvas></div><div id="vs-compete-ins" style="font-size:12.5px;color:var(--t2);margin-top:10px;line-height:1.55"></div></div></div>';
   document.getElementById("vs-body").innerHTML=H;

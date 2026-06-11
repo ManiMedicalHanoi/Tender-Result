@@ -7,6 +7,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
 <style>
 @font-face{font-family:Aptos;src:local(Aptos),local(Aptos-Regular);font-weight:100 500;}
 @font-face{font-family:Aptos;src:local('Aptos Semibold'),local(Aptos-SemiBold);font-weight:600;}
@@ -506,6 +507,69 @@ html[data-theme="dark"] .ins-x b{color:#9DB8E8;}
 td.qa-td{white-space:nowrap;text-align:center;}
 .qa{background:var(--sf2);border:1px solid var(--br);border-radius:7px;width:27px;height:25px;cursor:pointer;font-size:12px;line-height:1;transition:.13s;padding:0;}
 .qa:hover{background:var(--lblue);border-color:var(--blue);transform:translateY(-1px);}
+
+/* ════ NEW v11 — chart view switch · smart search · pinned rows · dual-range tier slider · PPT export ════ */
+.cvsw{display:inline-flex;background:var(--pale);border:1px solid var(--br);border-radius:9px;padding:3px;gap:2px;margin-left:auto;}
+.cvsw button{border:0;background:transparent;color:var(--t2);font:700 11px/1 var(--ff);padding:5px 10px;border-radius:7px;cursor:pointer;transition:background .15s,color .15s;}
+.cvsw button.on{background:var(--sf);color:var(--blue);box-shadow:0 1px 3px rgba(0,48,71,.18);}
+.cvsw button:hover:not(.on){color:var(--t1);}
+
+.ssw{position:relative;display:inline-flex;align-items:center;}
+.ssw input{font-family:var(--ff);font-size:12px;font-weight:600;color:var(--t1);background:var(--sf);border:1.5px solid var(--br);border-radius:18px;padding:5px 12px 5px 28px;outline:none;width:160px;transition:.16s;}
+.ssw input:focus{border-color:var(--blue);width:225px;}
+.ssw .ss-ic{position:absolute;left:9px;font-size:12px;opacity:.55;pointer-events:none;}
+.ss-drop{position:absolute;top:calc(100% + 5px);left:0;min-width:280px;max-width:380px;background:var(--sf);border:1.5px solid var(--br);border-radius:10px;box-shadow:0 14px 42px rgba(0,48,71,.22);z-index:300;max-height:260px;overflow-y:auto;display:none;}
+html[data-theme="dark"] .ss-drop{box-shadow:0 14px 42px rgba(0,0,0,.55);}
+.ss-drop.open{display:block;}
+.ss-it{padding:8px 12px;font-size:12.5px;font-weight:700;color:var(--t1);cursor:pointer;border-bottom:1px solid var(--br);display:flex;justify-content:space-between;gap:10px;align-items:center;}
+.ss-it:last-child{border-bottom:none;}
+.ss-it:hover{background:var(--pale);color:var(--blue);}
+.ss-it small{color:var(--t3);font-weight:600;flex-shrink:0;}
+.ss-empty{padding:10px 12px;font-size:12px;color:var(--t3);font-style:italic;}
+
+.rkr.pinned{background:var(--pale);border:1px dashed var(--lblue);border-radius:7px;margin-top:4px;}
+.pin-x{background:transparent;border:none;color:var(--t3);font-size:13px;cursor:pointer;padding:2px 6px;border-radius:5px;flex-shrink:0;line-height:1;font-family:var(--ff);}
+.pin-x:hover{color:var(--neg);background:var(--nb);}
+.hm .hr .pin-x{margin-left:auto;}
+.hm .hr.pinned{background:var(--pale);border-radius:6px;border:1px dashed var(--lblue);}
+
+.tier-pt{padding:14px 0 18px;border-bottom:1px solid var(--br);}
+.tier-pt:last-child{border-bottom:none;}
+.tier-pt-hd{display:flex;align-items:baseline;gap:10px;margin-bottom:10px;flex-wrap:wrap;}
+.tier-pt-hd .nm{font-size:14px;font-weight:900;color:var(--t1);}
+.tier-pt-hd .rng{font-size:11px;color:var(--t3);font-weight:600;}
+.drs{position:relative;height:34px;margin:4px 8px 6px;}
+.drs .trk{position:absolute;top:14px;left:0;right:0;height:6px;border-radius:4px;background:var(--sf2);border:1px solid var(--br);}
+.drs .fl{position:absolute;top:14px;height:6px;border-radius:4px;pointer-events:none;}
+.drs .fl.lo{background:#7BAE7E;left:0;}
+.drs .fl.mi{background:#C9A961;}
+.drs .fl.hi{background:#5B7DB1;}
+.drs .hd{position:absolute;top:7px;width:20px;height:20px;border-radius:50%;background:var(--sf);border:3px solid var(--blue);box-shadow:0 2px 6px rgba(0,48,71,.3);cursor:grab;transform:translateX(-50%);z-index:3;touch-action:none;}
+.drs .hd:active{cursor:grabbing;transform:translateX(-50%) scale(1.12);}
+.drs .hd.h1{border-color:#5a9460;}
+.drs .hd.h2{border-color:#5B7DB1;}
+.tier-th{display:flex;gap:14px;flex-wrap:wrap;margin:8px 8px 10px;}
+.tier-th .thi{display:flex;align-items:center;gap:7px;}
+.tier-th .thi label{font-size:10.5px;font-weight:800;color:var(--t3);text-transform:uppercase;letter-spacing:.4px;}
+.tier-th .thi input{width:130px;padding:6px 9px;font-family:var(--ff);font-size:12.5px;border:1.5px solid var(--br);border-radius:7px;outline:none;font-weight:700;color:var(--t1);background:var(--sf);font-variant-numeric:tabular-nums;}
+.tier-th .thi input:focus{border-color:var(--blue);}
+.tier-brs{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin:0 8px;}
+@media(max-width:680px){.tier-brs{grid-template-columns:1fr;}}
+.tier-brs .tcol{background:var(--sf2);border:1px solid var(--br);border-radius:9px;padding:8px 9px;min-height:64px;}
+.tier-brs .tcol .tch{font-size:10px;font-weight:900;letter-spacing:.8px;text-transform:uppercase;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;}
+.tier-brs .tcol .tch small{color:var(--t3);font-weight:700;letter-spacing:0;text-transform:none;}
+.tbk{display:inline-flex;align-items:center;gap:5px;font-size:10.5px;font-weight:800;color:var(--t1);background:var(--sf);border:1px solid var(--br);border-radius:14px;padding:2px 8px 2px 4px;margin:0 3px 4px 0;white-space:nowrap;}
+.tbk .bd{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.tbk small{color:var(--t3);font-weight:700;}
+.tbk.mani{background:rgba(255,225,0,.14);border-color:rgba(255,225,0,.55);}
+.tier-none{font-size:11px;color:var(--t3);font-style:italic;}
+.tmode{display:inline-flex;background:var(--pale);border:1px solid var(--br);border-radius:10px;padding:3px;gap:3px;margin-bottom:14px;}
+.tmode button{border:0;background:transparent;color:var(--t2);font:800 12px/1 var(--ff);padding:8px 16px;border-radius:8px;cursor:pointer;transition:.15s;font-family:var(--ff);}
+.tmode button.on{background:var(--blue);color:#fff;box-shadow:0 2px 6px rgba(58,92,170,.35);}
+
+.hbtn.gold{background:rgba(255,225,0,.18);border-color:rgba(255,225,0,.55);color:var(--yellow);font-weight:800;}
+.hbtn.gold:hover{background:var(--yellow);color:#003047;}
+.hbtn.gold:disabled{opacity:.6;cursor:wait;}
 </style>
 </head>
 <body>
@@ -551,6 +615,7 @@ td.qa-td{white-space:nowrap;text-align:center;}
         <option value="JPY">JPY</option>
       </select>
       <button class="hbtn" onclick="openTierModal()" title="Price-tier settings">⚙ Tiers</button>
+      <button class="hbtn gold" id="ppt-btn" onclick="exportPPT()" title="Export current tab to PowerPoint (MMH template)">📊 Export PPT</button>
       <a class="hbtn" href="https://docs.google.com/spreadsheets/d/1lI1s1nEyRtSluQiCJu2sdkgZdP38A35qYFdzOvVXE7I/edit?gid=1603394577#gid=1603394577" target="_blank" rel="noopener" title="Open source spreadsheet" style="text-decoration:none">📋 Data source</a>
       <button class="hbtn" onclick="reloadData()" title="Reload data">⟳ Refresh</button>
       <button class="hbtn" id="theme-btn" onclick="toggleTheme()" title="Light / Dark">🌙</button>
@@ -625,7 +690,6 @@ td.qa-td{white-space:nowrap;text-align:center;}
       <button class="mx" onclick="closeTierModal()">✕</button>
     </div>
     <div class="modal-bd">
-      <div class="modal-hint">Each knife type has its own price range. <b>LOW</b> tier: below the low threshold · <b>MID</b>: between the two · <b>HIGH</b>: above the high threshold. Defaults are the 33rd / 66th percentile computed from the live dataset. Adjust if your business rules differ — values are in <b>VND per piece</b>.</div>
       <div id="tier-modal-rows"></div>
     </div>
     <div class="modal-ft">
@@ -708,6 +772,9 @@ function tierOfPrice(price, ptype){
 var HIGH_ANCHORS = ["Mani","Oasis Medical","Rumex"];
 var MID_ANCHORS  = ["Surgistar","KAI","Feather"];
 var TIER_ANCHORS = {}; // ptype -> {High: centroid, Mid: centroid}
+/* v11: tier classification mode — "anchor" (auto, default) or "custom" (per-type price ranges) */
+var TIER_MODE = "anchor";
+var TIER_CUSTOM = {};   // ptype -> {low: VND, high: VND}  (used when TIER_MODE==="custom")
 
 function computeTierAnchors(){
   TIER_ANCHORS = {};
@@ -725,9 +792,20 @@ function computeTierAnchors(){
 }
 
 function classifyBrands(){
-  /* Per-row classification using anchors. Anchor brands are pinned. */
+  /* Per-row classification using anchors. Anchor brands are pinned.
+     v11: if TIER_MODE==="custom", classify purely by user price thresholds per knife type. */
   computeTierAnchors();
   ROWS.forEach(function(r){
+    if(TIER_MODE==="custom"){
+      var th = TIER_CUSTOM[r.ptype] || TIER_DEFAULTS[r.ptype];
+      if(th && r.price){
+        if(r.price < th.low) r.tier = "Low";
+        else if(r.price < th.high) r.tier = "Mid";
+        else r.tier = "High";
+        return;
+      }
+      r.tier = "Low"; return;
+    }
     if(HIGH_ANCHORS.indexOf(r.brand)>=0){ r.tier = "High"; return; }
     if(MID_ANCHORS.indexOf(r.brand)>=0){ r.tier = "Mid"; return; }
     var a = TIER_ANCHORS[r.ptype];
@@ -758,44 +836,219 @@ function classifyBrands(){
   });
 }
 
-/* Tier-modal controls */
-function openTierModal(){
-  var H = '<div class="modal-hint" style="margin-bottom:6px"><b>Anchor-based classification</b> · Premium reference: <b>Mani, Oasis Medical, Rumex</b> · Mid reference: <b>Surgistar, KAI, Feather</b>. Each row is tier-classified by how close its unit price is to these anchor groups (within ±'+(Math.round((window.TIER_BAND||0.35)*100))+'%). Anchor brands are pinned to their tier.</div>';
-  H += '<table style="width:100%;border-collapse:collapse;font-size:12.5px">'
-     + '<thead><tr style="border-bottom:1px solid var(--br);text-align:left;color:var(--t3);font-weight:800;font-size:11px;text-transform:uppercase;letter-spacing:.4px">'
-     + '<th style="padding:8px 6px">Knife type</th><th style="padding:8px 6px;text-align:right">HIGH centroid (VND/pc)</th><th style="padding:8px 6px;text-align:right">MID centroid (VND/pc)</th><th style="padding:8px 6px;text-align:right">High / Mid ratio</th></tr></thead><tbody>';
-  Object.keys(TIER_ANCHORS).sort().forEach(function(pt){
-    var a = TIER_ANCHORS[pt];
-    var ratio = a.Mid ? (a.High/a.Mid).toFixed(2)+"×" : "—";
-    H += '<tr style="border-bottom:1px solid var(--br)">'
-       + '<td style="padding:9px 6px;font-weight:800;color:var(--t1)">'+esc(pt)+'</td>'
-       + '<td style="padding:9px 6px;text-align:right;color:#5B7DB1;font-weight:700">'+nf(Math.round(a.High))+'</td>'
-       + '<td style="padding:9px 6px;text-align:right;color:#C9A961;font-weight:700">'+nf(Math.round(a.Mid))+'</td>'
-       + '<td style="padding:9px 6px;text-align:right;color:var(--t2);font-weight:700">'+ratio+'</td>'
-       + '</tr>';
+/* ════ Tier-modal controls (v11) ════
+   Two modes:
+   • "anchor" (auto)  — classification by anchor centroids ± tolerance band (original behaviour)
+   • "custom"         — per-knife-type LOW/HIGH price thresholds with draggable dual-range slider,
+                        live preview of which brands fall into each tier.            */
+function norm(s){
+  return String(s||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/đ/g,"d").replace(/Đ/g,"D").toLowerCase();
+}
+function ssBlur(inp){ setTimeout(function(){ var d=inp.parentNode.querySelector(".ss-drop"); if(d) d.classList.remove("open"); }, 180); }
+
+/* qty-weighted average price per brand within one knife type (current full dataset) */
+function tierBrandBuckets(pt, low, high){
+  var per = {};
+  ROWS.forEach(function(r){
+    if(r.ptype!==pt || !r.price || !r.qty) return;
+    if(!per[r.brand]) per[r.brand]={q:0,v:0};
+    per[r.brand].q += r.qty; per[r.brand].v += r.price*r.qty;
   });
-  H += '</tbody></table>';
-  H += '<div style="margin-top:18px;padding:14px;background:var(--sf2);border-radius:10px;border:1px solid var(--br)">'
-     + '<label style="display:block;font-size:11px;font-weight:800;color:var(--t3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px">Tolerance band around each centroid</label>'
-     + '<input type="range" id="tier-band" min="15" max="60" step="5" value="'+Math.round((window.TIER_BAND||0.35)*100)+'" style="width:100%" oninput="document.getElementById(\'tier-band-v\').textContent=this.value+\'%\'">'
-     + '<div style="display:flex;justify-content:space-between;font-size:11.5px;color:var(--t2);margin-top:4px"><span>tight (15%)</span><span style="font-weight:900;color:var(--blue)" id="tier-band-v">'+Math.round((window.TIER_BAND||0.35)*100)+'%</span><span>loose (60%)</span></div>'
-     + '<div style="font-size:11.5px;color:var(--t3);margin-top:8px;line-height:1.5">Rows whose unit price is within this band of an anchor centroid are assigned that tier. Wider band = more rows classified as High or Mid; tighter band = more rows fall to Low.</div>'
-     + '</div>';
-  document.getElementById("tier-modal-rows").innerHTML = H;
+  var out = {Low:[], Mid:[], High:[]};
+  Object.keys(per).forEach(function(b){
+    var avg = per[b].q ? per[b].v/per[b].q : 0;
+    var t = avg < low ? "Low" : (avg < high ? "Mid" : "High");
+    out[t].push({brand:b, avg:avg, qty:per[b].q});
+  });
+  ["Low","Mid","High"].forEach(function(t){ out[t].sort(function(a,b){return b.qty-a.qty;}); });
+  return out;
+}
+/* slider track bounds per knife type: 2nd–98th percentile ±10% to avoid outliers */
+function tierPriceRange(pt){
+  var arr=[];
+  ROWS.forEach(function(r){ if(r.ptype===pt && r.price) arr.push(r.price); });
+  if(!arr.length) return {min:0, max:1};
+  arr.sort(function(a,b){return a-b;});
+  var lo = arr[Math.floor(arr.length*0.02)], hi = arr[Math.min(arr.length-1, Math.floor(arr.length*0.98))];
+  var pad = (hi-lo)*0.1 || hi*0.1 || 1;
+  return {min:Math.max(0, lo-pad), max:hi+pad};
+}
+function tierSetMode(m){
+  TIER_MODE = m;
+  if(m==="custom"){
+    Object.keys(TIER_DEFAULTS).forEach(function(pt){
+      if(!TIER_CUSTOM[pt]) TIER_CUSTOM[pt] = {low:TIER_DEFAULTS[pt].low, high:TIER_DEFAULTS[pt].high};
+    });
+  }
+  tierModalPaint();
+}
+function drsPos(pt, price){
+  var rg = window._TRNG[pt]; if(!rg) return 0;
+  return Math.max(0, Math.min(100, (price-rg.min)/(rg.max-rg.min||1)*100));
+}
+function drsPaint(pt, idx){
+  var th = TIER_CUSTOM[pt]; if(!th) return;
+  var p1 = drsPos(pt, th.low), p2 = drsPos(pt, th.high);
+  var box = document.getElementById("drs-"+idx); if(!box) return;
+  box.querySelector(".fl.lo").style.width = p1+"%";
+  var mi = box.querySelector(".fl.mi"); mi.style.left = p1+"%"; mi.style.width = Math.max(0,p2-p1)+"%";
+  var hi = box.querySelector(".fl.hi"); hi.style.left = p2+"%"; hi.style.width = Math.max(0,100-p2)+"%";
+  box.querySelector(".hd.h1").style.left = p1+"%";
+  box.querySelector(".hd.h2").style.left = p2+"%";
+  var iL = document.getElementById("ti-lo-"+idx), iH = document.getElementById("ti-hi-"+idx);
+  if(iL && document.activeElement!==iL) iL.value = nf(Math.round(th.low));
+  if(iH && document.activeElement!==iH) iH.value = nf(Math.round(th.high));
+}
+function tierBrandsPaint(pt, idx){
+  var th = TIER_CUSTOM[pt]; if(!th) return;
+  var bk = tierBrandBuckets(pt, th.low, th.high);
+  var host = document.getElementById("tbr-"+idx); if(!host) return;
+  var COLS = [["Low","#5a9460","LOW"],["Mid","#B8923F","MID"],["High","#5B7DB1","HIGH"]];
+  host.innerHTML = COLS.map(function(c){
+    var arr = bk[c[0]];
+    var chips = arr.slice(0,12).map(function(x){
+      return '<span class="tbk'+(x.brand==="Mani"?" mani":"")+'" title="'+esc(x.brand)+' · avg '+nf(Math.round(x.avg))+' ₫/pc · '+nf(x.qty)+' pcs">'
+        +'<span class="bd" style="background:'+brandColor(x.brand)+'"></span>'+esc(x.brand.length>16?x.brand.slice(0,15)+"…":x.brand)
+        +' <small>'+qf(x.qty)+'</small></span>';
+    }).join("") + (arr.length>12?'<span class="tier-none">+'+(arr.length-12)+' more</span>':'');
+    return '<div class="tcol"><div class="tch" style="color:'+c[1]+'">'+c[2]+' <small>'+arr.length+' brand'+(arr.length===1?"":"s")+'</small></div>'
+      +(arr.length?chips:'<div class="tier-none">— no brand in range —</div>')+'</div>';
+  }).join("");
+}
+var _drsDrag = null;
+function drsDown(ev, pt, idx, which){
+  ev.preventDefault();
+  _drsDrag = {pt:pt, idx:idx, which:which};
+  document.addEventListener("pointermove", drsMove);
+  document.addEventListener("pointerup", drsUp);
+}
+function drsMove(ev){
+  if(!_drsDrag) return;
+  var d=_drsDrag, box=document.getElementById("drs-"+d.idx); if(!box) return;
+  var tr = box.querySelector(".trk").getBoundingClientRect();
+  var p = Math.max(0, Math.min(1, (ev.clientX - tr.left)/(tr.width||1)));
+  var rg = window._TRNG[d.pt];
+  var price = rg.min + p*(rg.max-rg.min);
+  var th = TIER_CUSTOM[d.pt];
+  if(d.which===1){ th.low = Math.min(price, th.high); }
+  else { th.high = Math.max(price, th.low); }
+  drsPaint(d.pt, d.idx);
+  tierBrandsPaint(d.pt, d.idx);
+}
+function drsUp(){
+  _drsDrag = null;
+  document.removeEventListener("pointermove", drsMove);
+  document.removeEventListener("pointerup", drsUp);
+}
+function tierNumChange(pt, idx, which, el){
+  var v = +String(el.value).replace(/[^\d]/g,"");
+  if(!isFinite(v)) return;
+  var th = TIER_CUSTOM[pt]; if(!th) return;
+  if(which===1) th.low = Math.min(v, th.high); else th.high = Math.max(v, th.low);
+  drsPaint(pt, idx);
+  tierBrandsPaint(pt, idx);
+}
+function tierPtHtml(pt, idx){
+  var rg = window._TRNG[pt];
+  return '<div class="tier-pt">'
+    + '<div class="tier-pt-hd"><span class="nm">'+esc(pt)+'</span><span class="rng">price range '+nf(Math.round(rg.min))+' – '+nf(Math.round(rg.max))+' ₫/pc</span></div>'
+    + '<div class="drs" id="drs-'+idx+'">'
+      + '<div class="trk"></div>'
+      + '<div class="fl lo"></div><div class="fl mi"></div><div class="fl hi"></div>'
+      + '<div class="hd h1" onpointerdown="drsDown(event,\''+esc(pt).replace(/'/g,"\\'")+'\','+idx+',1)" title="LOW / MID boundary"></div>'
+      + '<div class="hd h2" onpointerdown="drsDown(event,\''+esc(pt).replace(/'/g,"\\'")+'\','+idx+',2)" title="MID / HIGH boundary"></div>'
+    + '</div>'
+    + '<div class="tier-th">'
+      + '<div class="thi"><label>Low &lt;</label><input id="ti-lo-'+idx+'" onchange="tierNumChange(\''+esc(pt).replace(/'/g,"\\'")+'\','+idx+',1,this)"> <label>₫/pc</label></div>'
+      + '<div class="thi"><label>High ≥</label><input id="ti-hi-'+idx+'" onchange="tierNumChange(\''+esc(pt).replace(/'/g,"\\'")+'\','+idx+',2,this)"> <label>₫/pc</label></div>'
+    + '</div>'
+    + '<div class="tier-brs" id="tbr-'+idx+'"></div>'
+    + '</div>';
+}
+function tierModalPaint(){
+  var host = document.getElementById("tier-modal-rows"); if(!host) return;
+  var H = '<div class="tmode">'
+    + '<button class="'+(TIER_MODE==="anchor"?"on":"")+'" onclick="tierSetMode(\'anchor\')">⚓ Anchor (auto)</button>'
+    + '<button class="'+(TIER_MODE==="custom"?"on":"")+'" onclick="tierSetMode(\'custom\')">🎚 Custom price ranges</button>'
+    + '</div>';
+  if(TIER_MODE==="anchor"){
+    H += '<div class="modal-hint" style="margin-bottom:6px"><b>Anchor-based classification</b> · Premium reference: <b>Mani, Oasis Medical, Rumex</b> · Mid reference: <b>Surgistar, KAI, Feather</b>. Each row is tier-classified by how close its unit price is to these anchor groups (within ±'+(Math.round((window.TIER_BAND||0.35)*100))+'%). Anchor brands are pinned to their tier.</div>';
+    H += '<table style="width:100%;border-collapse:collapse;font-size:12.5px">'
+       + '<thead><tr style="border-bottom:1px solid var(--br);text-align:left;color:var(--t3);font-weight:800;font-size:11px;text-transform:uppercase;letter-spacing:.4px">'
+       + '<th style="padding:8px 6px">Knife type</th><th style="padding:8px 6px;text-align:right">HIGH centroid (VND/pc)</th><th style="padding:8px 6px;text-align:right">MID centroid (VND/pc)</th><th style="padding:8px 6px;text-align:right">High / Mid ratio</th></tr></thead><tbody>';
+    Object.keys(TIER_ANCHORS).sort().forEach(function(pt){
+      var a = TIER_ANCHORS[pt];
+      var ratio = a.Mid ? (a.High/a.Mid).toFixed(2)+"×" : "—";
+      H += '<tr style="border-bottom:1px solid var(--br)">'
+         + '<td style="padding:9px 6px;font-weight:800;color:var(--t1)">'+esc(pt)+'</td>'
+         + '<td style="padding:9px 6px;text-align:right;color:#5B7DB1;font-weight:700">'+nf(Math.round(a.High))+'</td>'
+         + '<td style="padding:9px 6px;text-align:right;color:#C9A961;font-weight:700">'+nf(Math.round(a.Mid))+'</td>'
+         + '<td style="padding:9px 6px;text-align:right;color:var(--t2);font-weight:700">'+ratio+'</td>'
+         + '</tr>';
+    });
+    H += '</tbody></table>';
+    H += '<div style="margin-top:18px;padding:14px;background:var(--sf2);border-radius:10px;border:1px solid var(--br)">'
+       + '<label style="display:block;font-size:11px;font-weight:800;color:var(--t3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px">Tolerance band around each centroid</label>'
+       + '<input type="range" id="tier-band" min="15" max="60" step="5" value="'+Math.round((window.TIER_BAND||0.35)*100)+'" style="width:100%" oninput="document.getElementById(\'tier-band-v\').textContent=this.value+\'%\'">'
+       + '<div style="display:flex;justify-content:space-between;font-size:11.5px;color:var(--t2);margin-top:4px"><span>tight (15%)</span><span style="font-weight:900;color:var(--blue)" id="tier-band-v">'+Math.round((window.TIER_BAND||0.35)*100)+'%</span><span>loose (60%)</span></div>'
+       + '<div style="font-size:11.5px;color:var(--t3);margin-top:8px;line-height:1.5">Rows whose unit price is within this band of an anchor centroid are assigned that tier. Wider band = more rows classified as High or Mid; tighter band = more rows fall to Low.</div>'
+       + '</div>';
+    host.innerHTML = H;
+    return;
+  }
+  /* custom mode */
+  H += '<div class="modal-hint" style="margin-bottom:10px"><b>Custom price ranges</b> — drag the two handles (or type values) to set the <b>LOW / MID / HIGH</b> boundaries for each knife type, in <b>VND per piece</b>. The chips below update <b>in real time</b> showing which brands (by qty-weighted avg price) fall into each tier. Press <b>Apply</b> to reclassify the whole dashboard.</div>';
+  window._TRNG = {};
+  var pts = Object.keys(TIER_DEFAULTS).sort();
+  pts.forEach(function(pt, i){
+    window._TRNG[pt] = tierPriceRange(pt);
+    if(!TIER_CUSTOM[pt]) TIER_CUSTOM[pt] = {low:TIER_DEFAULTS[pt].low, high:TIER_DEFAULTS[pt].high};
+    H += tierPtHtml(pt, i);
+  });
+  host.innerHTML = H;
+  pts.forEach(function(pt, i){ drsPaint(pt, i); tierBrandsPaint(pt, i); });
+}
+function openTierModal(){
+  tierModalPaint();
   document.getElementById("tier-modal").classList.add("on");
 }
 function closeTierModal(){ document.getElementById("tier-modal").classList.remove("on"); }
 function resetTiers(){
+  if(TIER_MODE==="custom"){
+    TIER_CUSTOM = {};
+    Object.keys(TIER_DEFAULTS).forEach(function(pt){
+      TIER_CUSTOM[pt] = {low:TIER_DEFAULTS[pt].low, high:TIER_DEFAULTS[pt].high};
+    });
+    tierModalPaint();
+    showToast("Reset to 33rd / 66th percentile defaults — apply to save","load");
+    return;
+  }
   window.TIER_BAND = 0.35;
   try{ localStorage.removeItem("mmh_tier_band"); }catch(e){}
-  openTierModal();
+  tierModalPaint();
   showToast("Reset to default (35% band) — apply to save","load");
 }
 function saveTiers(){
-  var band = +document.getElementById("tier-band").value / 100;
+  if(TIER_MODE==="custom"){
+    try{
+      localStorage.setItem("mmh_tier_mode","custom");
+      localStorage.setItem("mmh_tier_custom", JSON.stringify(TIER_CUSTOM));
+    }catch(e){}
+    closeTierModal();
+    classifyBrands();
+    document.querySelectorAll("[data-counted]").forEach(function(el){el.dataset.counted="0";});
+    renderAll();
+    showToast("Custom price tiers applied","success");
+    return;
+  }
+  var bandEl = document.getElementById("tier-band");
+  var band = bandEl ? (+bandEl.value/100) : (window.TIER_BAND||0.35);
   if(!band || band<0.05) band = 0.35;
   window.TIER_BAND = band;
-  try{ localStorage.setItem("mmh_tier_band", String(band)); }catch(e){}
+  try{
+    localStorage.setItem("mmh_tier_band", String(band));
+    localStorage.setItem("mmh_tier_mode","anchor");
+  }catch(e){}
   closeTierModal();
   classifyBrands();
   document.querySelectorAll("[data-counted]").forEach(function(el){el.dataset.counted="0";});
@@ -817,6 +1070,10 @@ var S = {
        mode:"fy"          → fiscal year(s)  fys:["FY66","FY67"]   FYxx = Sep(20xx-1) → Aug(20xx)
   */
   time:{mode:"year", year:"ALL", years:[], from:null, to:null, fys:[]},
+  /* v11 */
+  mkView:{tsQ:null, tsV:null, tsBP:null, evo:null},   /* per-chart view: null=auto | "fy" | "year" | "month" */
+  mkBuyerMetric:"qty", mkBuyerPins:[],
+  hmMetric:"qty", hmPins:[],
   charts:{}, drill:null, expanded:false
 };
 
@@ -1751,9 +2008,9 @@ function renderMarket(){
 
   /* Row of 3 time-series charts: qty bars · value bars · combined buyers+packages */
   H += '<div class="g3">'
-    + '<div class="card reveal"><div class="ch"><div class="ct">Quantity awarded over time</div><div class="cs">pcs</div></div><div class="cb"><div class="cw t"><canvas id="c-mk-tsQ"></canvas></div></div></div>'
-    + '<div class="card reveal"><div class="ch"><div class="ct">Value awarded over time</div><div class="cs">'+S.currency+'</div></div><div class="cb"><div class="cw t"><canvas id="c-mk-tsV"></canvas></div></div></div>'
-    + '<div class="card reveal"><div class="ch"><div class="ct">Buyers &amp; Packages over time</div><div class="cs">buyer count vs package count</div></div><div class="cb"><div class="cw t"><canvas id="c-mk-tsBP"></canvas></div></div></div>'
+    + '<div class="card reveal"><div class="ch"><div class="ct">Quantity awarded over time</div><div class="cs">pcs</div>'+cvswHtml("tsQ")+'</div><div class="cb"><div class="cw t"><canvas id="c-mk-tsQ"></canvas></div><div class="fy-note" id="note-tsQ"></div></div></div>'
+    + '<div class="card reveal"><div class="ch"><div class="ct">Value awarded over time</div><div class="cs">'+S.currency+'</div>'+cvswHtml("tsV")+'</div><div class="cb"><div class="cw t"><canvas id="c-mk-tsV"></canvas></div><div class="fy-note" id="note-tsV"></div></div></div>'
+    + '<div class="card reveal"><div class="ch"><div class="ct">Buyers &amp; Packages over time</div><div class="cs">buyer count vs package count</div>'+cvswHtml("tsBP")+'</div><div class="cb"><div class="cw t"><canvas id="c-mk-tsBP"></canvas></div><div class="fy-note" id="note-tsBP"></div></div></div>'
     + '</div>';
 
   /* ── Strategic trend row (UX v10): Mani share trend + brand share evolution ── */
@@ -1768,7 +2025,7 @@ function renderMarket(){
             + '<div class="msw" id="msw-per">'+b("per","year","Year")+b("per","fy","FY")+'</div>'
           + '</div></div><div class="cb"><div class="cw t"><canvas id="c-mk-mshare"></canvas></div></div></div>';
       })()
-    + '<div class="card reveal"><div class="ch"><div class="ct">Brand share evolution — 100% stacked</div><div class="cs">qty share · top 6 brands + others · click a block to drill</div></div><div class="cb"><div class="cw t"><canvas id="c-mk-evo"></canvas></div></div></div>'
+    + '<div class="card reveal"><div class="ch"><div class="ct">Brand share evolution — 100% stacked</div><div class="cs">qty share · top 6 brands + others · click a block to drill</div>'+cvswHtml("evo")+'</div><div class="cb"><div class="cw t"><canvas id="c-mk-evo"></canvas></div><div class="fy-note" id="note-evo"></div></div></div>'
     + '</div>';
 
   /* Two pairs of segment charts: Quantity-based & Value-based.
@@ -1798,13 +2055,21 @@ function renderMarket(){
     + '</div>';
 
   /* Brand share table + Top buyers + concentration */
-  var byAgg = sortDesc(toArr(aggBy(R,function(r){return r.buyer;})),"qty");
+  var byAgg = sortDesc(toArr(aggBy(R,function(r){return r.buyer;})),"qty");      /* qty-ranked — Pareto + concentration */
+  var byAggV = sortDesc(byAgg,"val");                                            /* value-ranked */
+  var byAggM = (S.mkBuyerMetric==="val") ? byAggV : byAgg;
+  window._mkBuyerAgg = byAggM;
   var top10 = byAgg.slice(0,10);
+  var top10M = byAggM.slice(0,10);
   var top10Q = top10.reduce(function(s,a){return s+a.qty;},0);
   var top10share = top10Q/(totQ||1)*100;
 
   H += '<div class="g23">'
-    + '<div class="card reveal"><div class="ch"><div class="ct">Top 10 buyers (by quantity)</div><div class="hint">Click to see brand mix</div></div><div class="cb" id="mk-topbuyer"></div></div>'
+    + '<div class="card reveal"><div class="ch"><div class="ct">Top 10 buyers</div><div class="hint">Click to see brand mix</div>'
+      + '<div style="margin-left:auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap">'
+      + metricSwHtml("mkBuyerMetric","mkBuyerMetricSet")
+      + ssHtml("ss-buyer","Search buyer…","mkBuyerSuggest")
+      + '</div></div><div class="cb" id="mk-topbuyer"></div></div>'
     + '<div class="card reveal"><div class="ch"><div class="ct">Concentration — Pareto</div><div class="cs">gold bar = buyer where Mani won · line = cumulative %</div></div><div class="cb">'
       + '<div class="mstat" style="margin-bottom:10px"><div class="ml">Top 10 buyers hold</div><div class="mv" style="color:var(--blue)">'+pct(top10share)+'</div><div class="ms">'+qf(top10Q)+' / '+qf(totQ)+' pcs total</div></div>'
       + '<div class="cw" style="height:200px"><canvas id="c-mk-conc"></canvas></div>'
@@ -1820,75 +2085,107 @@ function renderMarket(){
   document.getElementById("mk-body").innerHTML = H;
 
   /* ── CHARTS ── */
-  var buckets = marketBuckets();
-  var labels = buckets.labels || buckets.buckets.map(function(b){return b.label;});
+  var buckets = marketBuckets();   /* auto buckets — follows the global time selection */
+  var RAllScope = filterRows({ptype:S.mkType, region:S.mkRegion, _allTime:true});
 
-  if(buckets.kind === "compare"){
-    /* Multi-year/FY compare: each series.monthRows is an array of 12 row-arrays.
-       We must apply current ptype/region filter to those rows. */
-    function applyFilter(arr){
-      return arr.filter(function(r){
-        if(S.mkType!=="ALL" && r.ptype!==S.mkType) return false;
-        if(S.mkRegion!=="ALL" && r.region!==S.mkRegion) return false;
-        return true;
-      });
-    }
-    var statsPerSeries = buckets.series.map(function(s){
+  /* effective buckets + row scope for one chart, honouring its view switch */
+  function mkEff(key){
+    var m = S.mkView[key];
+    if(!m) return {mode:"auto", bk:buckets, rows:R, note:(buckets.fyNote?("Source data "+buckets.fyNote):"")};
+    var bm = bucketsForMode(m);
+    return {mode:m, bk:bm, rows:(bm.allTime ? RAllScope : R), note:bm.note||""};
+  }
+  function mkNote(key, eff){
+    var n = document.getElementById("note-"+key); if(!n) return;
+    n.textContent = eff.note || "";
+    n.style.display = eff.note ? "" : "none";
+  }
+  function applyFilterCmp(arr){
+    return arr.filter(function(r){
+      if(S.mkType!=="ALL" && r.ptype!==S.mkType) return false;
+      if(S.mkRegion!=="ALL" && r.region!==S.mkRegion) return false;
+      return true;
+    });
+  }
+  var _cmpStats = null;
+  function cmpStats(){
+    if(_cmpStats) return _cmpStats;
+    _cmpStats = buckets.series.map(function(s){
       return s.monthRows.map(function(rows){
-        var fr=applyFilter(rows), q=0,v=0,bs={},ps={};
+        var fr=applyFilterCmp(rows), q=0,v=0,bs={},ps={};
         fr.forEach(function(r){q+=r.qty;v+=r.val;bs[r.buyer]=1;ps[r.kqtt]=1;});
         return {q:q,v:v,nbuy:Object.keys(bs).length,npkg:Object.keys(ps).length,rows:fr};
       });
     });
-    /* Qty grouped */
-    var dsQ = buckets.series.map(function(s, si){
-      return {label:s.name+(s.partialNote?" "+s.partialNote:""), data:statsPerSeries[si].map(function(x){return x.q;}),
-        backgroundColor:s.color, borderRadius:5,
-        datalabels:{display:false}};
-    });
-    barChart("c-mk-tsQ",{labels:labels, datasets:dsQ, fmt:qf, padTop:22, padRight:8,
-      onClick:function(i,di){var rows=statsPerSeries[di][i].rows; openDrill(rows,{title:buckets.series[di].name+" · "+labels[i], sub:"Period"});}});
-    /* Value grouped */
-    var dsV = buckets.series.map(function(s, si){
-      return {label:s.name+(s.partialNote?" "+s.partialNote:""), data:statsPerSeries[si].map(function(x){return toCur(x.v);}),
-        backgroundColor:s.color, borderRadius:5,
-        datalabels:{display:false}};
-    });
-    barChart("c-mk-tsV",{labels:labels, datasets:dsV, fmt:function(v){return money(v*FX[S.currency]);}, padTop:22, padRight:8,
-      onClick:function(i,di){var rows=statsPerSeries[di][i].rows; openDrill(rows,{title:buckets.series[di].name+" · "+labels[i], sub:"Period"});}});
-    /* Buyers + Packages — for compare we show one stacked-by-series chart of total Buyer counts (sum is misleading
-       since unique buyers across months don't simply add, so we use per-month unique count per series). */
-    var dsBP = [];
-    buckets.series.forEach(function(s, si){
-      dsBP.push({label:s.name+" — Buyers", data:statsPerSeries[si].map(function(x){return x.nbuy;}), backgroundColor:s.color, stack:"buyers"+si, borderRadius:4, datalabels:{display:false}});
-      dsBP.push({label:s.name+" — Packages", data:statsPerSeries[si].map(function(x){return x.npkg;}), backgroundColor:hexA(s.color,.5), stack:"buyers"+si, borderRadius:4, datalabels:{display:false}});
-    });
-    barChart("c-mk-tsBP",{labels:labels, datasets:dsBP, fmt:function(v){return v;}, padTop:22, padRight:8});
-  } else {
-    /* Single series (year-buckets, month-buckets, FY single, or range) */
-    var stats = buckets.buckets.map(function(b){
-      var sub = R.filter(b.match);
+    return _cmpStats;
+  }
+  function singleStats(bk, rows){
+    return bk.buckets.map(function(b){
+      var sub = rows.filter(b.match);
       var q=0,v=0,bs={},ps={};
       sub.forEach(function(r){q+=r.qty;v+=r.val;bs[r.buyer]=1;ps[r.kqtt]=1;});
-      return {q:q,v:v,nbuy:Object.keys(bs).length,npkg:Object.keys(ps).length};
+      return {q:q,v:v,nbuy:Object.keys(bs).length,npkg:Object.keys(ps).length,rows:sub};
     });
-    barChart("c-mk-tsQ",{labels:labels,
-      datasets:[{label:"Quantity (pcs)",data:stats.map(function(s){return s.q;}),backgroundColor:hexA("#3A5CAA",.85),borderRadius:5,
+  }
+
+  function drawTSQ(){
+    var eff = mkEff("tsQ"); mkNote("tsQ", eff);
+    if(eff.mode==="auto" && buckets.kind==="compare"){
+      var st = cmpStats(), labels = buckets.labels;
+      var dsQ = buckets.series.map(function(s, si){
+        return {label:s.name+(s.partialNote?" "+s.partialNote:""), data:st[si].map(function(x){return x.q;}),
+          backgroundColor:s.color, borderRadius:5, datalabels:{display:false}};
+      });
+      barChart("c-mk-tsQ",{labels:labels, datasets:dsQ, fmt:qf, padTop:22, padRight:8,
+        onClick:function(i,di){var rows=st[di][i].rows; openDrill(rows,{title:buckets.series[di].name+" · "+labels[i], sub:"Period"});}});
+      return;
+    }
+    var bk = eff.bk, st2 = singleStats(bk, eff.rows), labels2 = bk.buckets.map(function(b){return b.label;});
+    barChart("c-mk-tsQ",{labels:labels2,
+      datasets:[{label:"Quantity (pcs)",data:st2.map(function(s){return s.q;}),backgroundColor:hexA("#3A5CAA",.85),borderRadius:5,
         datalabels:{display:true,anchor:"end",align:"top",color:axisColor(),font:{family:FF,size:10,weight:"800"},formatter:function(v){return v?qf(v):"";}}}],
       legend:false, fmt:qf, padTop:22, padRight:8,
-      onClick:function(i){var b=buckets.buckets[i]; openDrill(R.filter(b.match),{title:b.label, sub:"Period"});}});
-    barChart("c-mk-tsV",{labels:labels,
-      datasets:[{label:"Value",data:stats.map(function(s){return toCur(s.v);}),backgroundColor:hexA("#FFC400",.9),borderRadius:5,
+      onClick:function(i){if(st2[i].rows.length) openDrill(st2[i].rows,{title:bk.buckets[i].label, sub:"Period"});}});
+  }
+  function drawTSV(){
+    var eff = mkEff("tsV"); mkNote("tsV", eff);
+    if(eff.mode==="auto" && buckets.kind==="compare"){
+      var st = cmpStats(), labels = buckets.labels;
+      var dsV = buckets.series.map(function(s, si){
+        return {label:s.name+(s.partialNote?" "+s.partialNote:""), data:st[si].map(function(x){return toCur(x.v);}),
+          backgroundColor:s.color, borderRadius:5, datalabels:{display:false}};
+      });
+      barChart("c-mk-tsV",{labels:labels, datasets:dsV, fmt:function(v){return money(v*FX[S.currency]);}, padTop:22, padRight:8,
+        onClick:function(i,di){var rows=st[di][i].rows; openDrill(rows,{title:buckets.series[di].name+" · "+labels[i], sub:"Period"});}});
+      return;
+    }
+    var bk = eff.bk, st2 = singleStats(bk, eff.rows), labels2 = bk.buckets.map(function(b){return b.label;});
+    barChart("c-mk-tsV",{labels:labels2,
+      datasets:[{label:"Value",data:st2.map(function(s){return toCur(s.v);}),backgroundColor:hexA("#FFC400",.9),borderRadius:5,
         datalabels:{display:true,anchor:"end",align:"top",color:"#B8860B",font:{family:FF,size:10,weight:"800"},formatter:function(v){return v?money(v*FX[S.currency]):"";}}}],
       legend:false, fmt:function(v){return money(v*FX[S.currency]);}, padTop:22, padRight:8,
-      onClick:function(i){var b=buckets.buckets[i]; openDrill(R.filter(b.match),{title:b.label, sub:"Period"});}});
+      onClick:function(i){if(st2[i].rows.length) openDrill(st2[i].rows,{title:bk.buckets[i].label, sub:"Period"});}});
+  }
+  function drawTSBP(){
+    var eff = mkEff("tsBP"); mkNote("tsBP", eff);
+    if(eff.mode==="auto" && buckets.kind==="compare"){
+      var st = cmpStats(), labels = buckets.labels;
+      var dsBP = [];
+      buckets.series.forEach(function(s, si){
+        dsBP.push({label:s.name+" — Buyers", data:st[si].map(function(x){return x.nbuy;}), backgroundColor:s.color, stack:"buyers"+si, borderRadius:4, datalabels:{display:false}});
+        dsBP.push({label:s.name+" — Packages", data:st[si].map(function(x){return x.npkg;}), backgroundColor:hexA(s.color,.5), stack:"buyers"+si, borderRadius:4, datalabels:{display:false}});
+      });
+      barChart("c-mk-tsBP",{labels:labels, datasets:dsBP, fmt:function(v){return v;}, padTop:22, padRight:8});
+      return;
+    }
+    var bk = eff.bk, st2 = singleStats(bk, eff.rows), labels2 = bk.buckets.map(function(b){return b.label;});
     killC("c-mk-tsBP");
     S.charts["c-mk-tsBP"]=new Chart(document.getElementById("c-mk-tsBP"),{
       type:"bar",
-      data:{labels:labels,datasets:[
-        {label:"Buyers",data:stats.map(function(s){return s.nbuy;}),backgroundColor:"#5188CC",borderRadius:5,
+      data:{labels:labels2,datasets:[
+        {label:"Buyers",data:st2.map(function(s){return s.nbuy;}),backgroundColor:"#5188CC",borderRadius:5,
           datalabels:{display:true,anchor:"end",align:"top",color:"#5188CC",font:{family:FF,size:10,weight:"800"},formatter:function(v){return v||"";}}},
-        {label:"Packages",data:stats.map(function(s){return s.npkg;}),backgroundColor:"#16A085",borderRadius:5,
+        {label:"Packages",data:st2.map(function(s){return s.npkg;}),backgroundColor:"#16A085",borderRadius:5,
           datalabels:{display:true,anchor:"end",align:"top",color:"#16A085",font:{family:FF,size:10,weight:"800"},formatter:function(v){return v||"";}}}
       ]},
       options:{responsive:true,maintainAspectRatio:false,animation:{duration:850},
@@ -1898,15 +2195,8 @@ function renderMarket(){
                 y:{beginAtZero:true,grid:{color:gridColor()},ticks:{font:{family:FF,size:11},color:axisColor()}}},
         layout:{padding:{top:22,right:8}}}
     });
-    /* FY coverage note */
-    if(buckets.fyNote){
-      var c1 = document.getElementById("c-mk-tsQ").parentNode.parentNode;
-      var n = document.createElement("div"); n.className="fy-note"; n.textContent="Source data "+buckets.fyNote;
-      c1.appendChild(n.cloneNode(true));
-      document.getElementById("c-mk-tsV").parentNode.parentNode.appendChild(n.cloneNode(true));
-      document.getElementById("c-mk-tsBP").parentNode.parentNode.appendChild(n);
-    }
   }
+  drawTSQ(); drawTSV(); drawTSBP();
 
   /* Tier donuts — by Quantity & by Value */
   var tQ = aggBy(R,function(r){return r.tier;});
@@ -1963,19 +2253,21 @@ function renderMarket(){
   stackedPtt("c-mk-pttV","val");
 
   /* Top buyers + concentration */
-  document.getElementById("mk-topbuyer").innerHTML = rankList("mkbuyer", top10, {
+  var _bm = S.mkBuyerMetric;
+  document.getElementById("mk-topbuyer").innerHTML = rankList("mkbuyer", top10M, {
     title:"Buyer", kind:"buyer",
-    valFn:function(a){return a.qty;},
+    valFn:function(a){return _bm==="val" ? a.val : a.qty;},
     colorFn:function(a){return a.rows.some(function(r){return r.brand==="Mani";}) ? "#FFC400" : "#3A5CAA";},
     labelFn:function(a){return a.key.length>42?a.key.slice(0,41)+"…":a.key;},
-    subFn:function(a){var m=a.rows.filter(function(r){return r.brand==="Mani";}).reduce(function(s,r){return s+r.qty;},0); return m>0?("Mani "+qf(m)):"";},
-    fmtFn:function(v){return qf(v);}
-  });
+    subFn:function(a){var m=a.rows.filter(function(r){return r.brand==="Mani";}).reduce(function(s,r){return s+(_bm==="val"?r.val:r.qty);},0); return m>0?("Mani "+(_bm==="val"?money(m):qf(m))):"";},
+    fmtFn:function(v){return _bm==="val" ? money(v) : qf(v);}
+  }) + mkPinnedHtml(top10M, byAggM);
   mxPareto("c-mk-conc", byAgg, totQ);
 
   /* New strategic charts (UX v10) */
   mxManiShare();
-  mxBrandEvo("c-mk-evo", buckets, R);
+  var evoEff = mkEff("evo"); mkNote("evo", evoEff);
+  mxBrandEvo("c-mk-evo", (evoEff.mode==="auto" ? buckets : evoEff.bk), evoEff.rows);
 
   afterRender("sec-market");
 }
@@ -2434,34 +2726,56 @@ function mxPareto(id,byAgg,totQ){
       layout:{padding:{top:6,right:4}}}});
 }
 
-/* ── Province × Brand heatmap ── */
+/* ── Province × Brand heatmap (v11: Qty/Value switch + province search & pin) ── */
 function mxHeatmapCard(R){
-  var pAg=sortDesc(toArr(aggBy(R.filter(function(r){return r.prov;}),function(r){return r.prov;})),"qty").slice(0,12);
-  var bAg=sortDesc(toArr(aggBy(R,function(r){return r.brand;})),"qty").slice(0,7);
+  var hv = (S.hmMetric==="val");
+  function vOf(r){ return hv ? r.val : r.qty; }
+  var provAllAgg = sortDesc(toArr(aggBy(R.filter(function(r){return r.prov;}),function(r){return r.prov;})), hv?"val":"qty");
+  window._hmProvAgg = provAllAgg;
+  var pAg = provAllAgg.slice(0,12);
+  var bAg = sortDesc(toArr(aggBy(R,function(r){return r.brand;})), hv?"val":"qty").slice(0,7);
   if(!pAg.length||!bAg.length) return "";
-  var provs=pAg.map(function(a){return a.key;}), brands=bAg.map(function(a){return a.key;});
+  /* pinned provinces appended below top-12 (skip if already shown) */
+  var pinned=[];
+  (S.hmPins||[]).forEach(function(p){
+    if(pAg.some(function(a){return a.key===p;})) return;
+    var a = provAllAgg.find(function(x){return x.key===p;});
+    if(a) pinned.push(a);
+  });
+  var rowsAgg = pAg.concat(pinned);
+  var provs=rowsAgg.map(function(a){return a.key;}), brands=bAg.map(function(a){return a.key;});
   window._HM={provs:provs,brands:brands};
   var cell={};
   R.forEach(function(r){
     if(!r.prov||provs.indexOf(r.prov)<0||brands.indexOf(r.brand)<0) return;
-    var k=r.prov+"||"+r.brand; cell[k]=(cell[k]||0)+r.qty;
+    var k=r.prov+"||"+r.brand; cell[k]=(cell[k]||0)+vOf(r);
   });
   var h='<div class="hm" style="grid-template-columns:170px repeat('+brands.length+',minmax(62px,1fr))"><div class="hh"></div>';
   brands.forEach(function(b){h+='<div class="hh" title="'+esc(b)+'">'+esc(b.length>10?b.slice(0,9)+"…":b)+'</div>';});
-  provs.forEach(function(p,pi){
-    var rowTot=pAg[pi].qty||1;
-    h+='<div class="hr" title="'+esc(p)+'">'+esc(p)+'</div>';
+  rowsAgg.forEach(function(a,pi){
+    var p=a.key;
+    var rowTot=(hv?a.val:a.qty)||1;
+    var isPin = pi>=pAg.length;
+    var pinIdx = isPin ? (S.hmPins||[]).indexOf(p) : -1;
+    h+='<div class="hr'+(isPin?" pinned":"")+'" title="'+esc(p)+'">'+(isPin?"📌 ":"")+esc(p)
+      +(isPin?'<button class="pin-x" title="Unpin" onclick="hmUnpin('+pinIdx+')">✕</button>':'')+'</div>';
     brands.forEach(function(b,bi){
       var q=cell[p+"||"+b]||0, sh=q/rowTot*100, isM=(b==="Mani");
-      var a=q?Math.min(.92,.14+sh/100*.82):0;
-      var bg=q?(isM?hexA("#E8C800",a):hexA("#3A5CAA",a)):"";
+      var al=q?Math.min(.92,.14+sh/100*.82):0;
+      var bg=q?(isM?hexA("#E8C800",al):hexA("#3A5CAA",al)):"";
       var fg=(!isM&&sh>48)?"#fff":(isM?"#003047":"var(--t1)");
       if(!q) fg="var(--t3)";
-      h+='<div class="hc" style="'+(bg?("background:"+bg+";"):"")+'color:'+fg+'" onclick="hmDrill('+pi+','+bi+')" title="'+esc(b)+' @ '+esc(p)+' · '+nf(q)+' pcs ('+sh.toFixed(1)+'%)">'+(q?sh.toFixed(0)+"%":"·")+'</div>';
+      var tt=hv?(money(q)):(nf(q)+" pcs");
+      h+='<div class="hc" style="'+(bg?("background:"+bg+";"):"")+'color:'+fg+'" onclick="hmDrill('+pi+','+bi+')" title="'+esc(b)+' @ '+esc(p)+' · '+tt+' ('+sh.toFixed(1)+'%)">'+(q?sh.toFixed(0)+"%":"·")+'</div>';
     });
   });
-  h+='</div><div class="hm-lg"><span class="sw"></span> brand share of province qty<span class="sw swy" style="margin-left:10px"></span> Mani column · click a cell to drill line items</div>';
-  return '<div class="card reveal"><div class="ch"><div class="ct">Province × Brand heatmap</div><div class="cs">Top '+provs.length+' provinces · top '+brands.length+' brands · % = share of province quantity</div></div><div class="cb hm-wrap">'+h+'</div></div>';
+  h+='</div><div class="hm-lg"><span class="sw"></span> brand share of province '+(hv?"value":"quantity")+'<span class="sw swy" style="margin-left:10px"></span> Mani column · click a cell to drill line items</div>';
+  return '<div class="card reveal"><div class="ch"><div class="ct">Province × Brand heatmap</div>'
+    + '<div class="cs">Top '+pAg.length+' provinces'+(pinned.length?(" +"+pinned.length+" pinned"):"")+' · top '+brands.length+' brands · % = share of province '+(hv?"value":"quantity")+'</div>'
+    + '<div style="margin-left:auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap">'
+      + metricSwHtml("hmMetric","hmMetricSet")
+      + ssHtml("ss-prov","Search province…","hmSuggest")
+    + '</div></div><div class="cb hm-wrap">'+h+'</div></div>';
 }
 function hmDrill(pi,bi){
   var H=window._HM; if(!H) return;
@@ -2469,6 +2783,121 @@ function hmDrill(pi,bi){
   var rows=filterRows({prov:p,brand:b,ptype:S.mkType,region:S.mkRegion});
   if(!rows.length){showToast("No line items for "+b+" in "+p,"info");return;}
   openDrill(rows,{title:b+" · "+p,sub:"Province × Brand"});
+}
+function hmMetricSet(v){ if(S.hmMetric===v) return; S.hmMetric=v; renderMarket(); }
+function hmSuggest(inp){
+  var q = norm(inp.value.trim());
+  var drop = document.getElementById("ss-prov-drop"); if(!drop) return;
+  if(!q){ drop.classList.remove("open"); return; }
+  var agg = window._hmProvAgg||[];
+  var topKeys = agg.slice(0,12).map(function(a){return a.key;});
+  var res=[];
+  for(var i=0;i<agg.length && res.length<8;i++){
+    var a=agg[i];
+    if(topKeys.indexOf(a.key)>=0) continue;
+    if((S.hmPins||[]).indexOf(a.key)>=0) continue;
+    if(norm(a.key).indexOf(q)>=0) res.push({i:i,a:a});
+  }
+  drop.innerHTML = res.length ? res.map(function(x){
+    return '<div class="ss-it" onmousedown="hmPinIdx('+x.i+')"><span>'+esc(x.a.key)+'</span><small>'+(S.hmMetric==="val"?money(x.a.val):qf(x.a.qty)+" pcs")+'</small></div>';
+  }).join("") : '<div class="ss-empty">No province matches (or already shown)</div>';
+  drop.classList.add("open");
+}
+function hmPinIdx(i){
+  var a=(window._hmProvAgg||[])[i]; if(!a) return;
+  if((S.hmPins||[]).indexOf(a.key)<0) S.hmPins.push(a.key);
+  renderMarket();
+}
+function hmUnpin(i){ S.hmPins.splice(i,1); renderMarket(); }
+
+/* ── v11 shared UI helpers: chart view switch · metric switch · smart search ── */
+function bucketsForMode(mode){
+  if(mode==="fy"){
+    var fys = buildFyList(), anyPartial=false;
+    var bks = fys.map(function(fy){
+      var rng=fyRange(fy), part=fyCoverageNote(fy);
+      if(part) anyPartial=true;
+      return {label:fy+(part?"*":""), key:fy,
+        match:(function(rg){return function(r){var k=moKey(r.month);return rg && k>=rg.fromKey && k<=rg.toKey;};})(rng)};
+    });
+    return {kind:"year", buckets:bks, allTime:true,
+      note:"View: all fiscal years (Sep–Aug) — ignores the time selection above"+(anyPartial?" · * = partial data":"")};
+  }
+  if(mode==="year"){
+    return {kind:"year", allTime:true, note:"View: all calendar years — ignores the time selection above",
+      buckets:YEARS.map(function(y){return {label:String(y), key:y, match:(function(yr){return function(r){return r.year===yr;};})(y)};})};
+  }
+  /* month */
+  var ms = activeMonths();
+  return {kind:"month", allTime:false, note:"View: months within the selected time window",
+    buckets: ms.map(function(m){return {label:moLabel(m), key:m, match:(function(k){return function(r){return r.month===k;};})(m)};})};
+}
+function cvswHtml(key){
+  var cur = S.mkView[key];
+  function b(v,t){
+    var on = (v===null && cur==null) || (v!==null && cur===v);
+    return '<button class="'+(on?"on":"")+'" onclick="mkViewSet(\''+key+'\','+(v?("'"+v+"'"):"null")+')">'+t+'</button>';
+  }
+  return '<div class="cvsw" title="Chart time axis">'+b(null,"Auto")+b("fy","FY")+b("year","Year")+b("month","Month")+'</div>';
+}
+function mkViewSet(key,v){ S.mkView[key]=v; renderMarket(); }
+function metricSwHtml(stateKey, fn){
+  function b(v,t){return '<button class="'+(S[stateKey]===v?"on":"")+'" onclick="'+fn+'(\''+v+'\')">'+t+'</button>';}
+  return '<div class="msw">'+b("qty","Qty")+b("val","Value")+'</div>';
+}
+function mkBuyerMetricSet(v){ if(S.mkBuyerMetric===v) return; S.mkBuyerMetric=v; renderMarket(); }
+function ssHtml(id, ph, fn){
+  return '<div class="ssw"><span class="ss-ic">🔍</span><input id="'+id+'" placeholder="'+esc(ph)+'" oninput="'+fn+'(this)" onfocus="'+fn+'(this)" onblur="ssBlur(this)" autocomplete="off"><div class="ss-drop" id="'+id+'-drop"></div></div>';
+}
+function mkBuyerSuggest(inp){
+  var q = norm(inp.value.trim());
+  var drop = document.getElementById("ss-buyer-drop"); if(!drop) return;
+  if(!q){ drop.classList.remove("open"); return; }
+  var agg = window._mkBuyerAgg||[];
+  var topKeys = agg.slice(0,10).map(function(a){return a.key;});
+  var res=[];
+  for(var i=0;i<agg.length && res.length<8;i++){
+    var a=agg[i];
+    if(topKeys.indexOf(a.key)>=0) continue;
+    if((S.mkBuyerPins||[]).indexOf(a.key)>=0) continue;
+    if(norm(a.key).indexOf(q)>=0) res.push({i:i,a:a});
+  }
+  drop.innerHTML = res.length ? res.map(function(x){
+    return '<div class="ss-it" onmousedown="mkBuyerPinIdx('+x.i+')"><span>'+esc(x.a.key.length>44?x.a.key.slice(0,43)+"…":x.a.key)+'</span><small>'+(S.mkBuyerMetric==="val"?money(x.a.val):qf(x.a.qty)+" pcs")+'</small></div>';
+  }).join("") : '<div class="ss-empty">No buyer matches in current filter</div>';
+  drop.classList.add("open");
+}
+function mkBuyerPinIdx(i){
+  var a=(window._mkBuyerAgg||[])[i]; if(!a) return;
+  if((S.mkBuyerPins||[]).indexOf(a.key)<0) S.mkBuyerPins.push(a.key);
+  renderMarket();
+}
+function mkBuyerUnpin(idx){ S.mkBuyerPins.splice(idx,1); renderMarket(); }
+function mkPinnedHtml(top10M, agg){
+  if(!(S.mkBuyerPins||[]).length) return "";
+  var topKeys = top10M.map(function(a){return a.key;});
+  var hv = (S.mkBuyerMetric==="val");
+  var max = Math.max.apply(null, top10M.map(function(a){return hv?a.val:a.qty;}).concat([1]));
+  var h="";
+  S.mkBuyerPins.forEach(function(name, pi){
+    var found=null, rank=0;
+    for(var i=0;i<agg.length;i++){ if(agg[i].key===name){found=agg[i];rank=i+1;break;} }
+    if(!found){
+      h += '<div class="rkr pinned"><div class="rkn" style="color:var(--t3)"><span>📌 '+esc(name.length>40?name.slice(0,39)+"…":name)+'</span> <small>no data in current filter</small></div><div class="rkt"></div><div class="rkv">—</div><button class="pin-x" title="Unpin" onclick="mkBuyerUnpin('+pi+')">✕</button></div>';
+      return;
+    }
+    var v = hv?found.val:found.qty;
+    var w = Math.min(100, v/max*100);
+    var col = found.rows.some(function(r){return r.brand==="Mani";}) ? "#FFC400" : "#3A5CAA";
+    var inTop = topKeys.indexOf(name)>=0;
+    var bq = esc(name).replace(/'/g,"\\'");
+    h += '<div class="rkr pinned" onclick="buyerDrill(\''+bq+'\')">'
+      +'<div class="rkn"><span class="sw" style="background:'+col+'"></span><span title="'+esc(name)+'">📌 '+esc(name.length>38?name.slice(0,37)+"…":name)+'</span> <small>#'+rank+(inTop?" · in top 10":"")+'</small></div>'
+      +'<div class="rkt"><div class="rkb" style="background:'+col+';width:'+w.toFixed(1)+'%"></div></div>'
+      +'<div class="rkv">'+(hv?money(v):qf(v))+'</div>'
+      +'<button class="pin-x" title="Unpin" onclick="event.stopPropagation();mkBuyerUnpin('+pi+')">✕</button></div>';
+  });
+  return h;
 }
 
 /* ── Cross-tab quick actions ── */
@@ -2965,6 +3394,9 @@ function bootDashboard(){
     var cur=localStorage.getItem("mmh_cur"); if(cur && FX[cur]) { S.currency=cur; document.getElementById("cur-sel").value=cur; }
     var m=localStorage.getItem("mmh_metric"); if(m==="qty"){S.metric="qty";document.getElementById("u-val").classList.remove("on");document.getElementById("u-qty").classList.add("on");}
     var tb=localStorage.getItem("mmh_tier_band"); if(tb) window.TIER_BAND = +tb;
+    var tm=localStorage.getItem("mmh_tier_mode"); if(tm==="custom") TIER_MODE="custom";
+    var tc=localStorage.getItem("mmh_tier_custom");
+    if(tc){ try{ var o=JSON.parse(tc); if(o && typeof o==="object"){ TIER_CUSTOM={}; Object.keys(o).forEach(function(pt){ TIER_CUSTOM[pt]={low:+o[pt].low||0, high:+o[pt].high||0}; }); } }catch(e2){} }
   }catch(e){}
   fetchData().then(function(){
     renderAll();
@@ -2992,6 +3424,425 @@ window.onload=function(){
   }catch(e){}
   setTimeout(function(){document.getElementById("gate-pw").focus();},120);
 };
+</script>
+
+<script>
+/* ════════════════════════════════════════════════════════════════════
+   EXPORT PPT (v11) — generates a PowerPoint of the CURRENT tab,
+   styled per the MMH template (Aptos · navy #003047 · blue #3A5CAA ·
+   yellow #FFE100 · white cover with yellow right column · hollow-square
+   sub-heads · D9D9D9 rules · footer with page number).
+   Charts are captured live from Chart.js canvases; KPI cards, insight
+   boxes, tables, rankings and the heatmap are rebuilt as native shapes.
+   ════════════════════════════════════════════════════════════════════ */
+var PPT = {
+  navy:"003047", blue:"3A5CAA", yellow:"FFE100", navy2:"0E2F5F",
+  lb1:"C2D4F1", lb3:"CFE2F3", pale:"F0F7FF", pale2:"F4F6F9",
+  gray:"666666", line:"D9D9D9", pos:"2E7D32", neg:"C62828",
+  maniRow:"FFF6C2", font:"Aptos"
+};
+var PPT_W = 13.333, PPT_H = 7.5;
+var TAB_TITLES = {market:"Market Overview", brand:"Brand Positioning", acct:"Territory Tracking", vs:"Head-to-Head"};
+
+function pTxt(s){ return String(s==null?"":s).replace(/\s+/g," ").trim(); }
+function blendHex(a,b,t){
+  function h2(c){c=c.replace("#","");return [parseInt(c.substr(0,2),16),parseInt(c.substr(2,2),16),parseInt(c.substr(4,2),16)];}
+  var A=h2(a),B=h2(b);
+  function p2(n){var s=Math.round(n).toString(16);return s.length<2?"0"+s:s;}
+  return p2(A[0]+(B[0]-A[0])*t)+p2(A[1]+(B[1]-A[1])*t)+p2(A[2]+(B[2]-A[2])*t);
+}
+function chartImgInfo(id){
+  var ch=S.charts[id], el=document.getElementById(id);
+  if(!ch||!el||!el.width||!el.height) return null;
+  try{ return {data:ch.toBase64Image("image/png",1), ratio:el.width/el.height}; }catch(e){ return null; }
+}
+function fitRect(bx,by,bw,bh,ratio){
+  var w=bw, h=w/(ratio||1.6);
+  if(h>bh){ h=bh; w=h*ratio; }
+  return {x:bx+(bw-w)/2, y:by+(bh-h)/2, w:w, h:h};
+}
+function pptFooter(slide, ref){
+  slide.addShape("rect",{x:0.595,y:7.02,w:12.14,h:0.013,fill:{color:PPT.line},line:{type:"none"}});
+  slide.addText("MMH",{shape:"rect",x:0.595,y:7.13,w:0.62,h:0.27,fill:{color:PPT.yellow},color:PPT.navy,bold:true,fontSize:10,align:"center",valign:"middle",fontFace:PPT.font,charSpacing:1});
+  slide.addText("MANI Medical Hanoi · Ophthalmic Knife Tender Intelligence",{x:1.32,y:7.13,w:8.4,h:0.27,fontSize:8.5,color:PPT.gray,fontFace:PPT.font,valign:"middle"});
+  slide.addText(String(ref.n),{x:12.3,y:7.1,w:0.55,h:0.32,fontSize:11,color:PPT.navy,bold:true,fontFace:PPT.font,align:"right",valign:"middle"});
+  ref.n++;
+}
+function pptHeader(slide, title, sub){
+  slide.addText(pTxt(title).toUpperCase(),{x:0.595,y:0.24,w:12.14,h:0.56,fontFace:PPT.font,fontSize:22,bold:true,color:PPT.navy,charSpacing:0.5,fit:"shrink",valign:"middle"});
+  if(sub) slide.addText(pTxt(sub),{x:0.61,y:0.78,w:12.1,h:0.3,fontFace:PPT.font,fontSize:10.5,color:PPT.gray,valign:"middle"});
+  slide.addShape("rect",{x:0.595,y:1.13,w:12.14,h:0.016,fill:{color:PPT.line},line:{type:"none"}});
+}
+function cSlide(pres, ref, title, sub){
+  var s = pres.addSlide();
+  s.background = {color:"FFFFFF"};
+  pptHeader(s, title, sub);
+  pptFooter(s, ref);
+  return s;
+}
+function pptSubHead(slide, x, y, w, text){
+  slide.addText("□  "+pTxt(text),{x:x,y:y,w:w,h:0.3,fontFace:PPT.font,fontSize:12.5,bold:true,color:PPT.blue,fit:"shrink",valign:"middle"});
+}
+function deckFilterLines(){
+  var L=[];
+  L.push("Time window:  "+timeLabel());
+  L.push("Product type:  "+(S.mkType==="ALL"?"All knife types":S.mkType)+"     Region:  "+(S.mkRegion==="ALL"?"Nationwide":S.mkRegion));
+  L.push("Currency:  "+S.currency+"     Price tiers:  "+(TIER_MODE==="custom"?"Custom price ranges":("Anchor-based (±"+Math.round((window.TIER_BAND||0.35)*100)+"%)")));
+  return L;
+}
+function pptCover(pres, ref, tab){
+  var s = pres.addSlide();
+  s.background = {color:"FFFFFF"};
+  /* yellow column on the right — per MMH title-slide layout */
+  s.addShape("rect",{x:10.0,y:0,w:3.333,h:7.5,fill:{color:PPT.yellow},line:{type:"none"}});
+  s.addShape("rect",{x:1.056,y:1.62,w:1.1,h:0.05,fill:{color:PPT.blue},line:{type:"none"}});
+  s.addText("MMH · TENDER INTELLIGENCE",{x:1.056,y:1.0,w:8.3,h:0.4,fontFace:PPT.font,fontSize:14,bold:true,color:PPT.blue,charSpacing:2});
+  s.addText((TAB_TITLES[tab]||"Dashboard").toUpperCase(),{x:1.056,y:2.0,w:8.5,h:1.9,fontFace:PPT.font,fontSize:45,bold:true,color:PPT.navy,charSpacing:1,fit:"shrink",valign:"top"});
+  s.addText("Ophthalmic Knife Tender Market Dashboard — Vietnam",{x:1.056,y:3.95,w:8.3,h:0.45,fontFace:PPT.font,fontSize:18,color:PPT.navy2});
+  var fl = deckFilterLines();
+  s.addText(fl.join("\n"),{x:1.056,y:4.75,w:8.3,h:1.3,fontFace:PPT.font,fontSize:13,color:PPT.navy,lineSpacing:24});
+  s.addText("Generated "+new Date().toISOString().slice(0,10)+" · Source: KQTT live data ("+nf(ROWS.length)+" line items)",{x:1.056,y:6.45,w:8.3,h:0.35,fontFace:PPT.font,fontSize:10.5,color:PPT.gray,italic:true});
+  s.addText("MANI MEDICAL HANOI",{x:10.35,y:6.7,w:2.7,h:0.4,fontFace:PPT.font,fontSize:11,bold:true,color:PPT.navy,align:"left",charSpacing:1});
+  ref.n++;
+}
+
+/* ── DOM scrapers ── */
+function scrapeInsights(strip){
+  return Array.prototype.map.call(strip.querySelectorAll(".ins"),function(el){
+    var ic=el.querySelector(".ins-ic"), t=el.querySelector(".ins-t"), x=el.querySelector(".ins-x");
+    return {ic:ic?pTxt(ic.textContent):"", t:t?pTxt(t.textContent):"", x:x?pTxt(x.textContent):""};
+  }).filter(function(i){return i.t||i.x;});
+}
+function scrapeKpis(kr){
+  return Array.prototype.map.call(kr.querySelectorAll(".kpi"),function(k){
+    var kl=k.querySelector(".kl"), del=kl?kl.querySelector(".kdelta"):null;
+    var dTxt="", dCls="";
+    if(del){ dTxt=pTxt(del.textContent); dCls=del.classList.contains("up")?"up":(del.classList.contains("dn")?"dn":"fl"); }
+    var lbl=kl?kl.textContent:"";
+    if(dTxt) lbl=lbl.replace(del.textContent,"");
+    lbl=pTxt(lbl);
+    var kv=k.querySelector(".kv"); var val=kv?pTxt(kv.textContent):"";
+    var noteEl=k.querySelector(".knote")||k.querySelector(".ks");
+    var note=noteEl?pTxt(noteEl.textContent):"";
+    note=note.replace(/Cutoff:.*$/i,"").trim();
+    if(note.length>110) note=note.slice(0,108)+"…";
+    var acc = k.classList.contains("y")?"E0A800":(k.classList.contains("pos")?PPT.pos:(k.classList.contains("neg")?PPT.neg:PPT.blue));
+    return {lbl:lbl,delta:dTxt,deltaCls:dCls,val:val,note:note,accent:acc};
+  });
+}
+function scrapeGrpCards(grp){
+  return Array.prototype.map.call(grp.querySelectorAll(".grpc"),function(g){
+    var nm=g.querySelector(".gnm"), ct=g.querySelector(".gct"), pc=g.querySelector(".gpct"), ic=g.querySelector(".gic");
+    return {lbl:((ic?pTxt(ic.textContent)+" ":"")+(nm?pTxt(nm.textContent):"")), val:ct?pTxt(ct.textContent):"", note:pc?pTxt(pc.textContent):"", delta:"", deltaCls:"", accent:PPT.blue};
+  }).filter(function(g){return g.lbl||g.val;});
+}
+
+/* ── Slide builders ── */
+function pptKpiCard(slide, x, y, w, h, c){
+  slide.addShape("roundRect",{x:x,y:y,w:w,h:h,rectRadius:0.05,fill:{color:"FFFFFF"},line:{color:PPT.line,width:1},shadow:{type:"outer",color:"9AA7B8",opacity:0.3,blur:5,offset:1,angle:90}});
+  slide.addShape("rect",{x:x,y:y,w:w,h:0.06,fill:{color:c.accent},line:{type:"none"}});
+  var lblRuns=[{text:c.lbl.toUpperCase(),options:{fontSize:9,bold:true,color:PPT.gray,charSpacing:0.5}}];
+  if(c.delta) lblRuns.push({text:"   "+c.delta,options:{fontSize:9,bold:true,color:(c.deltaCls==="up"?PPT.pos:(c.deltaCls==="dn"?PPT.neg:PPT.gray))}});
+  slide.addText(lblRuns,{x:x+0.08,y:y+0.12,w:w-0.16,h:0.38,fontFace:PPT.font,align:"center",valign:"middle",fit:"shrink"});
+  var noteH = c.note ? 0.52 : 0.1;
+  slide.addText(c.val,{x:x+0.06,y:y+0.5,w:w-0.12,h:h-0.5-noteH-0.06,fontFace:PPT.font,fontSize:27,bold:true,color:PPT.navy,align:"center",valign:"middle",fit:"shrink"});
+  if(c.note){
+    slide.addText(c.note,{shape:"roundRect",rectRadius:0.03,x:x+0.08,y:y+h-noteH-0.07,w:w-0.16,h:noteH,fill:{color:PPT.pale},line:{color:PPT.lb1,width:0.75},fontFace:PPT.font,fontSize:7.6,color:PPT.navy2,align:"center",valign:"middle",fit:"shrink"});
+  }
+}
+function pptKpiSlide(pres, ref, ins, kpiRows, titleOverride){
+  var title = titleOverride || (ins && ins.length ? "Executive Insights & Key Metrics" : "Key Metrics");
+  var slide = cSlide(pres, ref, title, timeLabel()+" · "+(S.mkType==="ALL"?"All types":S.mkType)+" · "+(S.mkRegion==="ALL"?"Nationwide":S.mkRegion));
+  var y = 1.3;
+  if(ins && ins.length){
+    var n=Math.min(5,ins.length), gap=0.16, w=(12.14-(n-1)*gap)/n, h=1.18;
+    for(var i=0;i<n;i++){
+      var b=ins[i], x=0.595+i*(w+gap);
+      slide.addShape("roundRect",{x:x,y:y,w:w,h:h,rectRadius:0.05,fill:{color:PPT.pale},line:{color:PPT.lb1,width:1}});
+      slide.addShape("rect",{x:x,y:y,w:0.05,h:h,fill:{color:PPT.blue},line:{type:"none"}});
+      slide.addText((b.ic?b.ic+"  ":"")+b.t.toUpperCase(),{x:x+0.1,y:y+0.07,w:w-0.18,h:0.27,fontFace:PPT.font,fontSize:8.5,bold:true,color:PPT.gray,charSpacing:0.5,fit:"shrink"});
+      var bx=b.x; if(bx.length>150) bx=bx.slice(0,148)+"…";
+      slide.addText(bx,{x:x+0.1,y:y+0.34,w:w-0.18,h:h-0.42,fontFace:PPT.font,fontSize:8.8,color:PPT.navy,valign:"top",fit:"shrink"});
+    }
+    y += h + 0.22;
+  }
+  (kpiRows||[]).forEach(function(row){
+    if(!row || !row.length) return;
+    if(y + 1.85 > 6.95){ pptFooter; }
+    var n=Math.min(4,row.length), gap=0.2, w=(12.14-3*gap)/4, h=1.82;
+    for(var i=0;i<n;i++) pptKpiCard(slide, 0.595+i*(w+gap), y, w, h, row[i]);
+    if(row.length>4){
+      y+=h+0.18;
+      for(var j=4;j<Math.min(8,row.length);j++) pptKpiCard(slide, 0.595+(j-4)*(w+gap), y, w, h, row[j]);
+    }
+    y += h + 0.2;
+  });
+}
+function pptChartSlide(pres, ref, title, sub, items){
+  if(!items.length) return;
+  var slide = cSlide(pres, ref, title, sub ? (sub+" · "+timeLabel()) : timeLabel());
+  var x0=0.595, y0=1.32, W=12.14, H=5.55;
+  var boxes=[];
+  if(items.length===1) boxes=[{x:x0,y:y0,w:W,h:H}];
+  else if(items.length===2) boxes=[{x:x0,y:y0,w:W/2-0.1,h:H},{x:x0+W/2+0.1,y:y0,w:W/2-0.1,h:H}];
+  else if(items.length===3){var w3=(W-0.4)/3;boxes=[{x:x0,y:y0,w:w3,h:H},{x:x0+w3+0.2,y:y0,w:w3,h:H},{x:x0+2*(w3+0.2),y:y0,w:w3,h:H}];}
+  else {var w4=W/2-0.1,h4=H/2-0.1;boxes=[{x:x0,y:y0,w:w4,h:h4},{x:x0+W/2+0.1,y:y0,w:w4,h:h4},{x:x0,y:y0+H/2+0.1,w:w4,h:h4},{x:x0+W/2+0.1,y:y0+H/2+0.1,w:w4,h:h4}];}
+  items.slice(0,4).forEach(function(it,i){
+    var b=boxes[i], iy=b.y, ih=b.h;
+    if(it.label){ pptSubHead(slide,b.x,iy,b.w,it.label); iy+=0.34; ih-=0.34; }
+    slide.addShape("roundRect",{x:b.x,y:iy,w:b.w,h:ih,rectRadius:0.06,fill:{color:"FFFFFF"},line:{color:PPT.line,width:1}});
+    var r=fitRect(b.x+0.08,iy+0.08,b.w-0.16,ih-0.16,it.ratio);
+    slide.addImage({data:it.img,x:r.x,y:r.y,w:r.w,h:r.h});
+  });
+}
+function pptTableSlide(pres, ref, title, sub, tableEl){
+  var headCells=[], bodyRows=[];
+  var ths=tableEl.querySelectorAll("thead th");
+  Array.prototype.forEach.call(ths,function(th){ headCells.push(pTxt(th.textContent)); });
+  while(headCells.length && !headCells[headCells.length-1]) headCells.pop();
+  var nCols=headCells.length||1;
+  Array.prototype.forEach.call(tableEl.querySelectorAll("tbody tr"),function(tr){
+    var cells=[];
+    Array.prototype.forEach.call(tr.querySelectorAll("td"),function(td){
+      if(td.classList && td.classList.contains("qa-td")) return;
+      cells.push(pTxt(td.textContent));
+    });
+    cells = cells.slice(0,nCols);
+    while(cells.length<nCols) cells.push("");
+    var kind = tr.classList.contains("grand")?"grand":(tr.classList.contains("mani")?"mani":(tr.classList.contains("tot")?"tot":""));
+    bodyRows.push({cells:cells,kind:kind});
+  });
+  if(!bodyRows.length) return;
+  /* column widths proportional to avg text length */
+  var lens=headCells.map(function(hc,ci){
+    var s=hc.length;
+    bodyRows.slice(0,20).forEach(function(r){ s=Math.max(s,(r.cells[ci]||"").length); });
+    return Math.max(4,Math.min(30,s));
+  });
+  var sum=lens.reduce(function(a,b){return a+b;},0)||1;
+  var colW=lens.map(function(l){return +(12.14*l/sum).toFixed(2);});
+  var fs = nCols>8?8.5:(nCols>6?9.5:10.5);
+  var perSlide=14, parts=Math.ceil(bodyRows.length/perSlide);
+  for(var p=0;p<parts;p++){
+    var slide=cSlide(pres,ref,title+(parts>1?(" ("+(p+1)+"/"+parts+")"):""),sub?(sub+" · "+timeLabel()):timeLabel());
+    var rows=[headCells.map(function(hc){return {text:hc.toUpperCase(),options:{bold:true,color:PPT.navy,fill:{color:PPT.lb3},fontSize:fs-0.5,align:"center",valign:"middle"}};})];
+    bodyRows.slice(p*perSlide,(p+1)*perSlide).forEach(function(r,ri){
+      var fill = r.kind==="grand"?PPT.navy:(r.kind==="mani"?PPT.maniRow:(r.kind==="tot"?PPT.pale2:(ri%2?PPT.pale2:"FFFFFF")));
+      var col  = r.kind==="grand"?"FFFFFF":PPT.navy;
+      rows.push(r.cells.map(function(c,ci){
+        return {text:c,options:{color:col,fill:{color:fill},fontSize:fs,bold:(r.kind==="grand"||r.kind==="tot"||ci===0),align:(ci===0||ci===1)?"left":"right",valign:"middle"}};
+      }));
+    });
+    slide.addTable(rows,{x:0.595,y:1.32,w:12.14,colW:colW,fontFace:PPT.font,border:{type:"solid",color:PPT.line,pt:0.5},rowH:0.32,autoPage:false});
+  }
+}
+function pptRankSlide(pres, ref, title, sub, card){
+  var items=[];
+  Array.prototype.forEach.call(card.querySelectorAll(".rkr"),function(rk){
+    var nmEl=rk.querySelector(".rkn"), vEl=rk.querySelector(".rkv");
+    if(!nmEl) return;
+    var small=nmEl.querySelector("small");
+    var subT=small?pTxt(small.textContent):"";
+    var nm=pTxt(nmEl.textContent);
+    if(subT) nm=pTxt(nm.replace(subT,""));
+    nm=nm.replace(/^📌\s*/,"").replace(/✕$/,"").trim();
+    items.push({name:nm, sub:subT, val:vEl?pTxt(vEl.textContent):"", pinned:rk.classList.contains("pinned")});
+  });
+  if(!items.length) return;
+  var slide=cSlide(pres,ref,title,sub?(sub+" · "+timeLabel()):timeLabel());
+  var rows=[[
+    {text:"#",options:{bold:true,color:PPT.navy,fill:{color:PPT.lb3},fontSize:10,align:"center"}},
+    {text:"NAME",options:{bold:true,color:PPT.navy,fill:{color:PPT.lb3},fontSize:10,align:"left"}},
+    {text:"NOTE",options:{bold:true,color:PPT.navy,fill:{color:PPT.lb3},fontSize:10,align:"left"}},
+    {text:"VALUE",options:{bold:true,color:PPT.navy,fill:{color:PPT.lb3},fontSize:10,align:"right"}}
+  ]];
+  items.slice(0,18).forEach(function(it,i){
+    var fill = it.pinned?PPT.maniRow:(i%2?PPT.pale2:"FFFFFF");
+    rows.push([
+      {text:String(i+1),options:{color:PPT.gray,fill:{color:fill},fontSize:10.5,align:"center",bold:true}},
+      {text:it.name,options:{color:PPT.navy,fill:{color:fill},fontSize:10.5,align:"left",bold:true}},
+      {text:it.sub,options:{color:PPT.gray,fill:{color:fill},fontSize:9.5,align:"left"}},
+      {text:it.val,options:{color:PPT.navy,fill:{color:fill},fontSize:10.5,align:"right",bold:true}}
+    ]);
+  });
+  slide.addTable(rows,{x:0.595,y:1.32,w:12.14,colW:[0.7,6.6,2.6,2.24],fontFace:PPT.font,border:{type:"solid",color:PPT.line,pt:0.5},rowH:0.3,autoPage:false});
+}
+function pptHeatmapSlide(pres, ref, title, sub, card){
+  var hm=card.querySelector(".hm"); if(!hm) return;
+  var headers=[], dataRows=[], cur=null;
+  Array.prototype.forEach.call(hm.children,function(el){
+    if(el.classList.contains("hh")){ var t=pTxt(el.getAttribute("title")||el.textContent); if(t) headers.push(t); }
+    else if(el.classList.contains("hr")){ cur={label:pTxt(el.getAttribute("title")||el.textContent).replace(/^📌\s*/,"").replace(/✕$/,"").trim(), cells:[]}; dataRows.push(cur); }
+    else if(el.classList.contains("hc") && cur){ cur.cells.push(pTxt(el.textContent)); }
+  });
+  if(!headers.length||!dataRows.length) return;
+  var slide=cSlide(pres,ref,title,sub?(sub+" · "+timeLabel()):timeLabel());
+  var head=[{text:"PROVINCE",options:{bold:true,color:PPT.navy,fill:{color:PPT.lb3},fontSize:9.5,align:"left",valign:"middle"}}]
+    .concat(headers.map(function(h){return {text:h,options:{bold:true,color:PPT.navy,fill:{color:PPT.lb3},fontSize:9,align:"center",valign:"middle"}};}));
+  var rows=[head];
+  dataRows.forEach(function(r){
+    var cells=[{text:r.label,options:{bold:true,color:PPT.navy,fill:{color:"FFFFFF"},fontSize:9.5,align:"left",valign:"middle"}}];
+    r.cells.forEach(function(c,ci){
+      var isM=(headers[ci]==="Mani"||/^Mani/.test(headers[ci]||""));
+      var v=parseFloat(c); var has=isFinite(v)&&c.indexOf("%")>=0;
+      var t=has?Math.min(0.92,0.14+v/100*0.82):0;
+      var fill=has?blendHex("#FFFFFF",isM?"#E8C800":"#3A5CAA",t):"FFFFFF";
+      var col=(!isM&&has&&v>48)?"FFFFFF":(isM?PPT.navy:(has?PPT.navy:PPT.gray));
+      cells.push({text:has?c:"·",options:{color:col,fill:{color:fill},fontSize:9,align:"center",valign:"middle",bold:has&&v>=20}});
+    });
+    rows.push(cells);
+  });
+  var n=headers.length, firstW=2.6, restW=+((12.14-firstW)/n).toFixed(2);
+  var colW=[firstW]; for(var i=0;i<n;i++) colW.push(restW);
+  slide.addTable(rows,{x:0.595,y:1.32,w:12.14,colW:colW,fontFace:PPT.font,border:{type:"solid",color:"FFFFFF",pt:1},rowH:0.32,autoPage:false});
+  slide.addText("Cell = brand share of province "+(S.hmMetric==="val"?"value":"quantity")+" · yellow scale = Mani",{x:0.595,y:6.62,w:12.14,h:0.28,fontFace:PPT.font,fontSize:9,color:PPT.gray,italic:true});
+}
+function pptCmpSlide(pres, ref, el){
+  var cols=el.querySelectorAll(".cmpcol"); if(!cols.length) return;
+  var A=[], names=[];
+  Array.prototype.forEach.call(cols,function(c){
+    var nm=c.querySelector(".cmphd .nm");
+    names.push(nm?pTxt(nm.textContent):"—");
+    var ks={};
+    Array.prototype.forEach.call(c.querySelectorAll(".cmpk"),function(k){
+      var l=k.querySelector(".l"), v=k.querySelector(".v");
+      if(l&&v) ks[pTxt(l.textContent)]=pTxt(v.textContent);
+    });
+    A.push(ks);
+  });
+  var metrics=[]; A.forEach(function(ks){Object.keys(ks).forEach(function(m){if(metrics.indexOf(m)<0)metrics.push(m);});});
+  if(!metrics.length) return;
+  var slide=cSlide(pres,ref,"Head-to-Head — "+names.join("  vs  "),timeLabel());
+  var rows=[[{text:"METRIC",options:{bold:true,color:PPT.navy,fill:{color:PPT.lb3},fontSize:10.5,align:"left"}}]
+    .concat(names.map(function(nm,i){return {text:nm.toUpperCase(),options:{bold:true,color:(i===0&&/Mani/i.test(nm))?PPT.navy:PPT.navy,fill:{color:(/^Mani$/i.test(nm))?PPT.maniRow:PPT.lb3},fontSize:10.5,align:"center"}};}))];
+  metrics.forEach(function(m,mi){
+    var fill=mi%2?PPT.pale2:"FFFFFF";
+    rows.push([{text:m,options:{bold:true,color:PPT.gray,fill:{color:fill},fontSize:10,align:"left"}}]
+      .concat(A.map(function(ks){return {text:ks[m]||"—",options:{color:PPT.navy,fill:{color:fill},fontSize:11,bold:true,align:"center"}};})));
+  });
+  var cw=[3.6]; var rest=(12.14-3.6)/names.length; names.forEach(function(){cw.push(+rest.toFixed(2));});
+  slide.addTable(rows,{x:0.595,y:1.32,w:12.14,colW:cw,fontFace:PPT.font,border:{type:"solid",color:PPT.line,pt:0.5},rowH:0.36,autoPage:false});
+}
+
+/* ── Generic walker over the active tab ── */
+function walkExport(pres, ref, root){
+  var buf={ins:null, kpis:[]};
+  function flush(){
+    if((buf.ins&&buf.ins.length)||buf.kpis.length){ pptKpiSlide(pres,ref,buf.ins,buf.kpis); }
+    buf={ins:null,kpis:[]};
+  }
+  function cardTitle(card,fb){ var t=card.querySelector(".ct"); return t?pTxt(t.textContent):fb; }
+  function cardSub(card){ var s=card.querySelector(".cs"); return s?pTxt(s.textContent):""; }
+  function handleCard(card){
+    if(card.querySelector(".hm")){ flush(); pptHeatmapSlide(pres,ref,cardTitle(card,"Heatmap"),cardSub(card),card); return; }
+    var canvases=Array.prototype.filter.call(card.querySelectorAll("canvas"),function(c){return c.width>0&&c.height>0;});
+    if(canvases.length){
+      flush();
+      var labels=Array.prototype.map.call(card.querySelectorAll(".tl-hd"),function(e){return pTxt(e.textContent);});
+      var items=[];
+      canvases.slice(0,4).forEach(function(c,i){
+        var info=chartImgInfo(c.id); if(!info) return;
+        var lb="";
+        if(canvases.length>1){
+          if(labels.length) lb=(i===0?"":(labels[i-1]||""));
+        }
+        items.push({img:info.data,ratio:info.ratio,label:lb});
+      });
+      if(items.length) pptChartSlide(pres,ref,cardTitle(card,"Chart"),cardSub(card),items);
+      return;
+    }
+    var tb=card.querySelector("table");
+    if(tb){ flush(); pptTableSlide(pres,ref,cardTitle(card,"Table"),cardSub(card),tb); return; }
+    if(card.querySelector(".rkr")){ flush(); pptRankSlide(pres,ref,cardTitle(card,"Ranking"),cardSub(card),card); return; }
+  }
+  function handleGrid(grid){
+    var singles=[], others=[];
+    Array.prototype.forEach.call(grid.children,function(ch){
+      var card = (ch.classList&&ch.classList.contains("card")) ? ch : ch.querySelector? ch.querySelector(".card"):null;
+      if(!card) return;
+      var cv=Array.prototype.filter.call(card.querySelectorAll("canvas"),function(c){return c.width>0;});
+      if(cv.length===1 && !card.querySelector("table") && !card.querySelector(".rkr") && !card.querySelector(".hm")) singles.push(card);
+      else others.push(card);
+    });
+    if(singles.length>=2){
+      flush();
+      var items=[];
+      singles.slice(0,4).forEach(function(card){
+        var c=card.querySelector("canvas"), info=chartImgInfo(c.id);
+        if(info) items.push({img:info.data,ratio:info.ratio,label:cardTitle(card,"")});
+      });
+      var t=items.map(function(i){return i.label;}).filter(Boolean).join("  ·  ");
+      if(t.length>78) t=t.slice(0,76)+"…";
+      if(items.length) pptChartSlide(pres,ref,t||"Charts","",items);
+    } else {
+      singles.forEach(handleCard);
+    }
+    others.forEach(handleCard);
+  }
+  function walk(node, depth){
+    if(depth>4) return;
+    Array.prototype.forEach.call(node.children,function(el){
+      var cl=el.classList; if(!cl) return;
+      if(cl.contains("sh")||cl.contains("ctrl")||cl.contains("subnav")||cl.contains("fy-note")||cl.contains("grpdt-layout")) return;
+      if(cl.contains("ins-strip")){ buf.ins=scrapeInsights(el); return; }
+      if(cl.contains("kr")||cl.contains("drill-kpi")){
+        var ks=scrapeKpis(el);
+        if(ks.length){ buf.kpis.push(ks); if(buf.kpis.length>=2) flush(); }
+        return;
+      }
+      if(cl.contains("grpgrid")){
+        flush();
+        var g=scrapeGrpCards(el);
+        if(g.length){
+          var rows=[]; for(var i=0;i<g.length;i+=4) rows.push(g.slice(i,i+4));
+          pptKpiSlide(pres,ref,null,rows.slice(0,2),"Buyer Segmentation");
+        }
+        return;
+      }
+      if(cl.contains("cmpcols")){ flush(); pptCmpSlide(pres,ref,el); return; }
+      if(cl.contains("card")){ handleCard(el); return; }
+      if(cl.contains("g2")||cl.contains("g3")||cl.contains("g23")){ handleGrid(el); return; }
+      if(el.children && el.children.length) walk(el, depth+1);
+    });
+  }
+  walk(root,0);
+  flush();
+}
+
+function exportPPT(){
+  if(typeof PptxGenJS==="undefined"){ showToast("PPT library not loaded — check your internet connection","warn"); return; }
+  var sec=document.querySelector(".sec.on");
+  if(!sec){ showToast("Nothing to export","warn"); return; }
+  var btn=document.getElementById("ppt-btn");
+  if(btn){ btn.disabled=true; btn.textContent="⏳ Building…"; }
+  showToast("Building PowerPoint of "+(TAB_TITLES[S.tab]||"current tab")+"…","load");
+  setTimeout(function(){
+    try{
+      var pres=new PptxGenJS();
+      pres.defineLayout({name:"MMH_WIDE", width:PPT_W, height:PPT_H});
+      pres.layout="MMH_WIDE";
+      pres.author="MANI Medical Hanoi";
+      pres.company="MANI Medical Hanoi";
+      pres.title="MMH · "+(TAB_TITLES[S.tab]||"Dashboard");
+      var ref={n:1};
+      pptCover(pres, ref, S.tab);
+      walkExport(pres, ref, sec);
+      var fname="MMH_"+(TAB_TITLES[S.tab]||"Dashboard").replace(/[^\w]+/g,"_")+"_"+new Date().toISOString().slice(0,10)+".pptx";
+      pres.writeFile({fileName:fname}).then(function(){
+        showToast("PowerPoint exported: "+fname,"success");
+        if(btn){ btn.disabled=false; btn.textContent="📊 Export PPT"; }
+      }).catch(function(e){
+        console.error(e);
+        showToast("Export failed: "+(e&&e.message||e),"warn");
+        if(btn){ btn.disabled=false; btn.textContent="📊 Export PPT"; }
+      });
+    }catch(e){
+      console.error(e);
+      showToast("Export failed: "+(e&&e.message||e),"warn");
+      if(btn){ btn.disabled=false; btn.textContent="📊 Export PPT"; }
+    }
+  }, 80);
+}
 </script>
 
 </body>

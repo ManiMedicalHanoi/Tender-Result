@@ -1,13 +1,17 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
 <head>
+  <script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<!-- THÊM DÒNG NÀY -->
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MMH · Ophthalmic Knife Tender Market Dashboard</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
+
 <style>
 @font-face{font-family:Aptos;src:local(Aptos),local(Aptos-Regular);font-weight:100 500;}
 @font-face{font-family:Aptos;src:local('Aptos Semibold'),local(Aptos-SemiBold);font-weight:600;}
@@ -3326,7 +3330,8 @@ function renderAcct(){
    +'<span class="cl">'+t("sb.cutoff")+'</span>'+mpickBtnHtml("mp-ac-cut", seg.cut, seg.from, seg.to, "onAcCut");
   document.getElementById("ac-name").textContent=S.acBrand+" · "+moLabel(seg.from)+" → "+moLabel(seg.to)+" · cut "+moLabel(seg.cut);
   var subs=[["overview",t("sub.overview")],["detail",t("sub.detail")],["risk",t("sub.risk")]];
-  document.getElementById("ac-subnav").innerHTML=subs.map(function(s){return '<button class="subt '+(S.acSub===s[0]?"on":"")+'" onclick="S.acSub=\''+s[0]+'\';renderAcct()">'+s[1]+'</button>';}).join("");
+  document.getElementById("ac-subnav").innerHTML=subs.map(function(s){return '<button class="subt '+(S.acSub===s[0]?"on":"")+'" onclick="S.acSub=\''+s[0]+'\';renderAcct()">'+s[1]+'</button>';}).join("")
+    +'<button class="subt" style="margin-left:auto;background:rgba(255,225,0,.14);border-color:rgba(255,225,0,.5);color:#B8860B;font-weight:800" onclick="exportAcctExcel()">📥 '+(LANG==="vi"?"Xuất Excel địa bàn":"Export territories (Excel)")+'</button>';
   if(S.acSub==="overview")acOverview();
   else if(S.acSub==="detail")acDetail();
   else acRisk();
@@ -3466,6 +3471,126 @@ function acRisk(){
         +hosp
       +'</div>'
     +'</div>';
+}
+
+function exportAcctExcel(){
+  if(typeof XLSX==="undefined"){ showToast(LANG==="vi"?"Thư viện Excel chưa tải — kiểm tra kết nối mạng":"Excel library not loaded","warn"); return; }
+  var seg = window._ACSEG || computeSegV2();
+  if(!seg.buyers.length){ showToast(LANG==="vi"?"Không có dữ liệu địa bàn":"No territory data","warn"); return; }
+  showToast(LANG==="vi"?"Đang tạo file Excel…":"Building Excel…","load");
+
+  var brand = seg.brand;
+  var fromLbl = moLabel(seg.from), toLbl = moLabel(seg.to);
+
+  /* Sheet 1: chi tiết địa bàn × loại sản phẩm */
+  var detailRows = [];
+  seg.buyers.forEach(function(b){
+    var meta = acgMeta(b.group);
+    var allRows = b.beforeRows.concat(b.afterRows);
+    if(!allRows.length) return;
+    var yearsSet = {};
+    allRows.forEach(function(r){ if(r.year) yearsSet[r.year]=1; });
+    var nYears = Object.keys(yearsSet).length || 1;
+    var byPt = {};
+    allRows.forEach(function(r){
+      var pt = r.ptype || "(Không rõ)";
+      if(!byPt[pt]) byPt[pt] = {qty:0, val:0, brands:{}, brandQty:0};
+      byPt[pt].qty += r.qty;
+      byPt[pt].val += r.val;
+      byPt[pt].brands[r.brand] = (byPt[pt].brands[r.brand]||0) + r.qty;
+      if(r.brand===brand) byPt[pt].brandQty += r.qty;
+    });
+    Object.keys(byPt).forEach(function(pt){
+      var o = byPt[pt];
+      var domBrand = Object.keys(o.brands).sort(function(x,y){return o.brands[y]-o.brands[x];})[0] || "";
+      var row = {
+        "Trang thai": meta.nm,
+        "Chu dau tu": b.buyer,
+        "Khu vuc": b.region==="North"?"Bac":(b.region==="South"?"Nam":(b.region||"")),
+        "Tinh/Thanh": b.prov || "",
+        "Loai san pham": pt,
+        "Demand Total (pcs)": o.qty,
+        "So nam co thau": nYears,
+        "Demand TB/nam (pcs)": Math.round(o.qty / nYears),
+        "Gia tri Total (VND)": Math.round(o.val)
+      };
+      row[brand+" da trung (pcs)"] = o.brandQty;
+      row["% "+brand+" chiem"] = o.qty ? +((o.brandQty/o.qty*100).toFixed(1)) : 0;
+      row["Hang chu dao"] = domBrand;
+      detailRows.push(row);
+    });
+  });
+
+  /* Sheet 2: tổng hợp mỗi buyer */
+  var summaryRows = seg.buyers.map(function(b){
+    var meta = acgMeta(b.group);
+    var allRows = b.beforeRows.concat(b.afterRows);
+    var yearsSet = {}; allRows.forEach(function(r){ if(r.year) yearsSet[r.year]=1; });
+    var nYears = Object.keys(yearsSet).length || 1;
+    var nPtypes = {}; allRows.forEach(function(r){ if(r.ptype) nPtypes[r.ptype]=1; });
+    var row = {
+      "Trang thai": meta.nm,
+      "Chu dau tu": b.buyer,
+      "Khu vuc": b.region==="North"?"Bac":(b.region==="South"?"Nam":(b.region||"")),
+      "Tinh/Thanh": b.prov || "",
+      "Phan khuc gia": b.tier,
+      "So loai SP": Object.keys(nPtypes).length,
+      "Demand Total (pcs)": b.totQ,
+      "So nam co thau": nYears,
+      "Demand TB/nam (pcs)": Math.round(b.totQ / nYears)
+    };
+    row[brand+" truoc cut (pcs)"] = b.bBeforeQ;
+    row[brand+" sau cut (pcs)"] = b.bAfterQ;
+    row["Hang dan truoc cut"] = b.beforeLeader || "";
+    row["Hang dan sau cut"] = b.afterLeader || "";
+    return row;
+  }).sort(function(a,b){ return b["Demand Total (pcs)"] - a["Demand Total (pcs)"]; });
+
+  /* Sheet 3: pivot trạng thái × loại SP */
+  var pivot = {};
+  detailRows.forEach(function(r){
+    var st = r["Trang thai"], pt = r["Loai san pham"];
+    if(!pivot[st]) pivot[st] = {};
+    if(!pivot[st][pt]) pivot[st][pt] = {qty:0, buyers:{}};
+    pivot[st][pt].qty += r["Demand Total (pcs)"];
+    pivot[st][pt].buyers[r["Chu dau tu"]] = 1;
+  });
+  var pivotRows = [];
+  ACG.forEach(function(g){
+    if(!pivot[g.nm]) return;
+    Object.keys(pivot[g.nm]).sort(function(a,b){return pivot[g.nm][b].qty - pivot[g.nm][a].qty;}).forEach(function(pt){
+      var o = pivot[g.nm][pt];
+      pivotRows.push({
+        "Trang thai": g.nm,
+        "Loai san pham": pt,
+        "So chu dau tu": Object.keys(o.buyers).length,
+        "Demand Total (pcs)": o.qty
+      });
+    });
+  });
+
+  /* Build workbook */
+  try{
+    var wb = XLSX.utils.book_new();
+    var ws1 = XLSX.utils.json_to_sheet(detailRows);
+    ws1["!cols"] = [{wch:12},{wch:38},{wch:8},{wch:16},{wch:20},{wch:16},{wch:12},{wch:16},{wch:18},{wch:16},{wch:12},{wch:18}];
+    XLSX.utils.book_append_sheet(wb, ws1, "ChiTiet_DiaBan_x_SP");
+
+    var ws2 = XLSX.utils.json_to_sheet(summaryRows);
+    ws2["!cols"] = [{wch:12},{wch:38},{wch:8},{wch:16},{wch:10},{wch:9},{wch:16},{wch:12},{wch:16},{wch:16},{wch:16},{wch:18},{wch:18}];
+    XLSX.utils.book_append_sheet(wb, ws2, "TongHop_DiaBan");
+
+    var ws3 = XLSX.utils.json_to_sheet(pivotRows);
+    ws3["!cols"] = [{wch:12},{wch:24},{wch:14},{wch:18}];
+    XLSX.utils.book_append_sheet(wb, ws3, "Pivot_TrangThai_x_SP");
+
+    var fname = ("MMH_DiaBan_"+brand+"_"+fromLbl+"_"+toLbl+".xlsx").replace(/[^\w.\-]+/g,"_");
+    XLSX.writeFile(wb, fname);
+    showToast((LANG==="vi"?"Đã xuất: ":"Exported: ")+fname, "success");
+  }catch(e){
+    console.error(e);
+    showToast((LANG==="vi"?"Xuất thất bại: ":"Export failed: ")+(e.message||e), "warn");
+  }
 }
 
 /* ════════════════════════════════════════════════════════════════════

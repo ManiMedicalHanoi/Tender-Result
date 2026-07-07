@@ -691,6 +691,7 @@ html[data-theme="dark"] .ss-drop{box-shadow:0 14px 42px rgba(0,0,0,.55);}
     <div class="nt"    id="nt-brand"  onclick="goTab('brand')" data-i18n="nav.brand">Brand Positioning</div>
     <div class="nt"    id="nt-acct"   onclick="goTab('acct')" data-i18n="nav.acct">Territory Tracking</div>
     <div class="nt"    id="nt-vs"     onclick="goTab('vs')" data-i18n="nav.vs">Head-to-Head</div>
+    <div class="nt"    id="nt-fc"     onclick="goTab('fc')" data-i18n="nav.fc">Forecasting &amp; Follow-up</div>
   </div>
   <div class="timebar compact" id="time-bar"></div>
 </div>
@@ -716,6 +717,11 @@ html[data-theme="dark"] .ss-drop{box-shadow:0 14px 42px rgba(0,0,0,.55);}
       <div class="sb-tabttl" data-i18n="nav.vs">Head-to-Head</div>
       <div class="sb-tabsub" data-i18n="sec.vs.sub"></div>
       <div class="ctrl sb-host" id="vs-ctrl"></div>
+    </div>
+    <div class="sb-pane" id="sbp-fc" style="display:none">
+      <div class="sb-tabttl" data-i18n="nav.fc">Forecasting &amp; Follow-up</div>
+      <div class="sb-tabsub" data-i18n="sec.fc.sub"></div>
+      <div class="ctrl sb-host" id="fc-ctrl"></div>
     </div>
   </aside>
   <div class="maincol">
@@ -745,6 +751,12 @@ html[data-theme="dark"] .ss-drop{box-shadow:0 14px 42px rgba(0,0,0,.55);}
     <div class="sh"><div class="sl" data-i18n="sec.vs.title">Head-to-Head</div><div class="sp">Brand A vs Brand B</div>
       <div class="sub-t" data-i18n="sec.vs.sub">Results · Region · Loyal territories · Price by type · Territory competition</div></div>
     <div id="vs-body"></div>
+  </div>
+
+  <div class="sec" id="sec-fc">
+    <div class="sh"><div class="sl" data-i18n="sec.fc.title">Forecasting &amp; Follow-up Tender</div><div class="sp" id="fc-name">FY</div>
+      <div class="sub-t" data-i18n="sec.fc.sub">Demand forecast · expected Mani revenue · tender follow-up</div></div>
+    <div id="fc-body"></div>
   </div>
 
 </div>
@@ -790,6 +802,7 @@ html[data-theme="dark"] .ss-drop{box-shadow:0 14px 42px rgba(0,0,0,.55);}
   <button class="bn"    id="bn-brand"  onclick="goTab('brand')"><span class="bi">🎯</span><span class="bx">Brand</span></button>
   <button class="bn"    id="bn-acct"   onclick="goTab('acct')"><span class="bi">📍</span><span class="bx">Territory</span></button>
   <button class="bn"    id="bn-vs"     onclick="goTab('vs')"><span class="bi">⚔️</span><span class="bx">VS</span></button>
+  <button class="bn"    id="bn-fc"     onclick="goTab('fc')"><span class="bi">📈</span><span class="bx">Forecast</span></button>
 </nav>
 <script>
 /* ════════════════════════════════════════════════════════════════════
@@ -3715,11 +3728,13 @@ function renderAll(){
   try{renderBrand();}catch(e){console.warn("brand",e);}
   try{renderAcct();}catch(e){console.warn("acct",e);}
   try{renderVS();}catch(e){console.warn("vs",e);}
+  try{renderFC();}catch(e){console.warn("fc",e);}
   setTimeout(function(){var a=document.querySelector(".sec.on");if(a){a.querySelectorAll(".reveal").forEach(function(el){el.classList.add("in");});runCountUp(a);animateBars(a);}initReveal();},30);
 }
 
 window.addEventListener("resize",function(){clearTimeout(window._rsz);window._rsz=setTimeout(function(){
   Object.keys(S.charts).forEach(function(k){try{S.charts[k].resize();}catch(e){}});
+  if(S.fc&&S.fc.charts){Object.keys(S.fc.charts).forEach(function(k){try{S.fc.charts[k].resize();}catch(e){}});}
 },200);});
 
 /* Bootstrap: gate first, then fetch + render */
@@ -4292,6 +4307,709 @@ function exportPPT(){
     }
   }, 80);
 }
+</script>
+
+<script>
+/* ════════════════════════════════════════════════════════════════════
+   TAB 5 — FORECASTING vs FOLLOW-UP TENDER
+   "Dự trù doanh số & Theo dõi thầu"
+   ════════════════════════════════════════════════════════════════════
+   Logic demand (theo yêu cầu):
+   • Mỗi gói (dòng) có hiệu lực từ Decision Issue Date (issSer) → Expiration date (expSer).
+   • demand/tháng của gói = Quantity / Contract Duration(Month).
+       - Nếu cdur trống/0 → mặc định 12 tháng.
+       - Nếu không có issue/exp → suy ra từ cdur (issue = month đầu; exp = issue + cdur).
+   • Demand rơi vào cửa sổ chọn = demand/tháng × (số tháng hợp đồng OVERLAP cửa sổ).
+   • Value tương ứng = demand_qty × awarded_unit_price của gói.
+   • Địa bàn = buyer. Gộp theo loại dao (ptype) để tính Expected Revenue Mani.
+   ════════════════════════════════════════════════════════════════════ */
+
+/* ── i18n bổ sung cho tab forecasting ── */
+(function(){
+  var add = {
+    en:{
+      "nav.fc":"Forecasting & Follow-up",
+      "sec.fc.title":"Forecasting & Follow-up Tender",
+      "sec.fc.sub":"Demand forecast (contract-weighted) · expected Mani revenue · live tender follow-up",
+      "fc.window":"Forecast window",
+      "fc.demandQty":"Total demand — Quantity",
+      "fc.demandVal":"Total demand — Awarded value",
+      "fc.expRev":"Expected Mani revenue",
+      "fc.buyers":"Buyers in window",
+      "fc.pcsWin":"pcs in window",
+      "fc.pricePanel":"Mani selling price (editable)",
+      "fc.slit":"Slit knife","fc.stab":"Stab knife","fc.crescent":"Crescent knife","fc.other":"Other knife",
+      "fc.perpc":"₫ / pc",
+      "fc.scopeAll":"All demand (assume Mani wins)",
+      "fc.scopeMani":"Mani-won demand only",
+      "fc.byType":"Expected revenue by knife type",
+      "fc.byBuyer":"Demand & expected revenue by buyer",
+      "fc.search":"Search buyer / province / region…",
+      "fc.clickHint":"Click a buyer to see full tender history →",
+      "fc.history":"Tender history",
+      "fc.noSel":"Select a buyer to view forecast detail & tender history",
+      "fc.contractDur":"Contract","fc.months":"mo","fc.expires":"Expires","fc.issued":"Issued",
+      "fc.demandMo":"Demand/mo","fc.inWindow":"In window",
+      "fc.expiring":"Expiring soon (next 6 months)","fc.expiringSub":"Contracts ending — re-tender opportunities",
+      "fc.daysLeft":"days left","fc.expired":"expired",
+      "fc.region":"Region","fc.province":"Province","fc.buyer":"Buyer",
+      "fc.demandTrend":"Demand over time (contract-weighted)",
+      "fc.expExplain":"Expected = avg monthly demand × Mani price. Shows achievable revenue if Mani wins these tenders.",
+      "fc.export":"Export forecast (Excel)",
+      "fc.priceApply":"Prices apply live to all figures below.",
+      "fc.tblType":"Knife type","fc.tblDemandMo":"Demand/mo (pcs)","fc.tblWinPcs":"Window (pcs)","fc.tblManiPrice":"Mani price","fc.tblExpRev":"Expected rev.","fc.tblCurWin":"Current winner",
+      "fc.total":"TOTAL","fc.noData":"No demand in this window",
+      "fc.won":"Mani won","fc.lost":"Competitor"
+    },
+    vi:{
+      "nav.fc":"Dự trù & Theo dõi thầu",
+      "sec.fc.title":"Dự trù Doanh số & Theo dõi Thầu",
+      "sec.fc.sub":"Dự báo demand (chia theo hợp đồng) · doanh thu kỳ vọng của Mani · theo dõi thầu trực tiếp",
+      "fc.window":"Kỳ dự báo",
+      "fc.demandQty":"Tổng demand — Số lượng",
+      "fc.demandVal":"Tổng demand — Giá trị trúng",
+      "fc.expRev":"Doanh thu kỳ vọng Mani",
+      "fc.buyers":"Chủ đầu tư trong kỳ",
+      "fc.pcsWin":"chiếc trong kỳ",
+      "fc.pricePanel":"Giá bán Mani (chỉnh được)",
+      "fc.slit":"Dao slit","fc.stab":"Dao stab","fc.crescent":"Dao lưỡi liềm","fc.other":"Dao khác",
+      "fc.perpc":"₫ / chiếc",
+      "fc.scopeAll":"Toàn bộ demand (giả định Mani thắng)",
+      "fc.scopeMani":"Chỉ demand Mani đang trúng",
+      "fc.byType":"Doanh thu kỳ vọng theo loại dao",
+      "fc.byBuyer":"Demand & doanh thu kỳ vọng theo chủ đầu tư",
+      "fc.search":"Tìm chủ đầu tư / tỉnh / khu vực…",
+      "fc.clickHint":"Bấm 1 chủ đầu tư để xem toàn bộ lịch sử thầu →",
+      "fc.history":"Lịch sử trúng thầu",
+      "fc.noSel":"Chọn 1 chủ đầu tư để xem chi tiết dự báo & lịch sử thầu",
+      "fc.contractDur":"Hợp đồng","fc.months":"tháng","fc.expires":"Hết hạn","fc.issued":"Ra QĐ",
+      "fc.demandMo":"Demand/tháng","fc.inWindow":"Trong kỳ",
+      "fc.expiring":"Sắp hết hạn (6 tháng tới)","fc.expiringSub":"Hợp đồng sắp kết thúc — cơ hội tái đấu thầu",
+      "fc.daysLeft":"ngày nữa","fc.expired":"đã hết hạn",
+      "fc.region":"Khu vực","fc.province":"Tỉnh/Thành","fc.buyer":"Chủ đầu tư",
+      "fc.demandTrend":"Demand theo thời gian (chia theo hợp đồng)",
+      "fc.expExplain":"Kỳ vọng = demand TB/tháng × giá Mani. Thể hiện doanh thu khả dĩ nếu Mani trúng các thầu này.",
+      "fc.export":"Xuất dự báo (Excel)",
+      "fc.priceApply":"Giá áp dụng trực tiếp cho toàn bộ số liệu bên dưới.",
+      "fc.tblType":"Loại dao","fc.tblDemandMo":"Demand/tháng (chiếc)","fc.tblWinPcs":"Trong kỳ (chiếc)","fc.tblManiPrice":"Giá Mani","fc.tblExpRev":"DT kỳ vọng","fc.tblCurWin":"Hãng đang trúng",
+      "fc.total":"TỔNG","fc.noData":"Không có demand trong kỳ này",
+      "fc.won":"Mani trúng","fc.lost":"Đối thủ"
+    }
+  };
+  Object.keys(add).forEach(function(lg){
+    if(!I18N[lg]) I18N[lg]={};
+    Object.keys(add[lg]).forEach(function(k){ I18N[lg][k]=add[lg][k]; });
+  });
+})();
+
+/* ── State cho tab forecasting ── */
+S.fc = {
+  win:{mode:"fy", fys:[], from:null, to:null},   // riêng, không đụng time bar chung
+  scope:"all",           // "all" = giả định Mani thắng | "mani" = chỉ demand Mani trúng
+  price:{ slit:240000, stab:140000, crescent:250000, other:200000 },
+  selBuyer:null,
+  query:"",
+  charts:{}
+};
+
+/* ── Phân loại loại dao → nhóm giá (slit / stab / crescent / other) ── */
+function fcPriceKey(ptype){
+  var p = norm(ptype||"");
+  if(/slit/.test(p)) return "slit";
+  if(/stab|mvr|side\s*port|paracentesis/.test(p)) return "stab";
+  if(/crescent|luoi\s*liem|tunnel|bevel/.test(p)) return "crescent";
+  if(/keratome/.test(p)) return "slit";  // keratome ~ slit-type mặc định
+  return "other";
+}
+function fcManiPrice(ptype){
+  var k = fcPriceKey(ptype);
+  return +S.fc.price[k] || 0;
+}
+
+/* ── Cửa sổ dự báo → {fromKey, toKey, months:[...], label} ──
+   Trả về danh sách "monthKey" dạng YYYYMM cho từng tháng trong cửa sổ. */
+function fcWindow(){
+  var W = S.fc.win;
+  var fromKey, toKey, label;
+  if(W.mode==="fy" && W.fys && W.fys.length){
+    var fys = W.fys.slice().sort();
+    var r0 = fyRange(fys[0]), r1 = fyRange(fys[fys.length-1]);
+    fromKey = r0.fromKey; toKey = r1.toKey;
+    label = fys.length>1 ? (fys[0]+" → "+fys[fys.length-1]) : fys[0];
+  } else if(W.mode==="range" && W.from && W.to){
+    fromKey = moKey(W.from); toKey = moKey(W.to);
+    if(fromKey>toKey){ var t=fromKey; fromKey=toKey; toKey=t; }
+    label = moLabel(W.from)+" → "+moLabel(W.to);
+  } else {
+    // default: FY hiện tại (FY mới nhất có data)
+    var list = buildFyList();
+    var fy = list[list.length-1] || "FY67";
+    var rr = fyRange(fy);
+    fromKey = rr.fromKey; toKey = rr.toKey; label = fy;
+    S.fc.win = {mode:"fy", fys:[fy], from:null, to:null};
+  }
+  // liệt kê các monthKey trong cửa sổ
+  var months=[], y=Math.floor(fromKey/100), m=fromKey%100;
+  var guard=0;
+  while((y*100+m) <= toKey && guard<600){
+    months.push(y*100+m);
+    m++; if(m>12){m=1;y++;} guard++;
+  }
+  return {fromKey:fromKey, toKey:toKey, months:months, nMonths:months.length||1, label:label};
+}
+
+/* ── Hiệu lực hợp đồng của 1 gói → {startKey, endKey, durMonths} ──
+   startKey: từ Decision Issue Date (issSer) — fallback month của dòng.
+   endKey  : từ Expiration date (expSer)   — fallback start + cdur.
+   durMonths: Contract Duration; nếu 0 → 12 (mặc định). */
+function fcContract(r){
+  var dur = (+r.cdur>0) ? +r.cdur : 12;
+  var startKey, endKey;
+  if(r.issSer){ var d=new Date(r.issSer); startKey = d.getFullYear()*100 + (d.getMonth()+1); }
+  else { startKey = moKey(r.month) || 0; }
+  if(!startKey){
+    // không xác định được → dùng month của dòng hoặc bỏ
+    startKey = moKey(r.month) || 0;
+  }
+  if(r.expSer){ var e=new Date(r.expSer); endKey = e.getFullYear()*100 + (e.getMonth()+1); }
+  else {
+    // start + dur - 1
+    var y=Math.floor(startKey/100), m=startKey%100;
+    m += (dur-1);
+    while(m>12){m-=12;y++;}
+    endKey = y*100+m;
+  }
+  if(endKey < startKey) endKey = startKey;
+  return {startKey:startKey, endKey:endKey, dur:dur};
+}
+
+/* Đếm số tháng overlap giữa [aFrom,aTo] và [bFrom,bTo] (đơn vị YYYYMM inclusive) */
+function fcOverlapMonths(aFrom,aTo,bFrom,bTo){
+  var lo = Math.max(fcKeyToOrd(aFrom), fcKeyToOrd(bFrom));
+  var hi = Math.min(fcKeyToOrd(aTo),   fcKeyToOrd(bTo));
+  return hi>=lo ? (hi-lo+1) : 0;
+}
+function fcKeyToOrd(k){ return Math.floor(k/100)*12 + (k%100); }
+
+/* ── Tính demand cho toàn bộ dataset trong cửa sổ ──
+   Trả về:
+     perBuyer[buyer] = { buyer, region, prov, rows:[], byType:{ptype:{demandMo, winPcs, winVal, maniWinPcs, maniWinVal, curWinner, rows:[]}},
+                         totWinPcs, totWinVal, totExpRev }
+     totals = {qty, val, expRev, nBuyers} */
+function fcCompute(){
+  var W = fcWindow();
+  var perBuyer = {};
+  var scopeMani = (S.fc.scope==="mani");
+
+  ROWS.forEach(function(r){
+    if(!r.ptype) return;
+    var c = fcContract(r);
+    if(!c.startKey) return;
+    var ov = fcOverlapMonths(c.startKey, c.endKey, W.fromKey, W.toKey);
+    if(ov<=0) return;                       // hợp đồng không chạm cửa sổ
+    var demandMo = r.qty / c.dur;           // chiếc / tháng
+    var winPcs   = demandMo * ov;           // chiếc rơi vào cửa sổ
+    var unitP    = r.price || 0;
+    var winVal   = winPcs * unitP;          // giá trị trúng thầu (theo giá awarded)
+
+    var b = r.buyer || "(Không rõ)";
+    if(!perBuyer[b]) perBuyer[b] = {buyer:b, region:r.region, prov:r.prov, byType:{}, rows:[],
+                                    totWinPcs:0, totWinVal:0, totExpRev:0, totDemandMo:0};
+    var pb = perBuyer[b];
+    if(r.region && r.region!=="N/A") pb.region = r.region;
+    if(r.prov) pb.prov = r.prov;
+
+    var pt = r.ptype;
+    if(!pb.byType[pt]) pb.byType[pt] = {ptype:pt, demandMo:0, winPcs:0, winVal:0,
+                                        maniWinPcs:0, maniWinVal:0, maniDemandMo:0,
+                                        winnerAgg:{}, rows:[]};
+    var bt = pb.byType[pt];
+    bt.demandMo += demandMo;
+    bt.winPcs   += winPcs;
+    bt.winVal   += winVal;
+    bt.winnerAgg[r.brand] = (bt.winnerAgg[r.brand]||0) + winPcs;
+    if(r.brand==="Mani"){ bt.maniWinPcs += winPcs; bt.maniWinVal += winVal; bt.maniDemandMo += demandMo; }
+    bt.rows.push(r);
+    pb.rows.push(r);
+  });
+
+  // Tính expected revenue cho từng buyer/type
+  var totQty=0, totVal=0, totExp=0;
+  Object.keys(perBuyer).forEach(function(b){
+    var pb = perBuyer[b];
+    Object.keys(pb.byType).forEach(function(pt){
+      var bt = pb.byType[pt];
+      // hãng đang trúng (chiếm demand lớn nhất trong cửa sổ)
+      var wk = Object.keys(bt.winnerAgg).sort(function(x,y){return bt.winnerAgg[y]-bt.winnerAgg[x];});
+      bt.curWinner = wk[0] || "";
+      // Expected revenue: theo scope
+      var pcsForRev = scopeMani ? bt.maniWinPcs : bt.winPcs;
+      var demandMoForRev = scopeMani ? bt.maniDemandMo : bt.demandMo;
+      bt.expRev = pcsForRev * fcManiPrice(pt);
+      bt.pcsForRev = pcsForRev;
+      bt.demandMoForRev = demandMoForRev;
+      pb.totWinPcs  += bt.winPcs;
+      pb.totWinVal  += bt.winVal;
+      pb.totExpRev  += bt.expRev;
+      pb.totDemandMo+= bt.demandMo;
+      totQty += (scopeMani ? bt.maniWinPcs : bt.winPcs);
+      totVal += (scopeMani ? bt.maniWinVal : bt.winVal);
+      totExp += bt.expRev;
+    });
+  });
+
+  return {window:W, perBuyer:perBuyer, totals:{qty:totQty, val:totVal, expRev:totExp, nBuyers:Object.keys(perBuyer).length}};
+}
+
+/* ── Render controls (sidebar) ── */
+function fcRenderCtrl(){
+  var W = S.fc.win;
+  var fys = buildFyList();
+  var selFY = (W.mode==="fy" && W.fys) ? W.fys.slice() : [];
+  var fyChips = fys.map(function(fy){
+    var on = selFY.indexOf(fy)>=0;
+    return '<button class="chip '+(on?"on":"")+'" onclick="fcSetFY(\''+fy+'\',event)" title="Click = chọn 1 · Shift+Click = gộp">'+fy+'</button>';
+  }).join("");
+
+  var firstMo = MONTHS_SORTED[0], lastMo = MONTHS_SORTED[MONTHS_SORTED.length-1];
+  // cho phép forecast tương lai: nới rộng max thêm 36 tháng
+  var maxFuture = (function(){ if(!lastMo) return lastMo; var k=moKey(lastMo),y=Math.floor(k/100),m=k%100; m+=36; while(m>12){m-=12;y++;} return (m<10?"0":"")+m+"/"+y; })();
+  var fromVal = W.from || firstMo, toVal = W.to || maxFuture;
+
+  var H = '<span class="cl">'+t("fc.window")+' · '+t("sw.fy")+'</span>'+fyChips
+    + '<div class="divx" style="width:auto;height:1px;background:var(--br);margin:8px 2px"></div>'
+    + '<span class="cl">'+t("sb.refwin")+'</span>'
+    + '<div style="display:flex;flex-direction:column;gap:4px">'
+    +   '<div style="font-size:10.5px;color:var(--t3);font-weight:700">'+t("sb.from")+'</div>'+mpickBtnHtml("mp-fc-from", fromVal, firstMo, maxFuture, "fcOnFrom",{small:true})
+    +   '<div style="font-size:10.5px;color:var(--t3);font-weight:700">'+t("sb.to")+'</div>'+mpickBtnHtml("mp-fc-to", toVal, firstMo, maxFuture, "fcOnTo",{small:true})
+    + '</div>'
+    + '<div class="divx" style="width:auto;height:1px;background:var(--br);margin:8px 2px"></div>'
+    + '<span class="cl">Expected scope</span>'
+    + '<div class="sb-side">'
+    +   '<button class="chip '+(S.fc.scope==="all"?"on":"")+'" onclick="S.fc.scope=\'all\';renderFC()">'+t("fc.scopeAll")+'</button>'
+    +   '<button class="chip '+(S.fc.scope==="mani"?"on":"")+'" onclick="S.fc.scope=\'mani\';renderFC()">'+t("fc.scopeMani")+'</button>'
+    + '</div>';
+  document.getElementById("fc-ctrl").innerHTML = H;
+}
+
+function fcSetFY(fy, ev){
+  var W = S.fc.win;
+  var multi = ev && (ev.shiftKey||ev.ctrlKey||ev.metaKey);
+  if(multi && W.mode==="fy"){
+    var i = W.fys.indexOf(fy);
+    if(i>=0) W.fys.splice(i,1); else W.fys.push(fy);
+    if(!W.fys.length) W.fys=[fy];
+  } else {
+    S.fc.win = {mode:"fy", fys:[fy], from:null, to:null};
+  }
+  renderFC();
+}
+function fcOnFrom(mo){ if(!mo) return; S.fc.win={mode:"range", fys:[], from:mo, to:(S.fc.win.to||mo)}; if(moKey(S.fc.win.from)>moKey(S.fc.win.to)) S.fc.win.to=S.fc.win.from; renderFC(); }
+function fcOnTo(mo){ if(!mo) return; S.fc.win={mode:"range", fys:[], from:(S.fc.win.from||mo), to:mo}; if(moKey(S.fc.win.from)>moKey(S.fc.win.to)) S.fc.win.from=S.fc.win.to; renderFC(); }
+
+/* ── Editable price bằng contenteditable/input ── */
+function fcSetPrice(key, val){
+  var v = +String(val).replace(/[^\d]/g,"");
+  if(!isFinite(v) || v<0) v=0;
+  S.fc.price[key]=v;
+  try{ localStorage.setItem("mmh_fc_price", JSON.stringify(S.fc.price)); }catch(e){}
+  renderFC();
+}
+
+/* ── Main render ── */
+function renderFC(){
+  fcRenderCtrl();
+  var D = fcCompute();
+  var W = D.window, T = D.totals;
+  document.getElementById("fc-name").textContent = W.label + " · " + (S.fc.scope==="mani"?t("fc.scopeMani"):t("fc.scopeAll"));
+
+  /* filter theo query (smart search buyer/region/prov) */
+  var q = norm(S.fc.query||"");
+  var buyers = Object.keys(D.perBuyer).map(function(b){return D.perBuyer[b];});
+  if(q){
+    buyers = buyers.filter(function(pb){
+      return norm(pb.buyer).indexOf(q)>=0 || norm(pb.region).indexOf(q)>=0 || norm(pb.prov).indexOf(q)>=0;
+    });
+  }
+  buyers.sort(function(a,b){ return b.totExpRev - a.totExpRev || b.totWinPcs - a.totWinPcs; });
+
+  // Nếu buyer đang chọn không còn trong list (do filter) → giữ nếu vẫn tồn tại trong data
+  var sel = S.fc.selBuyer && D.perBuyer[S.fc.selBuyer] ? D.perBuyer[S.fc.selBuyer] : null;
+
+  /* ── KPI cards ── */
+  var pricePanel = fcPricePanelHtml();
+  var KPI = '<div class="kr">'
+    + kpiCard({lbl:t("fc.demandQty"), val:T.qty, mode:"q", suf:" "+t("cs.pcs"), note:nf(W.nMonths)+" "+t("fc.months")+" · "+T.nBuyers+" "+t("kpi.buyers").toLowerCase()})
+    + kpiCard({lbl:t("fc.demandVal"), val:T.val, mode:"vnd", cls:"y", note:t("fc.window")+": "+W.label})
+    + kpiCard({lbl:t("fc.expRev"), val:T.expRev, mode:"vnd", cls:"pos", note:t("fc.expExplain").slice(0,90)})
+    + kpiCard({lbl:t("fc.buyers"), val:T.nBuyers, mode:"n", note:qf(T.qty)+" "+t("fc.pcsWin")})
+    + '</div>';
+
+  /* ── Layout 2 cột: trái = tổng quan + bảng; phải = detail buyer ── */
+  var H = '';
+  H += '<div class="ins-strip reveal in" style="grid-template-columns:1fr"><div class="ins gold"><div class="ins-ic">💡</div><div class="ins-bd"><div class="ins-t">'+t("fc.expRev")+'</div><div class="ins-x">'+t("fc.expExplain")+'</div></div></div></div>';
+  H += pricePanel;
+  H += KPI;
+
+  H += '<div class="g23">'
+    + '<div class="card reveal"><div class="ch"><div class="ct">'+t("fc.byType")+'</div><div class="cs">'+W.label+' · '+(S.fc.scope==="mani"?t("fc.scopeMani"):t("fc.scopeAll"))+'</div></div><div class="cb" style="padding:0"><div class="tw" id="fc-typetbl"></div></div></div>'
+    + '<div class="card reveal"><div class="ch"><div class="ct">'+t("fc.demandTrend")+'</div><div class="cs">'+t("cs.pcs")+' / '+t("fc.months")+'</div></div><div class="cb"><div class="cw t"><canvas id="c-fc-trend"></canvas></div></div></div>'
+    + '</div>';
+
+  /* Expiring soon card */
+  H += fcExpiringCardHtml();
+
+  /* Buyer list + detail */
+  H += '<div class="grpdt-layout">'
+    + '<div class="grpdt-main">'
+      + '<div class="card reveal"><div class="ch"><div class="ct">'+t("fc.byBuyer")+'</div><div class="cs">'+buyers.length+' '+t("kpi.buyers").toLowerCase()+' · '+t("fc.clickHint")+'</div>'
+        + '<div style="margin-left:auto">'+ssHtml("ss-fc",t("fc.search"),"fcSuggest")+'</div>'
+        + '<button class="dl-btn" onclick="fcExportExcel()">📥 '+t("fc.export")+'</button></div>'
+      + '<div class="cb" style="padding:0"><div class="tw" id="fc-buyertbl"></div></div></div>'
+    + '</div>'
+    + '<div class="grpdt-sidebar" id="fc-detail" style="position:sticky;top:90px;max-height:calc(100vh - 110px);overflow-y:auto">'
+      + (sel ? fcDetailHtml(sel, W) : '<div class="emptynote" style="margin:0">'+t("fc.noSel")+'</div>')
+    + '</div>'
+    + '</div>';
+
+  document.getElementById("fc-body").innerHTML = H;
+
+  /* ── fill tables ── */
+  fcRenderTypeTable(D);
+  fcRenderBuyerTable(buyers);
+  fcRenderTrend(D, W);
+
+  afterRender("sec-fc");
+}
+
+/* ── Price panel (editable inline) ── */
+function fcPricePanelHtml(){
+  function box(key, label){
+    return '<div class="mstat" style="min-width:150px;flex:1">'
+      + '<div class="ml">'+label+'</div>'
+      + '<div style="display:flex;align-items:center;gap:6px;margin-top:3px">'
+      +   '<input type="text" value="'+nf(S.fc.price[key])+'" '
+      +     'onchange="fcSetPrice(\''+key+'\',this.value)" onblur="fcSetPrice(\''+key+'\',this.value)" '
+      +     'style="width:110px;padding:5px 8px;font-family:var(--ff);font-size:14px;font-weight:800;border:1.5px solid var(--br);border-radius:7px;color:var(--navy);background:var(--sf);font-variant-numeric:tabular-nums;text-align:right;outline:none" '
+      +     'onfocus="this.style.borderColor=\'var(--blue)\';this.select()">'
+      +   '<span style="font-size:11px;color:var(--t3);font-weight:700">'+t("fc.perpc")+'</span>'
+      + '</div></div>';
+  }
+  return '<div class="card reveal" style="margin-bottom:14px"><div class="ch"><div class="ct">⚙ '+t("fc.pricePanel")+'</div><div class="cs">'+t("fc.priceApply")+'</div></div>'
+    + '<div class="cb"><div style="display:flex;gap:10px;flex-wrap:wrap">'
+    + box("slit", t("fc.slit"))
+    + box("stab", t("fc.stab"))
+    + box("crescent", t("fc.crescent"))
+    + box("other", t("fc.other"))
+    + '</div></div></div>';
+}
+
+/* ── Type table ── */
+function fcRenderTypeTable(D){
+  var agg = {};   // ptype → {demandMo, winPcs, expRev, winnerAgg}
+  Object.keys(D.perBuyer).forEach(function(b){
+    var pb = D.perBuyer[b];
+    Object.keys(pb.byType).forEach(function(pt){
+      var bt = pb.byType[pt];
+      if(!agg[pt]) agg[pt] = {ptype:pt, demandMo:0, winPcs:0, expRev:0, winnerAgg:{}};
+      agg[pt].demandMo += bt.demandMoForRev;
+      agg[pt].winPcs   += bt.pcsForRev;
+      agg[pt].expRev   += bt.expRev;
+      Object.keys(bt.winnerAgg).forEach(function(w){ agg[pt].winnerAgg[w]=(agg[pt].winnerAgg[w]||0)+bt.winnerAgg[w]; });
+    });
+  });
+  var arr = Object.keys(agg).map(function(k){return agg[k];}).sort(function(a,b){return b.expRev-a.expRev;});
+  var totMo=0, totPcs=0, totRev=0;
+  var body = arr.map(function(a){
+    totMo+=a.demandMo; totPcs+=a.winPcs; totRev+=a.expRev;
+    var wk = Object.keys(a.winnerAgg).sort(function(x,y){return a.winnerAgg[y]-a.winnerAgg[x];})[0]||"—";
+    var isMani = wk==="Mani";
+    var pk = fcPriceKey(a.ptype);
+    return "<tr class='clk"+(isMani?" mani":"")+"' onclick=\"S.fc.query='';document.getElementById('ss-fc')&&(document.getElementById('ss-fc').value='');fcFilterType('"+esc(a.ptype).replace(/'/g,"\\'")+"')\">"
+      + "<td class='tl'>"+esc(a.ptype)+"</td>"
+      + "<td>"+nf(Math.round(a.demandMo))+"</td>"
+      + "<td>"+nf(Math.round(a.winPcs))+"</td>"
+      + "<td>"+money(S.fc.price[pk])+"</td>"
+      + "<td><b style='color:var(--pos)'>"+money(a.expRev)+"</b></td>"
+      + "<td class='tl'><span class='badge' style='background:"+brandColor(wk)+";color:"+(isMani?"#003047":"#fff")+"'>"+esc(wk)+"</span></td></tr>";
+  }).join("");
+  document.getElementById("fc-typetbl").innerHTML =
+    "<table><thead><tr><th class='tl'>"+t("fc.tblType")+"</th><th>"+t("fc.tblDemandMo")+"</th><th>"+t("fc.tblWinPcs")+"</th><th>"+t("fc.tblManiPrice")+"</th><th>"+t("fc.tblExpRev")+"</th><th class='tl'>"+t("fc.tblCurWin")+"</th></tr></thead><tbody>"
+    + (body||"<tr><td colspan='6' class='tl' style='text-align:center;color:var(--t3);padding:20px'>"+t("fc.noData")+"</td></tr>")
+    + (arr.length?"<tr class='grand'><td class='tl'>"+t("fc.total")+"</td><td>"+nf(Math.round(totMo))+"</td><td>"+nf(Math.round(totPcs))+"</td><td></td><td>"+money(totRev)+"</td><td></td></tr>":"")
+    + "</tbody></table>";
+}
+function fcFilterType(pt){
+  // đặt query = tên loại → search table buyer sẽ không lọc theo type; thay vào đó ta chỉ scroll. Giữ đơn giản: bỏ qua.
+}
+
+/* ── Buyer table ── */
+function fcRenderBuyerTable(buyers){
+  var body = buyers.slice(0,200).map(function(pb){
+    var reg = pb.region==="North"?t("region.North"):pb.region==="South"?t("region.South"):(pb.region||"—");
+    var sel = (S.fc.selBuyer===pb.buyer);
+    return "<tr class='clk"+(sel?" mani":"")+"' onclick=\"fcSelectBuyer('"+esc(pb.buyer).replace(/'/g,"\\'")+"')\">"
+      + "<td class='tl' title='"+esc(pb.buyer)+"' style='max-width:280px;overflow:hidden;text-overflow:ellipsis'>"+esc(pb.buyer)+"</td>"
+      + "<td class='tl'>"+esc(reg)+"</td>"
+      + "<td class='tl'>"+esc(pb.prov||"—")+"</td>"
+      + "<td>"+nf(Math.round(pb.totDemandMo))+"</td>"
+      + "<td>"+nf(Math.round(pb.totWinPcs))+"</td>"
+      + "<td>"+money(pb.totWinVal)+"</td>"
+      + "<td><b style='color:var(--pos)'>"+money(pb.totExpRev)+"</b></td></tr>";
+  }).join("");
+  document.getElementById("fc-buyertbl").innerHTML =
+    "<table><thead><tr><th class='tl'>"+t("fc.buyer")+"</th><th class='tl'>"+t("fc.region")+"</th><th class='tl'>"+t("fc.province")+"</th><th>"+t("fc.demandMo")+"</th><th>"+t("fc.tblWinPcs")+"</th><th>"+t("fc.demandVal")+"</th><th>"+t("fc.expRev")+"</th></tr></thead><tbody>"
+    + (body||"<tr><td colspan='7' class='tl' style='text-align:center;color:var(--t3);padding:24px'>"+t("fc.noData")+"</td></tr>")
+    + "</tbody></table>";
+}
+function fcSelectBuyer(name){
+  S.fc.selBuyer = (S.fc.selBuyer===name) ? null : name;
+  renderFC();
+  setTimeout(function(){ var d=document.getElementById("fc-detail"); if(d && S.fc.selBuyer) d.scrollIntoView({behavior:"smooth",block:"nearest"}); },60);
+}
+
+/* ── Detail panel cho buyer đã chọn: cardbox + full tender history ── */
+function fcDetailHtml(pb, W){
+  var reg = pb.region==="North"?t("region.North"):pb.region==="South"?t("region.South"):(pb.region||"—");
+  var H = '<div class="grpheader" style="background:var(--pale);border-left:4px solid var(--blue);margin-bottom:12px">'
+    + '<div class="ghh" style="color:var(--navy);font-size:14px">'+esc(pb.buyer)+'</div>'
+    + '<div class="ghs">'+esc(reg)+' · '+esc(pb.prov||"—")+' · '+t("fc.window")+': '+W.label+'</div></div>';
+
+  /* mini KPI */
+  H += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">'
+    + '<div class="mstat"><div class="ml">'+t("fc.demandMo")+'</div><div class="mv">'+nf(Math.round(pb.totDemandMo))+'</div><div class="ms">'+t("cs.pcs")+'/'+t("fc.months")+'</div></div>'
+    + '<div class="mstat"><div class="ml">'+t("fc.tblWinPcs")+'</div><div class="mv">'+nf(Math.round(pb.totWinPcs))+'</div><div class="ms">'+t("cs.pcs")+'</div></div>'
+    + '<div class="mstat"><div class="ml">'+t("fc.demandVal")+'</div><div class="mv" style="font-size:16px">'+money(pb.totWinVal)+'</div></div>'
+    + '<div class="mstat" style="border-color:var(--pos)"><div class="ml">'+t("fc.expRev")+'</div><div class="mv" style="font-size:16px;color:var(--pos)">'+money(pb.totExpRev)+'</div></div>'
+    + '</div>';
+
+  /* breakdown theo loại dao */
+  H += '<div class="hsh" style="margin:6px 0 8px">'+t("fc.byType")+'</div>';
+  var types = Object.keys(pb.byType).map(function(k){return pb.byType[k];}).sort(function(a,b){return b.expRev-a.expRev;});
+  H += types.map(function(bt){
+    var pk = fcPriceKey(bt.ptype);
+    var isMani = bt.curWinner==="Mani";
+    return '<div class="tdcard"><div class="tdh"><span class="mtag" style="background:'+brandColor(bt.curWinner)+';color:'+(isMani?"#003047":"#fff")+'">'+esc(bt.curWinner||"—")+'</span><span class="tdtot">'+esc(bt.ptype)+'</span></div>'
+      + '<div class="tdbd" style="font-size:11.5px;color:var(--t2)">'
+      +   '<div class="brandrow"><div class="brnm">'+t("fc.demandMo")+'</div><div class="brval">'+nf(Math.round(bt.demandMo))+' '+t("cs.pcs")+'</div></div>'
+      +   '<div class="brandrow"><div class="brnm">'+t("fc.inWindow")+'</div><div class="brval">'+nf(Math.round(bt.winPcs))+' '+t("cs.pcs")+'</div></div>'
+      +   '<div class="brandrow"><div class="brnm">Giá Mani ('+esc(t("fc."+pk))+')</div><div class="brval">'+money(S.fc.price[pk])+'</div></div>'
+      +   '<div class="brandrow curr"><div class="brnm" style="color:var(--pos)">'+t("fc.expRev")+'</div><div class="brval" style="color:var(--pos)">'+money(bt.expRev)+'</div></div>'
+      + '</div></div>';
+  }).join("");
+
+  /* full tender history */
+  H += '<div class="hsh" style="margin:12px 0 8px">'+t("fc.history")+' ('+pb.rows.length+')</div>';
+  var hist = pb.rows.slice().sort(function(a,b){ return (b.issSer||moKey(b.month)*100) - (a.issSer||moKey(a.month)*100); });
+  H += hist.map(function(r){
+    var c = fcContract(r);
+    var isMani = r.brand==="Mani";
+    var expTxt = r.expStr || fcKeyToDate(c.endKey);
+    var issTxt = r.issStr || moLabel(r.month);
+    return '<div class="tdcard" style="border-left:3px solid '+brandColor(r.brand)+'">'
+      + '<div class="tdh"><span class="mtag" style="background:'+brandColor(r.brand)+';color:'+(isMani?"#003047":"#fff")+'">'+esc(r.brand)+'</span>'
+      +   '<span class="tdtot pt-hov" data-pcode="'+esc(r.pcode).replace(/"/g,"&quot;")+'" data-tspec="'+esc(r.tspec).replace(/"/g,"&quot;")+'" onmouseover="showTspec(event,this)" onmouseleave="hideTspec()">'+esc(r.ptype)+'</span></div>'
+      + '<div style="font-size:11px;color:var(--t2);line-height:1.7;padding:2px 2px 0">'
+      +   '<div style="display:flex;justify-content:space-between"><span>'+t("th.qty")+'</span><b style="color:var(--t1)">'+nf(r.qty)+' '+t("cs.pcs")+'</b></div>'
+      +   '<div style="display:flex;justify-content:space-between"><span>'+t("dk.unitprice")+'</span><b style="color:var(--t1)">'+money(r.price)+'</b></div>'
+      +   '<div style="display:flex;justify-content:space-between"><span>'+t("fc.contractDur")+'</span><b style="color:var(--t1)">'+(r.cdur>0?r.cdur:"12*")+' '+t("fc.months")+'</b></div>'
+      +   '<div style="display:flex;justify-content:space-between"><span>'+t("fc.demandMo")+'</span><b style="color:var(--blue)">'+nf(Math.round(r.qty/c.dur))+' '+t("cs.pcs")+'</b></div>'
+      +   '<div style="display:flex;justify-content:space-between"><span>'+t("fc.issued")+'</span><b style="color:var(--t1)">'+esc(issTxt)+'</b></div>'
+      +   '<div style="display:flex;justify-content:space-between"><span>'+t("fc.expires")+'</span><b style="color:'+fcExpColor(r.expSer)+'">'+esc(expTxt)+'</b></div>'
+      +   (r.kqtt?'<div style="display:flex;justify-content:space-between"><span>KQTT</span><span style="font-size:10px">'+esc(r.kqtt)+'</span></div>':'')
+      + '</div></div>';
+  }).join("");
+  return H;
+}
+function fcKeyToDate(k){ var y=Math.floor(k/100), m=k%100; return (m<10?"0":"")+m+"/"+y; }
+function fcExpColor(expSer){
+  if(!expSer) return "var(--t1)";
+  var now = Date.now();
+  var days = (expSer - now)/(1000*60*60*24);
+  if(days < 0) return "var(--neg)";
+  if(days < 180) return "var(--warn)";
+  return "var(--pos)";
+}
+
+/* ── Trend chart: demand/tháng phân bổ theo từng tháng trong cửa sổ ── */
+function fcRenderTrend(D, W){
+  var months = W.months;
+  var labels = months.map(function(k){ return fcKeyToDate(k); });
+  var demandSeries = new Array(months.length).fill(0);
+  var maniSeries   = new Array(months.length).fill(0);
+  var ordFrom = fcKeyToOrd(W.fromKey);
+
+  ROWS.forEach(function(r){
+    if(!r.ptype) return;
+    var c = fcContract(r);
+    if(!c.startKey) return;
+    var demandMo = r.qty / c.dur;
+    var sOrd = fcKeyToOrd(c.startKey), eOrd = fcKeyToOrd(c.endKey);
+    months.forEach(function(k, i){
+      var o = fcKeyToOrd(k);
+      if(o>=sOrd && o<=eOrd){
+        demandSeries[i] += demandMo;
+        if(r.brand==="Mani") maniSeries[i] += demandMo;
+      }
+    });
+  });
+
+  killFC("c-fc-trend");
+  var el = document.getElementById("c-fc-trend"); if(!el) return;
+  S.fc.charts["c-fc-trend"] = new Chart(el,{
+    type:"bar",
+    data:{labels:labels, datasets:[
+      {label:t("fc.scopeAll"), data:demandSeries.map(function(v){return Math.round(v);}), backgroundColor:hexA("#3A5CAA",.85), borderRadius:4,
+        datalabels:{display:false}},
+      {type:"line", label:"Mani", data:maniSeries.map(function(v){return Math.round(v);}), borderColor:"#E0A800", backgroundColor:hexA("#FFC400",.2), borderWidth:2.5, tension:.3, pointRadius:2, fill:true,
+        datalabels:{display:false}}
+    ]},
+    options:{responsive:true, maintainAspectRatio:false, animation:{duration:800}, interaction:{mode:"index",intersect:false},
+      plugins:{legend:{position:"bottom",labels:{font:{family:FF,size:11},boxWidth:12,padding:9,color:axisColor()}},
+        datalabels:{display:false},
+        tooltip:{titleFont:{family:FF,size:12,weight:"800"},bodyFont:{family:FF,size:11.5},
+          callbacks:{label:function(c){return " "+c.dataset.label+": "+qf(c.parsed.y)+" "+t("cs.pcs")+"/"+t("fc.months");}}}},
+      scales:{x:{grid:{display:false},ticks:{font:{family:FF,size:10},color:axisColor(),maxRotation:60,minRotation:0}},
+        y:{beginAtZero:true,grid:{color:gridColor()},ticks:{font:{family:FF,size:10},color:axisColor(),callback:function(v){return qf(v);}}}},
+      layout:{padding:{top:8,right:8}}}
+  });
+}
+function killFC(id){ if(S.fc.charts[id]){try{S.fc.charts[id].destroy();}catch(e){} delete S.fc.charts[id];} }
+
+/* ── Expiring soon card ── */
+function fcExpiringCardHtml(){
+  var now = Date.now();
+  var horizon = now + 180*24*60*60*1000;   // 6 months
+  var items = [];
+  ROWS.forEach(function(r){
+    if(!r.expSer) return;
+    if(r.expSer >= now && r.expSer <= horizon){
+      items.push(r);
+    }
+  });
+  // group by buyer+ptype, giữ gói exp gần nhất
+  items.sort(function(a,b){ return a.expSer - b.expSer; });
+  var seen = {}, uniq=[];
+  items.forEach(function(r){
+    var k = r.buyer+"||"+r.ptype;
+    if(seen[k]) return; seen[k]=1; uniq.push(r);
+  });
+  if(!uniq.length) return "";
+  var body = uniq.slice(0,30).map(function(r){
+    var days = Math.round((r.expSer-now)/(1000*60*60*24));
+    var isMani = r.brand==="Mani";
+    return "<tr class='clk' onclick=\"fcSelectBuyer('"+esc(r.buyer).replace(/'/g,"\\'")+"')\">"
+      + "<td class='tl' title='"+esc(r.buyer)+"' style='max-width:260px;overflow:hidden;text-overflow:ellipsis'>"+esc(r.buyer)+"</td>"
+      + "<td class='tl'>"+esc(r.ptype)+"</td>"
+      + "<td class='tl'><span class='badge' style='background:"+brandColor(r.brand)+";color:"+(isMani?"#003047":"#fff")+"'>"+esc(r.brand)+"</span></td>"
+      + "<td>"+nf(r.qty)+"</td>"
+      + "<td class='tl' style='color:var(--warn);font-weight:800'>"+esc(r.expStr||fcKeyToDate(fcContract(r).endKey))+"</td>"
+      + "<td style='color:"+(days<60?"var(--neg)":"var(--warn)")+";font-weight:800'>"+days+" "+t("fc.daysLeft")+"</td></tr>";
+  }).join("");
+  return '<div class="card reveal"><div class="ch"><div class="ct">⏰ '+t("fc.expiring")+'</div><div class="cs">'+t("fc.expiringSub")+' · '+uniq.length+' '+t("fc.contractDur").toLowerCase()+'</div></div>'
+    + '<div class="cb" style="padding:0"><div class="tw"><table><thead><tr><th class="tl">'+t("fc.buyer")+'</th><th class="tl">'+t("fc.tblType")+'</th><th class="tl">'+t("dk.brand")+'</th><th>'+t("th.qty")+'</th><th class="tl">'+t("fc.expires")+'</th><th>'+t("fc.daysLeft")+'</th></tr></thead><tbody>'+body+'</tbody></table></div></div></div>';
+}
+
+/* ── Smart search suggest ── */
+function fcSuggest(inp){
+  S.fc.query = inp.value.trim();
+  var drop = document.getElementById("ss-fc-drop"); if(!drop){ renderFC(); return; }
+  var q = norm(S.fc.query);
+  // gợi ý: buyer + province + region distinct
+  if(!q){ drop.classList.remove("open"); renderFC(); return; }
+  var set = {}, res=[];
+  ROWS.forEach(function(r){
+    [ ["buyer",r.buyer], ["prov",r.prov], ["region",r.region] ].forEach(function(pair){
+      var v = pair[1]; if(!v || v==="N/A") return;
+      var key = pair[0]+":"+v;
+      if(set[key]) return;
+      if(norm(v).indexOf(q)>=0 && res.length<10){ set[key]=1; res.push({type:pair[0], val:v}); }
+    });
+  });
+  drop.innerHTML = res.length ? res.map(function(x){
+    var tag = x.type==="buyer"?t("fc.buyer"):(x.type==="prov"?t("fc.province"):t("fc.region"));
+    return '<div class="ss-it" onmousedown="fcPick('+"'"+esc(x.val).replace(/'/g,"\\'")+"'"+')"><span>'+esc(x.val)+'</span><small>'+tag+'</small></div>';
+  }).join("") : '<div class="ss-empty">Không có kết quả</div>';
+  drop.classList.add("open");
+  renderFC();
+}
+function fcPick(val){
+  S.fc.query = val;
+  var inp = document.getElementById("ss-fc"); if(inp) inp.value = val;
+  var drop = document.getElementById("ss-fc-drop"); if(drop) drop.classList.remove("open");
+  renderFC();
+}
+
+/* ── Export Excel ── */
+function fcExportExcel(){
+  if(typeof XLSX==="undefined"){ showToast(LANG==="vi"?"Thư viện Excel chưa tải":"Excel library not loaded","warn"); return; }
+  var D = fcCompute(), W = D.window;
+  showToast(LANG==="vi"?"Đang tạo Excel…":"Building Excel…","load");
+
+  // Sheet 1: theo buyer × type
+  var detail = [];
+  Object.keys(D.perBuyer).forEach(function(b){
+    var pb = D.perBuyer[b];
+    Object.keys(pb.byType).forEach(function(pt){
+      var bt = pb.byType[pt];
+      var pk = fcPriceKey(pt);
+      detail.push({
+        "Chu dau tu": pb.buyer,
+        "Khu vuc": pb.region==="North"?"Bac":(pb.region==="South"?"Nam":(pb.region||"")),
+        "Tinh/Thanh": pb.prov||"",
+        "Loai dao": pt,
+        "Demand/thang (pcs)": Math.round(bt.demandMo),
+        "Trong ky (pcs)": Math.round(bt.winPcs),
+        "Gia tri trung (VND)": Math.round(bt.winVal),
+        "Gia Mani (VND)": S.fc.price[pk],
+        "DT ky vong (VND)": Math.round(bt.expRev),
+        "Hang dang trung": bt.curWinner||""
+      });
+    });
+  });
+  detail.sort(function(a,b){ return b["DT ky vong (VND)"] - a["DT ky vong (VND)"]; });
+
+  // Sheet 2: theo buyer tổng hợp
+  var summary = Object.keys(D.perBuyer).map(function(b){
+    var pb = D.perBuyer[b];
+    return {
+      "Chu dau tu": pb.buyer,
+      "Khu vuc": pb.region==="North"?"Bac":(pb.region==="South"?"Nam":(pb.region||"")),
+      "Tinh/Thanh": pb.prov||"",
+      "Demand/thang (pcs)": Math.round(pb.totDemandMo),
+      "Trong ky (pcs)": Math.round(pb.totWinPcs),
+      "Gia tri trung (VND)": Math.round(pb.totWinVal),
+      "DT ky vong Mani (VND)": Math.round(pb.totExpRev)
+    };
+  }).sort(function(a,b){ return b["DT ky vong Mani (VND)"] - a["DT ky vong Mani (VND)"]; });
+
+  try{
+    var wb = XLSX.utils.book_new();
+    var meta = [
+      {"Thong so":"Ky du bao", "Gia tri": W.label},
+      {"Thong so":"Scope", "Gia tri": S.fc.scope==="mani"?"Chi Mani trung":"Toan bo (gia dinh Mani thang)"},
+      {"Thong so":"Gia slit (VND)", "Gia tri": S.fc.price.slit},
+      {"Thong so":"Gia stab (VND)", "Gia tri": S.fc.price.stab},
+      {"Thong so":"Gia luoi liem (VND)", "Gia tri": S.fc.price.crescent},
+      {"Thong so":"Gia dao khac (VND)", "Gia tri": S.fc.price.other},
+      {"Thong so":"Tong DT ky vong (VND)", "Gia tri": Math.round(D.totals.expRev)}
+    ];
+    var ws0 = XLSX.utils.json_to_sheet(meta); ws0["!cols"]=[{wch:26},{wch:40}];
+    XLSX.utils.book_append_sheet(wb, ws0, "ThongTin");
+    var ws1 = XLSX.utils.json_to_sheet(detail); ws1["!cols"]=[{wch:38},{wch:8},{wch:16},{wch:20},{wch:16},{wch:14},{wch:18},{wch:16},{wch:18},{wch:16}];
+    XLSX.utils.book_append_sheet(wb, ws1, "ChiTiet_DiaBan_x_Dao");
+    var ws2 = XLSX.utils.json_to_sheet(summary); ws2["!cols"]=[{wch:38},{wch:8},{wch:16},{wch:16},{wch:14},{wch:18},{wch:20}];
+    XLSX.utils.book_append_sheet(wb, ws2, "TongHop_DiaBan");
+    var fname = ("MMH_DuTru_DoanhSo_"+W.label+".xlsx").replace(/[^\w.\-]+/g,"_");
+    XLSX.writeFile(wb, fname);
+    showToast((LANG==="vi"?"Đã xuất: ":"Exported: ")+fname, "success");
+  }catch(e){ console.error(e); showToast((LANG==="vi"?"Xuất thất bại: ":"Export failed: ")+(e.message||e),"warn"); }
+}
+
+/* restore giá đã lưu */
+(function(){
+  try{ var p=localStorage.getItem("mmh_fc_price"); if(p){ var o=JSON.parse(p); ["slit","stab","crescent","other"].forEach(function(k){ if(o[k]!=null) S.fc.price[k]=+o[k]; }); } }catch(e){}
+})();
 </script>
 
 </body>

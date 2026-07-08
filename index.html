@@ -629,16 +629,36 @@ html[data-theme="dark"] .ss-drop{box-shadow:0 14px 42px rgba(0,0,0,.55);}
 .hbtn.gold{background:rgba(255,225,0,.18);border-color:rgba(255,225,0,.55);color:var(--yellow);font-weight:800;}
 .hbtn.gold:hover{background:var(--yellow);color:#003047;}
 .hbtn.gold:disabled{opacity:.6;cursor:wait;}
-/* ════ TAB 5 — Dự trù & Theo dõi thầu (v3) ════ */
-.fc-hero{display:grid;grid-template-columns:1.1fr 1.5fr;gap:16px;background:var(--sf);border:1px solid var(--br);border-radius:var(--r);box-shadow:var(--sh);padding:18px 20px;margin-bottom:16px;align-items:center;}
+/* ════ TAB 5 — Dự trù & Theo dõi thầu (v4) ════ */
+
+/* ─ Banner marquee ─ */
+.fc-marquee{display:flex;align-items:stretch;gap:0;background:linear-gradient(90deg,var(--navy),#0a2438);border:1px solid var(--br);border-radius:12px;overflow:hidden;margin-bottom:14px;box-shadow:var(--sh);}
+html[data-theme="dark"] .fc-marquee{background:linear-gradient(90deg,#0a1b2e,#0d2137);}
+.fc-mq-tag{display:flex;align-items:center;justify-content:center;padding:0 14px;font-size:16px;background:var(--yellow);color:var(--navy);flex-shrink:0;}
+.fc-mq-view{position:relative;flex:1;overflow:hidden;display:flex;align-items:center;-webkit-mask-image:linear-gradient(90deg,transparent,#000 3%,#000 97%,transparent);mask-image:linear-gradient(90deg,transparent,#000 3%,#000 97%,transparent);}
+.fc-mq-track{display:inline-flex;align-items:center;white-space:nowrap;padding:9px 0;animation-name:fcmarquee;animation-timing-function:linear;animation-iteration-count:infinite;will-change:transform;}
+.fc-marquee:hover .fc-mq-track{animation-play-state:paused;}
+@keyframes fcmarquee{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+.fc-mq-item{display:inline-flex;align-items:center;gap:5px;color:#EAF2FB;font-size:12.5px;font-weight:600;padding:0 4px;}
+.fc-mq-item b{font-weight:800;}
+.fc-mq-ic{font-size:13px;}
+.fc-mq-item.crit b{color:#FF6B6B;} .fc-mq-item.crit{color:#FFD3D3;}
+.fc-mq-item.warn b{color:#FFC24B;}
+.fc-mq-item.soft b{color:#FFE100;}
+.fc-mq-item.win  b{color:#5EE68A;}
+.fc-mq-item.lose b{color:#FF8A8A;}
+.fc-mq-sep{color:rgba(255,255,255,.32);padding:0 12px;font-weight:700;}
+
+/* ─ Hero ─ */
+.fc-hero{display:grid;grid-template-columns:1.05fr 1.55fr;gap:16px;background:var(--sf);border:1px solid var(--br);border-radius:var(--r);box-shadow:var(--sh);padding:18px 20px;margin-bottom:16px;align-items:center;}
 @media(max-width:900px){.fc-hero{grid-template-columns:1fr;}}
 .fc-hero-l{display:flex;flex-direction:column;justify-content:center;border-left:5px solid var(--pos);padding-left:16px;}
 .fc-hero-lbl{font-size:12px;font-weight:900;letter-spacing:1.5px;color:var(--t3);text-transform:uppercase;}
-.fc-hero-val{font-size:44px;font-weight:900;color:var(--pos);letter-spacing:-1px;line-height:1.02;font-variant-numeric:tabular-nums;margin:2px 0;}
+.fc-hero-val{font-size:46px;font-weight:900;color:var(--pos);letter-spacing:-1px;line-height:1.02;font-variant-numeric:tabular-nums;margin:2px 0;}
 html[data-theme="dark"] .fc-hero-val{color:#4ADE80;}
 .fc-hero-sub{font-size:12.5px;color:var(--t2);font-weight:600;}
-.fc-hero-r{min-width:0;}
 
+/* ─ Price panel ─ */
 .fc-price-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
 .fc-pin-h{grid-column:1/-1;font-size:11px;font-weight:900;letter-spacing:.5px;color:var(--blue);text-transform:uppercase;margin-bottom:2px;}
 .fc-pin{display:flex;align-items:center;gap:7px;background:var(--sf2);border:1px solid var(--br);border-radius:9px;padding:7px 11px;}
@@ -649,26 +669,58 @@ html[data-theme="dark"] .fc-pin-i{color:var(--sky);}
 .fc-pin-i:focus{border-color:var(--blue);}
 .fc-pin-u{font-size:10px;color:var(--t3);font-weight:700;white-space:nowrap;}
 
-.fc-gcard{margin-bottom:16px;}
-.fc-edit-badge{font-size:10px;font-weight:800;background:rgba(58,92,170,.12);color:var(--blue);padding:2px 8px;border-radius:10px;margin-left:6px;vertical-align:middle;}
+/* ─ Gantt card (đặt TRÊN bảng, to & rõ) ─ */
+.fc-gantt-card{margin-bottom:16px;}
+.fc-gantt-card .ch{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;}
+.fc-gantt-total{font-size:13px;font-weight:800;color:var(--t2);background:rgba(46,125,50,.10);border:1px solid rgba(46,125,50,.3);border-radius:10px;padding:6px 12px;white-space:nowrap;}
+.fc-gantt-total b{color:var(--pos);font-size:16px;font-weight:900;}
+html[data-theme="dark"] .fc-gantt-total b{color:#4ADE80;}
+.fc-gantt-scroll{overflow-x:auto;overflow-y:hidden;padding:4px 2px 8px;}
+.fc-gantt-wrap{position:relative;width:100%;min-height:220px;}
+
+/* ─ Legend nhóm (clickable filter) ─ */
+.fc-legend{display:flex;flex-wrap:wrap;gap:8px;padding:12px 4px 8px;}
+.fc-lg{display:inline-flex;align-items:center;gap:8px;background:var(--sf2);border:1.5px solid var(--br);border-radius:11px;padding:7px 13px;cursor:pointer;transition:all .15s;font-family:var(--ff);}
+.fc-lg:hover{border-color:var(--gc);transform:translateY(-1px);}
+.fc-lg.off{opacity:.4;filter:grayscale(.5);}
+.fc-lg-dot{width:11px;height:11px;border-radius:3px;background:var(--gc);flex-shrink:0;}
+.fc-lg-nm{font-size:12px;font-weight:800;color:var(--t1);}
+.fc-lg-val{font-size:13px;font-weight:900;color:var(--gc);font-variant-numeric:tabular-nums;}
+.fc-lg-cnt{font-size:10.5px;font-weight:700;color:var(--t3);}
+
+/* ─ Smart search ─ */
+.fc-search{display:flex;align-items:center;gap:8px;background:var(--sf2);border:1.5px solid var(--br);border-radius:11px;padding:4px 6px 4px 14px;max-width:520px;}
+.fc-search:focus-within{border-color:var(--blue);box-shadow:0 0 0 3px rgba(58,92,170,.12);}
+.fc-search-ic{font-size:14px;opacity:.7;}
+.fc-search-in{flex:1;border:0;background:transparent;outline:none;font-family:var(--ff);font-size:14px;font-weight:600;color:var(--t1);padding:8px 2px;}
+.fc-search-clr{border:0;background:var(--br);color:var(--t2);font-family:var(--ff);font-size:11.5px;font-weight:700;border-radius:8px;padding:6px 12px;cursor:pointer;}
+.fc-search-clr:hover{background:var(--neg);color:#fff;}
+
+/* ─ Table ─ */
+.fc-table-card{margin-bottom:16px;}
 .fc-tbl{font-size:12.5px;}
 .fc-tbl thead th{font-size:10px;padding:8px 9px;}
 .fc-tbl td{padding:6px 9px;vertical-align:middle;}
 .fc-row:hover{background:var(--pale);}
-.fc-acct{max-width:230px;overflow:hidden;text-overflow:ellipsis;font-weight:700;line-height:1.25;}
-.fc-prov{font-size:10px;color:var(--t3);font-weight:600;margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.fc-winner{font-size:11px;color:var(--t2);max-width:200px;white-space:normal;line-height:1.3;}
+.fc-acct{max-width:250px;}
+.fc-gtag{display:inline-block;font-size:9.5px;font-weight:800;padding:1px 7px;border-radius:8px;margin-bottom:2px;}
+.fc-acct-nm{font-weight:700;line-height:1.2;overflow:hidden;text-overflow:ellipsis;max-width:240px;white-space:nowrap;}
+.fc-prov{font-size:10px;color:var(--t3);font-weight:600;margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:240px;}
+.fc-winner{font-size:11px;color:var(--t2);max-width:210px;white-space:normal;line-height:1.3;}
 .fc-cell-i{width:66px;padding:4px 6px;font-family:var(--ff);font-size:12.5px;font-weight:700;border:1.5px solid var(--br);border-radius:6px;color:var(--navy);background:var(--sf);text-align:right;outline:none;font-variant-numeric:tabular-nums;}
 html[data-theme="dark"] .fc-cell-i{color:var(--sky);}
 .fc-cell-i:focus{border-color:var(--blue);background:var(--pale);}
 .fc-cell-i.sm{width:44px;text-align:center;}
-.fc-cell-i.txt{width:130px;text-align:left;font-weight:600;}
 .fc-fix{font-weight:700;color:var(--t2);}
+.fc-dash{color:var(--t3);}
 .fc-permo{font-size:10px;color:var(--t3);font-weight:700;margin-top:1px;}
 .fc-pot-sel{font-family:var(--ff);font-size:11.5px;font-weight:800;border:1.5px solid var(--br);border-radius:7px;padding:4px 6px;background:var(--sf);cursor:pointer;outline:none;}
 .fc-pot-sel:focus{border-color:var(--blue);}
 .fc-pot-tag{font-size:11px;font-weight:800;padding:3px 9px;border-radius:12px;}
-.fc-gantt-wrap{position:relative;width:100%;min-height:140px;}
+
+/* ─ Future FY chip ─ */
+.chip.fut{border-style:dashed;color:var(--blue);}
+.chip.fut.on{border-style:solid;}
 </style>
 </head>
 <body>
@@ -4351,65 +4403,72 @@ function exportPPT(){
 
 <script>
 /* ════════════════════════════════════════════════════════════════════════════════════════════
-   TAB 5 — DỰ TRÙ & THEO DÕI THẦU  (v3 · Gantt 4 nhóm · nối 2 webapp NPP)
+   TAB 5 — DỰ TRÙ & THEO DÕI THẦU  (v4 · Gantt-first liền mạch · banner · smart search)
    ────────────────────────────────────────────────────────────────────────────────────────────
-   Thay thế hoàn toàn Tab "Forecasting & Follow-up" cũ.
+   THAY THẾ HOÀN TOÀN module Tab 5 (v3).
 
-   NGUỒN DỮ LIỆU
-     • ROWS            — tender tổng (đã có sẵn, dùng cho New/Convert & demand đối thủ).
-     • NPP_FEED.ICARE  — kết quả thầu NPP miền Nam  (fetch runtime từ URL hardcode).
-     • NPP_FEED.HUNGVI — kết quả thầu NPP miền Bắc  (fetch runtime từ URL hardcode).
-
-   4 NHÓM (Gantt bôi màu theo hiệu lực gói thầu):
-     ① Existing-Win   — NPP đã Win, hiệu lực kéo dài → doanh số chắc chắn (FIX, không sửa SL).
-     ② Pending        — NPP đang Pending → điền [Tháng ra KQ] + [Hiệu lực] → hiện DS dự kiến nếu trúng.
-     ③ Remaining      — gói Existing-Win sắp hết hạn trong kỳ → "duy trì" gói kế tiếp (editable Tháng/Hiệu lực/SL).
-     ④ New / Convert  — địa bàn hãng khác trúng (lấy từ tender tổng, loại các TBMT đã có ở NPP) → cơ hội chiếm (editable).
-
-   DOANH SỐ = Σ (SL loại dao × giá Mani bán cho NPP), quy đổi $ theo tỉ giá editable.
-   Chỉ tính phần THÁNG rơi vào FY được chọn (phân bổ đều theo tháng).
+   MỚI SO VỚI v3:
+     • Kỳ dự báo có thêm FY68 / FY69 / FY70 (+3 năm so với data mới nhất).
+     • Banner marquee chạy chậm trên cùng:
+         (a) gói sắp hết hiệu lực ≤3 tháng  → "BV X: còn 2 tháng…"
+         (b) gói mới cập nhật tháng này     → Win/Lose (chỉ DAO phẫu thuật), nêu rõ SL.
+     • GANTT ĐẶT TRÊN BẢNG. 1 Gantt LIỀN MẠCH gộp cả 4 nhóm, phân biệt bằng MÀU.
+         - Đổi tên: "Hiệu lực thầu vs Doanh số kỳ vọng".
+         - Nhãn trong thanh = TOTAL doanh số kỳ vọng của gói ($).
+         - Có dòng TOTAL expected của toàn Gantt + total mỗi nhóm ở legend.
+     • Bảng: SMART SEARCH theo chủ đầu tư; BỎ cột "Support need".
    ════════════════════════════════════════════════════════════════════════════════════════════ */
 
-/* ── i18n bổ sung ── */
+/* ── i18n ── */
 (function(){
   var add = {
     en:{
       "nav.fc":"Forecasting & Follow-up",
       "sec.fc.title":"Forecasting & Follow-up Tender",
-      "sec.fc.sub":"Distributor tender status · Gantt by contract validity · editable revenue opportunity",
+      "sec.fc.sub":"Distributor tender status · contract-validity Gantt · editable revenue opportunity",
       "fc.expected":"EXPECTED REVENUE",
       "fc.window":"Forecast window","fc.group":"Tender group","fc.potential":"Potential","fc.region":"Region",
-      "fc.allGroups":"All groups","fc.allRegions":"Nationwide",
+      "fc.allGroups":"All","fc.allRegions":"Nationwide",
       "fc.g.existing":"Existing · Win","fc.g.pending":"Pending","fc.g.remaining":"Remaining (renew)","fc.g.new":"New / Convert",
       "fc.price":"Selling price to NPP","fc.fx":"FX rate (₫/$)","fc.perpc":"₫/pc",
-      "fc.acct":"Account / Hospital","fc.support":"Support need","fc.demandY":"Demand/yr","fc.winner":"Latest winner + price",
-      "fc.exp":"Expiration","fc.dur":"Duration","fc.result":"Result","fc.gantt":"Contract Gantt · monthly expected revenue ($)",
+      "fc.acct":"Account / Hospital","fc.demandY":"Demand/yr","fc.winner":"Latest winner + price",
+      "fc.exp":"Expiration","fc.dur":"Duration","fc.result":"Result",
+      "fc.gantt":"Tender Validity vs Expected Revenue","fc.ganttSub":"contract bars coloured by group · in-bar = total expected ($) of that package",
       "fc.high":"High","fc.mid":"Medium","fc.low":"Low",
-      "fc.resWin":"Win","fc.resPending":"Pending","fc.months":"mo",
+      "fc.months":"mo",
       "fc.loadingNPP":"Loading distributor tender feeds…","fc.nppErr":"Could not load NPP feed",
       "fc.noRow":"No tender in this window","fc.export":"Export (Excel)",
       "fc.resultMonth":"Result month","fc.editHint":"editable","fc.total":"TOTAL",
       "fc.perMonth":"/mo","fc.mst":"MST (Stab)","fc.msl":"MSL (Slit)","fc.mcu":"MCU",
-      "fc.pkgs":"packages","fc.buyers":"buyers","fc.selectFY":"Pick fiscal year(s) — Shift+Click to compare"
+      "fc.pkgs":"packages","fc.selectFY":"Pick fiscal year(s) — Shift+Click to compare",
+      "fc.search":"Search account / hospital…","fc.clear":"Clear",
+      "fc.ban.expire":"expiring soon","fc.ban.new":"updated this month",
+      "fc.ban.left":"left","fc.ban.win":"WIN","fc.ban.lose":"LOSE","fc.ban.pcs":"pcs",
+      "fc.tableTitle":"Package detail","fc.showing":"showing"
     },
     vi:{
       "nav.fc":"Dự trù & Theo dõi thầu",
       "sec.fc.title":"Dự trù Doanh số & Theo dõi Thầu",
       "sec.fc.sub":"Trạng thái thầu NPP · Gantt theo hiệu lực hợp đồng · cơ hội doanh số editable",
-      "fc.expected":"EXPECTED REVENUE",
+      "fc.expected":"DOANH SỐ KỲ VỌNG",
       "fc.window":"Kỳ dự báo","fc.group":"Loại gói thầu","fc.potential":"Tiềm năng","fc.region":"Khu vực",
-      "fc.allGroups":"Tất cả nhóm","fc.allRegions":"Toàn quốc",
+      "fc.allGroups":"Tất cả","fc.allRegions":"Toàn quốc",
       "fc.g.existing":"Existing · Win","fc.g.pending":"Pending","fc.g.remaining":"Duy trì (thầu kế)","fc.g.new":"New / Convert",
       "fc.price":"Giá bán cho NPP","fc.fx":"Tỉ giá (₫/$)","fc.perpc":"₫/chiếc",
-      "fc.acct":"Account / Bệnh viện","fc.support":"Support need","fc.demandY":"Demand TB/năm","fc.winner":"Hãng trúng + giá gần nhất",
-      "fc.exp":"Hết hiệu lực","fc.dur":"Hiệu lực","fc.result":"Kết quả","fc.gantt":"Gantt hợp đồng · doanh số kỳ vọng/tháng ($)",
+      "fc.acct":"Account / Bệnh viện","fc.demandY":"Demand TB/năm","fc.winner":"Hãng trúng + giá gần nhất",
+      "fc.exp":"Hết hiệu lực","fc.dur":"Hiệu lực","fc.result":"Kết quả",
+      "fc.gantt":"Hiệu lực thầu vs Doanh số kỳ vọng","fc.ganttSub":"thanh hợp đồng phân màu theo nhóm · số trong thanh = tổng DS kỳ vọng ($) của gói",
       "fc.high":"Cao","fc.mid":"Trung bình","fc.low":"Thấp",
-      "fc.resWin":"Trúng","fc.resPending":"Chờ KQ","fc.months":"tháng",
+      "fc.months":"tháng",
       "fc.loadingNPP":"Đang tải dữ liệu thầu NPP…","fc.nppErr":"Không tải được dữ liệu NPP",
       "fc.noRow":"Không có gói thầu trong kỳ này","fc.export":"Xuất (Excel)",
       "fc.resultMonth":"Tháng ra KQ","fc.editHint":"sửa được","fc.total":"TỔNG",
       "fc.perMonth":"/tháng","fc.mst":"MST (Stab)","fc.msl":"MSL (Slit)","fc.mcu":"MCU",
-      "fc.pkgs":"gói","fc.buyers":"chủ đầu tư","fc.selectFY":"Chọn năm tài chính — Shift+Click để so sánh"
+      "fc.pkgs":"gói","fc.selectFY":"Chọn năm tài chính — Shift+Click để so sánh",
+      "fc.search":"Tìm chủ đầu tư / bệnh viện…","fc.clear":"Xoá",
+      "fc.ban.expire":"sắp hết hiệu lực","fc.ban.new":"cập nhật tháng này",
+      "fc.ban.left":"còn","fc.ban.win":"TRÚNG","fc.ban.lose":"TRƯỢT","fc.ban.pcs":"chiếc",
+      "fc.tableTitle":"Chi tiết gói thầu","fc.showing":"đang xem"
     }
   };
   Object.keys(add).forEach(function(lg){ if(!I18N[lg]) I18N[lg]={}; Object.keys(add[lg]).forEach(function(k){ I18N[lg][k]=add[lg][k]; }); });
@@ -4422,381 +4481,337 @@ var NPP_URL = {
 };
 var NPP_FEED = { ICARE:null, HUNGVI:null, loaded:false, loading:false, error:null };
 
+/* ── Colours theo nhóm ── */
+var FC_GCOL = { existing:"#2E7D32", pending:"#F57C00", remaining:"#5B7DB1", new:"#8E44AD" };
+function FC_GNAME(){ return {
+  existing:t("fc.g.existing"), pending:t("fc.g.pending"), remaining:t("fc.g.remaining"), new:t("fc.g.new")
+};}
+
 /* ── State ── */
 S.fc = {
-  fys: [],                 // FY được chọn (rỗng = FY hiện hành mặc định)
-  group: "all",            // all | existing | pending | remaining | new
-  region: "ALL",           // ALL | South | North
-  potential: "all",        // all | High | Medium | Low
-  price: { MSL:240000, MST:140000, MCU:250000 },  // giá Mani bán cho NPP (₫/chiếc)
-  fxFC: 26400,             // tỉ giá riêng tab này (editable)
-  edits: {},               // { rowKey : {mst,msl,mcu,expMonth,dur,resultMonth,potential,support} }
-  charts: {}
+  fys: [], region: "ALL", potential: "all", group: "all", q: "",
+  price: { MSL:240000, MST:140000, MCU:250000 }, fxFC: 26400,
+  edits: {}, chart: null
 };
 
-/* ── Helpers dùng chung ── */
+/* ════ FY LIST +3 năm ════ */
+function fcFyListExtended(){
+  var base = buildFyList().slice();
+  if(!base.length) base = ["FY67"];
+  var lastN = Math.max.apply(null, base.map(function(f){ return +String(f).replace("FY",""); }));
+  var out = base.slice();
+  for(var i=1;i<=3;i++){ var f="FY"+(lastN+i); if(out.indexOf(f)<0) out.push(f); }
+  return out;
+}
 function fcFY(){
-  var list = buildFyList();
-  if(S.fc.fys && S.fc.fys.length) return S.fc.fys.slice().sort();
-  // mặc định: FY hiện hành = FY chứa tháng dữ liệu mới nhất
-  var last = list[list.length-1] || "FY67";
-  return [last];
+  if(S.fc.fys && S.fc.fys.length) return S.fc.fys.slice().sort(function(a,b){return (+a.replace("FY",""))-(+b.replace("FY",""));});
+  var base = buildFyList();
+  return [base[base.length-1] || "FY67"];
+}
+function fcFyRange(fy){
+  if(typeof fyRange==="function"){ try{ return fyRange(fy); }catch(e){} }
+  var n=+String(fy).replace("FY",""); var endY=1959+n, startY=endY-1;
+  return {fromKey:startY*100+9, toKey:endY*100+8};
 }
 function fcWinKeys(){
-  // trả {fromKey, toKey, months[], label} gộp toàn bộ FY đang chọn
-  var fys = fcFY();
-  var r0 = fyRange(fys[0]), r1 = fyRange(fys[fys.length-1]);
+  var fys=fcFY(); var r0=fcFyRange(fys[0]), r1=fcFyRange(fys[fys.length-1]);
   var fromKey=r0.fromKey, toKey=r1.toKey;
   var months=[], y=Math.floor(fromKey/100), m=fromKey%100, g=0;
-  while((y*100+m)<=toKey && g<300){ months.push(y*100+m); m++; if(m>12){m=1;y++;} g++; }
+  while((y*100+m)<=toKey && g<400){ months.push(y*100+m); m++; if(m>12){m=1;y++;} g++; }
   return {fromKey:fromKey, toKey:toKey, months:months, label:(fys.length>1?(fys[0]+"→"+fys[fys.length-1]):fys[0])};
 }
+
+/* ── key math ── */
 function fcKeyOrd(k){ return Math.floor(k/100)*12 + (k%100); }
 function fcOverlap(aF,aT,bF,bT){ var lo=Math.max(fcKeyOrd(aF),fcKeyOrd(bF)), hi=Math.min(fcKeyOrd(aT),fcKeyOrd(bT)); return hi>=lo?(hi-lo+1):0; }
-function fcMonthKeyToLabel(k){ var y=Math.floor(k/100),m=k%100; return pad2FC(m)+"/"+y; }
+function fcMonthKeyToLabel(k){ var y=Math.floor(k/100),m=k%100; return pad2FC(m)+"/"+String(y).slice(2); }
 function pad2FC(x){ x=String(x); return x.length<2?"0"+x:x; }
-/* "MM/YYYY" → key số */
 function fcMoStrToKey(s){ if(!s) return 0; var p=String(s).split("/"); if(p.length<2) return 0; return (+p[1])*100 + (+p[0]); }
-/* serial ms → key số */
 function fcSerialToKey(ms){ if(!ms) return 0; var d=new Date(ms); return d.getFullYear()*100 + (d.getMonth()+1); }
-/* key + n tháng */
 function fcAddMonths(key, n){ var y=Math.floor(key/100), m=key%100; m+=n; while(m>12){m-=12;y++;} while(m<1){m+=12;y--;} return y*100+m; }
-
-/* ── Giá Mani theo nhóm dao (knifeType từ NPP feed hoặc Knife Type từ ROWS) ── */
-function fcKnifeGroup(t){
-  var s = norm(t||"");
-  if(/mcu|crescent|luoi\s*liem|nao\s*mong|lang\s*mong|cresent/.test(s)) return "MCU";
-  if(/msl|slit|phaco|2\.?[28]|2\.?2|clear\s*corneal/.test(s)) return "MSL";
-  if(/mst|stab|15|choc\s*tien\s*phong|side\s*port|mvr|keratome/.test(s)) return "MST";
-  return "MSL"; // mặc định slit
+function fcKeyToMoStr(k){ if(!k) return ""; var y=Math.floor(k/100),m=k%100; return pad2FC(m)+"/"+y; }
+function fcNowKey(){
+  if(typeof MONTHS_SORTED!=="undefined" && MONTHS_SORTED.length){ return fcMoStrToKey(MONTHS_SORTED[MONTHS_SORTED.length-1]); }
+  var d=new Date(); return d.getFullYear()*100+(d.getMonth()+1);
 }
-function fcPriceOf(group){ return +S.fc.price[group] || 0; }
-/* quy đổi ₫ → $ theo tỉ giá riêng tab */
-function fcUSD(vnd){ var fx = +S.fc.fxFC || 26400; return (vnd||0)/fx; }
-function fcMoneyUSD(vnd){ var v=fcUSD(vnd); if(v>=1e6) return "$"+(v/1e6).toFixed(2).replace(/\.?0+$/,"")+"M"; if(v>=1e3) return "$"+(v/1e3).toFixed(1).replace(/\.0$/,"")+"K"; return "$"+Math.round(v); }
-function fcMoneyVND(vnd){ return money(vnd); }
+function fcMonthsBetween(fromK, toK){ return fcKeyOrd(toK)-fcKeyOrd(fromK); }
 
-/* ══════════════════════════════════════════════════════════════════════════════════════════
- *  FETCH 2 NPP FEEDS
- * ══════════════════════════════════════════════════════════════════════════════════════════ */
+/* ── giá / tiền ── */
+function fcKnifeGroup(t){
+  var s=norm(t||"");
+  if(/mcu|crescent|luoi\s*liem|nao\s*mong|lang\s*mong|cresent/.test(s)) return "MCU";
+  if(/msl|slit|phaco|clear\s*corneal|2\.?[28]/.test(s)) return "MSL";
+  if(/mst|stab|side\s*port|mvr|keratome|choc\s*tien\s*phong|15/.test(s)) return "MST";
+  return "MSL";
+}
+function fcPriceOf(g){ return +S.fc.price[g] || 0; }
+function fcUSD(vnd){ var fx=+S.fc.fxFC||26400; return (vnd||0)/fx; }
+function fcMoneyUSD(vnd){ var v=fcUSD(vnd); if(v>=1e6) return "$"+(v/1e6).toFixed(2).replace(/\.?0+$/,"")+"M"; if(v>=1e3) return "$"+(v/1e3).toFixed(1).replace(/\.0$/,"")+"K"; return "$"+Math.round(v); }
+function fcMoneyVND(vnd){ return (typeof money==="function")?money(vnd):(Math.round(vnd).toLocaleString()+" ₫"); }
+
+/* ════ FETCH NPP ════ */
 function fcLoadNPP(force){
   if(NPP_FEED.loaded && !force) return Promise.resolve();
   if(NPP_FEED.loading) return NPP_FEED._p || Promise.resolve();
-  NPP_FEED.loading = true; NPP_FEED.error=null;
+  NPP_FEED.loading=true; NPP_FEED.error=null;
   function one(url){
     return fetch(url,{method:"GET",redirect:"follow"})
       .then(function(r){ return r.json(); })
-      .then(function(d){ return (d && d.ok!==false) ? (d.rows||[]) : []; })
+      .then(function(d){ return (d && d.ok!==false)?(d.rows||[]):[]; })
       .catch(function(e){ console.warn("NPP fetch fail",url,e); return null; });
   }
-  NPP_FEED._p = Promise.all([one(NPP_URL.ICARE), one(NPP_URL.HUNGVI)]).then(function(res){
-    NPP_FEED.ICARE  = res[0];   // có thể null nếu lỗi
-    NPP_FEED.HUNGVI = res[1];
-    NPP_FEED.loaded = true; NPP_FEED.loading=false;
-    if(res[0]===null && res[1]===null) NPP_FEED.error = "both";
+  NPP_FEED._p=Promise.all([one(NPP_URL.ICARE),one(NPP_URL.HUNGVI)]).then(function(res){
+    NPP_FEED.ICARE=res[0]; NPP_FEED.HUNGVI=res[1]; NPP_FEED.loaded=true; NPP_FEED.loading=false;
+    if(res[0]===null && res[1]===null) NPP_FEED.error="both";
   });
   return NPP_FEED._p;
 }
-
-/* Chuẩn hoá 1 dòng NPP feed → object thống nhất */
 function fcNormNPP(r, npp){
-  var group = fcKnifeGroup(r.knifeType || r.pcodeRaw);
-  // approve/exp: dùng serial nếu có, else parse từ ISO/month
-  var startKey = r.approveSerial ? fcSerialToKey(r.approveSerial) : (r.month? fcMoStrToKey(r.month):0);
-  var dur = (+r.durationMonths>0) ? +r.durationMonths : 12;
-  var expKey = r.expirationSerial ? fcSerialToKey(r.expirationSerial) : (startKey? fcAddMonths(startKey,dur):0);
-  return {
-    src:"NPP", npp:npp, region:r.region||(npp==="ICARE"?"South":"North"),
-    tbmt: r.tbmt||"", hospital:r.hospital||"(?)", prov:r.city||"",
-    result:(r.result||"").trim(), group:group,
-    qty:+r.qty||0, price:+r.price||0,
-    startKey:startKey||0, dur:dur, expKey:expKey||0,
-    knifeType:r.knifeType||"", pcode:r.pcodeRaw||""
-  };
+  var group=fcKnifeGroup(r.knifeType||r.pcodeRaw);
+  var startKey=r.approveSerial? fcSerialToKey(r.approveSerial):(r.month? fcMoStrToKey(r.month):0);
+  var dur=(+r.durationMonths>0)?+r.durationMonths:12;
+  var expKey=r.expirationSerial? fcSerialToKey(r.expirationSerial):(startKey? fcAddMonths(startKey,dur):0);
+  return { src:"NPP", npp:npp, region:r.region||(npp==="ICARE"?"South":"North"),
+    tbmt:r.tbmt||"", hospital:r.hospital||"(?)", prov:r.city||"", result:(r.result||"").trim(), group:group,
+    qty:+r.qty||0, price:+r.price||0, startKey:startKey||0, dur:dur, expKey:expKey||0,
+    knifeType:r.knifeType||"", pcode:r.pcodeRaw||"" };
 }
 
-/* ══════════════════════════════════════════════════════════════════════════════════════════
- *  BUILD 4 GROUPS
- * ══════════════════════════════════════════════════════════════════════════════════════════ */
+/* ════ BUILD 4 NHÓM → mảng node phẳng ════ */
 function fcBuild(){
-  var win = fcWinKeys();
-  var regOK = function(rg){ return S.fc.region==="ALL" || rg===S.fc.region; };
+  var win=fcWinKeys();
+  var regOK=function(rg){ return S.fc.region==="ALL"||rg===S.fc.region; };
+  var nppRows=[];
+  ["ICARE","HUNGVI"].forEach(function(k){ var arr=NPP_FEED[k]; if(!arr) return; arr.forEach(function(r){ nppRows.push(fcNormNPP(r,k)); }); });
 
-  /* gom NPP rows theo TBMT (gói) → mỗi gói có nhiều loại dao */
-  var nppRows = [];
-  ["ICARE","HUNGVI"].forEach(function(k){
-    var arr = NPP_FEED[k];
-    if(!arr) return;
-    arr.forEach(function(r){ nppRows.push(fcNormNPP(r,k)); });
-  });
-
-  /* khóa gói: tbmt nếu có, else hospital||start */
   function pkKey(r){ return (r.tbmt||("H:"+r.hospital))+"|"+r.npp; }
-  var pkg = {};
+  var pkg={};
   nppRows.forEach(function(r){
     if(!regOK(r.region)) return;
-    var k = pkKey(r);
-    if(!pkg[k]) pkg[k] = {key:k, tbmt:r.tbmt, npp:r.npp, region:r.region, hospital:r.hospital, prov:r.prov,
-                          results:{}, startKey:0, dur:12, expKey:0, byGroup:{MST:0,MSL:0,MCU:0}, priceByGroup:{}, rows:[]};
-    var p = pkg[k];
-    p.results[r.result] = (p.results[r.result]||0)+1;
-    if(r.startKey && (!p.startKey || r.startKey>p.startKey)) p.startKey = r.startKey;
-    if(r.dur) p.dur = r.dur;
-    if(r.expKey && r.expKey>p.expKey) p.expKey = r.expKey;
-    // chỉ cộng SL cho dòng Win (hoặc Pending) — để tính demand
-    p.byGroup[r.group] = (p.byGroup[r.group]||0) + r.qty;
-    if(r.price>0) p.priceByGroup[r.group] = r.price; // giá trúng gần nhất theo nhóm
+    var k=pkKey(r);
+    if(!pkg[k]) pkg[k]={key:k,tbmt:r.tbmt,npp:r.npp,region:r.region,hospital:r.hospital,prov:r.prov,results:{},startKey:0,dur:12,expKey:0,byGroup:{MST:0,MSL:0,MCU:0},priceByGroup:{},rows:[]};
+    var p=pkg[k];
+    p.results[r.result]=(p.results[r.result]||0)+1;
+    if(r.startKey && (!p.startKey||r.startKey>p.startKey)) p.startKey=r.startKey;
+    if(r.dur) p.dur=r.dur;
+    if(r.expKey && r.expKey>p.expKey) p.expKey=r.expKey;
+    p.byGroup[r.group]=(p.byGroup[r.group]||0)+r.qty;
+    if(r.price>0) p.priceByGroup[r.group]=r.price;
     p.rows.push(r);
   });
-  var pkgArr = Object.keys(pkg).map(function(k){ return pkg[k]; });
+  var pkgArr=Object.keys(pkg).map(function(k){return pkg[k];});
+  var nppTBMT={}; pkgArr.forEach(function(p){ if(p.tbmt) nppTBMT[p.tbmt]=1; });
 
-  /* set TBMT đã xuất hiện ở NPP (chuẩn hoá) — để loại khỏi New/Convert */
-  var nppTBMT = {};
-  pkgArr.forEach(function(p){ if(p.tbmt) nppTBMT[p.tbmt]=1; });
-
-  /* ── NHÓM ① EXISTING-WIN & ③ REMAINING ── */
-  var existing=[], remaining=[], pending=[];
+  var nodes=[];
   pkgArr.forEach(function(p){
-    var isWin = !!p.results["Win"];
-    var isPending = !!p.results["Pending"] && !isWin;
-    if(isPending){
-      pending.push(fcPkgToNode(p, "pending", win));
-      return;
-    }
-    if(!isWin) return; // Fail/Cancel → bỏ khỏi dự trù doanh số
-    // Existing-Win: gói còn hiệu lực overlap kỳ
-    var ov = fcOverlap(p.startKey||win.fromKey, p.expKey||win.toKey, win.fromKey, win.toKey);
-    if(ov>0){
-      existing.push(fcPkgToNode(p, "existing", win));
-    }
-    // Remaining: nếu gói hết hạn TRONG hoặc TRƯỚC kỳ → đề xuất gói kế tiếp (duy trì)
-    if(p.expKey && p.expKey <= win.toKey){
-      var node = fcPkgToNode(p, "remaining", win);
-      // gói kế tiếp mặc định: bắt đầu ngay sau khi hết hạn, cùng duration
-      node.nextStartKey = fcAddMonths(p.expKey, 1);
-      node.nextExpKey   = fcAddMonths(node.nextStartKey, p.dur-1);
-      remaining.push(node);
+    var isWin=!!p.results["Win"], isPending=!!p.results["Pending"]&&!isWin;
+    if(isPending){ nodes.push(fcPkgToNode(p,"pending",win)); return; }
+    if(!isWin) return;
+    var ov=fcOverlap(p.startKey||win.fromKey, p.expKey||win.toKey, win.fromKey, win.toKey);
+    if(ov>0) nodes.push(fcPkgToNode(p,"existing",win));
+    if(p.expKey && p.expKey<=win.toKey){
+      var node=fcPkgToNode(p,"remaining",win);
+      node.nextStartKey=fcAddMonths(p.expKey,1);
+      node.nextExpKey=fcAddMonths(node.nextStartKey,p.dur-1);
+      nodes.push(node);
     }
   });
 
-  /* ── NHÓM ④ NEW / CONVERT (từ tender tổng) ── */
-  // Lấy các dòng tender tổng: region South/North theo NPP; loại TBMT đã có ở NPP.
-  var newConvert = [];
-  var byBuyerTBMT = {};
+  var byBuyerTBMT={};
   ROWS.forEach(function(r){
     if(!regOK(r.region)) return;
-    var t = (r.kqtt||"").replace(/[\s\r\n]+/g,"").replace(/-\d+$/,"");
-    if(t && nppTBMT[t]) return;               // gói NPP đã tham dự → bỏ
-    // chỉ xét kỳ gần (FY67 chưa trúng) — dùng toàn bộ, đánh dấu hãng trúng
-    var key = (r.buyer||"")+"|"+t;
-    if(!byBuyerTBMT[key]) byBuyerTBMT[key] = {buyer:r.buyer, prov:r.prov, region:r.region, tbmt:t,
-                                              startKey:0, dur:12, expKey:0, byGroup:{MST:0,MSL:0,MCU:0}, brands:{}, winner:{}, rows:[]};
-    var o = byBuyerTBMT[key];
-    var g = fcKnifeGroup(r.ptype);
-    o.byGroup[g] = (o.byGroup[g]||0) + r.qty;
-    o.brands[r.brand] = (o.brands[r.brand]||0) + r.qty;
-    // hãng trúng + giá trúng gần nhất theo nhóm
-    if(!o.winner[g] || r.qty>o.winner[g].qty) o.winner[g] = {brand:r.brand, price:r.price, qty:r.qty};
-    var sk = fcMoStrToKey(r.month);
-    if(sk>o.startKey) o.startKey = sk;
-    var dur = 12; // tender tổng thường thiếu → 12
-    o.dur = dur;
-    o.rows.push(r);
+    var tt=(r.kqtt||"").replace(/[\s\r\n]+/g,"").replace(/-\d+$/,"");
+    if(tt && nppTBMT[tt]) return;
+    var key=(r.buyer||"")+"|"+tt;
+    if(!byBuyerTBMT[key]) byBuyerTBMT[key]={buyer:r.buyer,prov:r.prov,region:r.region,tbmt:tt,startKey:0,dur:12,expKey:0,byGroup:{MST:0,MSL:0,MCU:0},brands:{},winner:{},rows:[]};
+    var o=byBuyerTBMT[key]; var g=fcKnifeGroup(r.ptype);
+    o.byGroup[g]=(o.byGroup[g]||0)+r.qty;
+    o.brands[r.brand]=(o.brands[r.brand]||0)+r.qty;
+    if(!o.winner[g]||r.qty>o.winner[g].qty) o.winner[g]={brand:r.brand,price:r.price,qty:r.qty};
+    var sk=fcMoStrToKey(r.month); if(sk>o.startKey) o.startKey=sk;
+    o.dur=12; o.rows.push(r);
   });
   Object.keys(byBuyerTBMT).forEach(function(k){
-    var o = byBuyerTBMT[k];
-    // bỏ qua nếu Mani là hãng trúng chính (đó là existing rồi) — chỉ giữ đối thủ trúng = cơ hội convert
-    var lead = Object.keys(o.brands).sort(function(a,b){return o.brands[b]-o.brands[a];})[0];
+    var o=byBuyerTBMT[k];
+    var lead=Object.keys(o.brands).sort(function(a,b){return o.brands[b]-o.brands[a];})[0];
     if(lead==="Mani") return;
-    o.expKey = o.startKey? fcAddMonths(o.startKey, o.dur-1) : 0;
-    newConvert.push(fcNewNode(o, win));
+    o.expKey=o.startKey? fcAddMonths(o.startKey,o.dur-1):0;
+    nodes.push(fcNewNode(o,win));
   });
-
-  return {win:win, existing:existing, pending:pending, remaining:remaining, newConvert:newConvert};
+  return {win:win, nodes:nodes};
 }
 
-/* Chuyển 1 gói NPP → node hiển thị (áp edits nếu có) */
 function fcPkgToNode(p, group, win){
-  var rowKey = group+"|"+p.key;
-  var e = S.fc.edits[rowKey] || {};
-  var demandY = fcDemandPerYear(p.byGroup, p.dur);
-  // winner + giá trúng gần nhất
-  var winnerTxt = fcWinnerText(p);
-  var node = {
-    rowKey:rowKey, group:group, src:"NPP", npp:p.npp, region:p.region,
+  var rowKey=group+"|"+p.key; var e=S.fc.edits[rowKey]||{};
+  var demandY=fcDemandPerYear(p.byGroup,p.dur);
+  var node={ rowKey:rowKey, group:group, src:"NPP", npp:p.npp, region:p.region,
     account:p.hospital, prov:p.prov, tbmt:p.tbmt,
-    result: p.results["Win"]?"Win":(p.results["Pending"]?"Pending":"—"),
-    startKey: p.startKey, dur: (e.dur||p.dur||12),
-    expKey: (e.expMonth? fcMoStrToKey(e.expMonth) : (p.expKey||0)),
-    mst: (group==="existing") ? (p.byGroup.MST||0) : (e.mst!=null? e.mst : (p.byGroup.MST||0)),
-    msl: (group==="existing") ? (p.byGroup.MSL||0) : (e.msl!=null? e.msl : (p.byGroup.MSL||0)),
-    mcu: (group==="existing") ? (p.byGroup.MCU||0) : (e.mcu!=null? e.mcu : (p.byGroup.MCU||0)),
-    demandY: demandY, winnerTxt: winnerTxt,
-    potential: e.potential || fcAutoPotential(demandY),
-    support: e.support || "",
-    resultMonth: e.resultMonth || (group==="pending" ? fcKeyToMoStr(win.fromKey) : ""),
-    editable: (group!=="existing")   // existing FIX, còn lại editable
-  };
-  // gói remaining: start = nextStart (gói kế tiếp), editable
-  if(group==="remaining"){
-    node.startKey = e.expMonth ? fcMoStrToKey(e.expMonth) : fcAddMonths(p.expKey||win.fromKey, 1);
-    node.expKey   = fcAddMonths(node.startKey, (node.dur||12)-1);
-  }
-  if(group==="pending"){
-    // pending: hiệu lực bắt đầu từ tháng ra KQ (editable), duration editable
-    var rm = node.resultMonth ? fcMoStrToKey(node.resultMonth) : win.fromKey;
-    node.startKey = rm;
-    node.expKey = fcAddMonths(rm, (node.dur||12)-1);
-  }
+    result:p.results["Win"]?"Win":(p.results["Pending"]?"Pending":"—"),
+    startKey:p.startKey, dur:(e.dur||p.dur||12),
+    expKey:(e.expMonth? fcMoStrToKey(e.expMonth):(p.expKey||0)),
+    mst:(group==="existing")?(p.byGroup.MST||0):(e.mst!=null?e.mst:(p.byGroup.MST||0)),
+    msl:(group==="existing")?(p.byGroup.MSL||0):(e.msl!=null?e.msl:(p.byGroup.MSL||0)),
+    mcu:(group==="existing")?(p.byGroup.MCU||0):(e.mcu!=null?e.mcu:(p.byGroup.MCU||0)),
+    demandY:demandY, winnerTxt:fcWinnerText(p),
+    potential:e.potential||fcAutoPotential(demandY),
+    resultMonth:e.resultMonth||(group==="pending"?fcKeyToMoStr(win.fromKey):""),
+    editable:(group!=="existing") };
+  if(group==="remaining"){ node.startKey=e.expMonth? fcMoStrToKey(e.expMonth):fcAddMonths(p.expKey||win.fromKey,1); node.expKey=fcAddMonths(node.startKey,(node.dur||12)-1); }
+  if(group==="pending"){ var rm=node.resultMonth? fcMoStrToKey(node.resultMonth):win.fromKey; node.startKey=rm; node.expKey=fcAddMonths(rm,(node.dur||12)-1); }
   return node;
 }
-/* node New/Convert */
 function fcNewNode(o, win){
-  var rowKey = "new|"+o.buyer+"|"+o.tbmt;
-  var e = S.fc.edits[rowKey] || {};
-  var demandY = fcDemandPerYear(o.byGroup, o.dur);
-  // hãng trúng + giá trúng gần nhất theo loại (Slit/Stab)
-  var winnerTxt = fcWinnerTextNew(o);
-  var startKey = e.expMonth ? fcMoStrToKey(e.expMonth) : (o.expKey? fcAddMonths(o.expKey,1) : win.fromKey);
-  var dur = e.dur || o.dur || 12;
-  return {
-    rowKey:rowKey, group:"new", src:"MARKET", npp:"", region:o.region,
+  var rowKey="new|"+o.buyer+"|"+o.tbmt; var e=S.fc.edits[rowKey]||{};
+  var demandY=fcDemandPerYear(o.byGroup,o.dur);
+  var startKey=e.expMonth? fcMoStrToKey(e.expMonth):(o.expKey? fcAddMonths(o.expKey,1):win.fromKey);
+  var dur=e.dur||o.dur||12;
+  return { rowKey:rowKey, group:"new", src:"MARKET", npp:"", region:o.region,
     account:o.buyer, prov:o.prov, tbmt:o.tbmt, result:"Convert",
-    startKey:startKey, dur:dur, expKey:fcAddMonths(startKey, dur-1),
-    mst: e.mst!=null? e.mst : (o.byGroup.MST||0),
-    msl: e.msl!=null? e.msl : (o.byGroup.MSL||0),
-    mcu: e.mcu!=null? e.mcu : (o.byGroup.MCU||0),
-    demandY:demandY, winnerTxt:winnerTxt,
-    potential: e.potential || fcAutoPotential(demandY),
-    support: e.support || "", resultMonth:"", editable:true
-  };
+    startKey:startKey, dur:dur, expKey:fcAddMonths(startKey,dur-1),
+    mst:e.mst!=null?e.mst:(o.byGroup.MST||0), msl:e.msl!=null?e.msl:(o.byGroup.MSL||0), mcu:e.mcu!=null?e.mcu:(o.byGroup.MCU||0),
+    demandY:demandY, winnerTxt:fcWinnerTextNew(o),
+    potential:e.potential||fcAutoPotential(demandY), resultMonth:"", editable:true };
 }
-function fcKeyToMoStr(k){ if(!k) return ""; var y=Math.floor(k/100),m=k%100; return pad2FC(m)+"/"+y; }
-
-/* Demand TB/năm = Σ SL ÷ (hiệu lực/12) */
-function fcDemandPerYear(byGroup, dur){
-  var tot = (byGroup.MST||0)+(byGroup.MSL||0)+(byGroup.MCU||0);
-  var yrs = (dur||12)/12; if(yrs<=0) yrs=1;
-  return Math.round(tot/yrs);
-}
-function fcAutoPotential(demandY){
-  if(demandY>=2000) return "High";
-  if(demandY>=500)  return "Medium";
-  return "Low";
-}
-function fcWinnerText(p){
-  // Mani thắng (NPP) → hiển thị theo nhóm + giá trúng gần nhất
-  var parts=[];
-  ["MSL","MST","MCU"].forEach(function(g){
-    if(p.priceByGroup[g]) parts.push(g+": Mani-"+nf(p.priceByGroup[g]));
-  });
-  return parts.join(" · ") || "Mani";
-}
-function fcWinnerTextNew(o){
-  var parts=[];
-  ["MSL","MST","MCU"].forEach(function(g){
-    var w=o.winner[g];
-    if(w) parts.push(g+": "+w.brand+"-"+nf(w.price));
-  });
-  return parts.join(" · ") || "—";
-}
-
-/* Doanh số 1 node trong kỳ (chỉ phần tháng overlap) — trả {vnd, months, perMonthVND, expected} */
+function fcDemandPerYear(byGroup, dur){ var tot=(byGroup.MST||0)+(byGroup.MSL||0)+(byGroup.MCU||0); var yrs=(dur||12)/12; if(yrs<=0)yrs=1; return Math.round(tot/yrs); }
+function fcAutoPotential(d){ return d>=2000?"High":(d>=500?"Medium":"Low"); }
+function fcWinnerText(p){ var parts=[]; ["MSL","MST","MCU"].forEach(function(g){ if(p.priceByGroup[g]) parts.push(g+": Mani-"+nf(p.priceByGroup[g])); }); return parts.join(" · ")||"Mani"; }
+function fcWinnerTextNew(o){ var parts=[]; ["MSL","MST","MCU"].forEach(function(g){ var w=o.winner[g]; if(w) parts.push(g+": "+w.brand+"-"+nf(w.price)); }); return parts.join(" · ")||"—"; }
 function fcNodeRevenue(node, win){
-  var ov = fcOverlap(node.startKey||win.fromKey, node.expKey||win.toKey, win.fromKey, win.toKey);
-  if(ov<=0) return {vnd:0, months:0, perMonthVND:0};
-  var dur = node.dur||12;
-  // SL × giá Mani theo nhóm → tổng cả hợp đồng, rồi phân bổ đều × tháng overlap
-  var totVND = (node.mst||0)*fcPriceOf("MST") + (node.msl||0)*fcPriceOf("MSL") + (node.mcu||0)*fcPriceOf("MCU");
-  var perMonth = totVND / dur;
-  return { vnd: perMonth*ov, months:ov, perMonthVND:perMonth };
+  var ov=fcOverlap(node.startKey||win.fromKey, node.expKey||win.toKey, win.fromKey, win.toKey);
+  var dur=node.dur||12;
+  var totVND=(node.mst||0)*fcPriceOf("MST")+(node.msl||0)*fcPriceOf("MSL")+(node.mcu||0)*fcPriceOf("MCU");
+  var perMonth=totVND/dur;
+  return { vnd: ov>0?perMonth*ov:0, months:ov, perMonthVND:perMonth, contractVND:totVND };
 }
 
-/* ══════════════════════════════════════════════════════════════════════════════════════════
- *  RENDER
- * ══════════════════════════════════════════════════════════════════════════════════════════ */
+/* ════ BANNER ════ */
+function fcBannerItems(){
+  var now=fcNowKey(); var items=[]; var seenExp={};
+  ["ICARE","HUNGVI"].forEach(function(k){
+    var arr=NPP_FEED[k]; if(!arr) return;
+    var pkg={};
+    arr.forEach(function(r0){
+      var r=fcNormNPP(r0,k); var pk=(r.tbmt||("H:"+r.hospital));
+      if(!pkg[pk]) pkg[pk]={hospital:r.hospital,expKey:0,results:{},qty:0};
+      if(r.expKey>pkg[pk].expKey) pkg[pk].expKey=r.expKey;
+      pkg[pk].results[r.result]=(pkg[pk].results[r.result]||0)+1; pkg[pk].qty+=r.qty;
+    });
+    Object.keys(pkg).forEach(function(pk){
+      var p=pkg[pk];
+      if(p.results["Win"] && p.expKey){
+        var left=fcMonthsBetween(now,p.expKey);
+        if(left>0 && left<=3){ var kk=p.hospital+"|"+p.expKey; if(!seenExp[kk]){ seenExp[kk]=1; items.push({type:"exp",left:left,name:p.hospital}); } }
+      }
+    });
+  });
+  ["ICARE","HUNGVI"].forEach(function(k){
+    var arr=NPP_FEED[k]; if(!arr) return;
+    var pkg={};
+    arr.forEach(function(r0){
+      var r=fcNormNPP(r0,k); if(r.startKey!==now) return;
+      var pk=(r.tbmt||("H:"+r.hospital))+"|"+r.result;
+      if(!pkg[pk]) pkg[pk]={hospital:r.hospital,result:r.result,qty:0};
+      pkg[pk].qty+=r.qty;
+    });
+    Object.keys(pkg).forEach(function(pk){
+      var p=pkg[pk];
+      if(p.result==="Win") items.push({type:"win",name:p.hospital,qty:p.qty});
+      else if(p.result==="Fail") items.push({type:"lose",name:p.hospital,qty:p.qty});
+    });
+  });
+  items.sort(function(a,b){ var pr={exp:0,win:1,lose:1}; if(pr[a.type]!==pr[b.type]) return pr[a.type]-pr[b.type]; return (a.left||0)-(b.left||0); });
+  return items;
+}
+function fcBannerHTML(){
+  var items=fcBannerItems(); if(!items.length) return "";
+  var seg=items.map(function(it){
+    if(it.type==="exp"){ var cls=it.left<=1?"crit":(it.left<=2?"warn":"soft");
+      return '<span class="fc-mq-item '+cls+'"><span class="fc-mq-ic">⏳</span>'+esc(it.name)+': '+t("fc.ban.left")+' <b>'+it.left+' '+t("fc.months")+'</b></span>'; }
+    if(it.type==="win"){ return '<span class="fc-mq-item win"><span class="fc-mq-ic">✅</span>'+esc(it.name)+': <b>'+t("fc.ban.win")+' '+nf(it.qty)+' '+t("fc.ban.pcs")+'</b></span>'; }
+    return '<span class="fc-mq-item lose"><span class="fc-mq-ic">❌</span>'+esc(it.name)+': <b>'+t("fc.ban.lose")+' '+nf(it.qty)+' '+t("fc.ban.pcs")+'</b></span>';
+  }).join('<span class="fc-mq-sep">•</span>');
+  var track=seg+'<span class="fc-mq-sep">•</span>'+seg;
+  var dur=Math.max(24, items.length*6);
+  return '<div class="fc-marquee"><div class="fc-mq-tag">📣</div>'
+    +'<div class="fc-mq-view"><div class="fc-mq-track" style="animation-duration:'+dur+'s">'+track+'</div></div></div>';
+}
+
+/* ════ RENDER ════ */
 function renderFC(){
   fcRenderCtrl();
-  // đảm bảo NPP đã load
   if(!NPP_FEED.loaded){
-    document.getElementById("fc-body").innerHTML =
-      '<div class="emptynote" style="margin:20px 0">'+t("fc.loadingNPP")+'</div>';
+    document.getElementById("fc-body").innerHTML='<div class="emptynote" style="margin:20px 0">'+t("fc.loadingNPP")+'</div>';
     fcLoadNPP().then(function(){ if(S.tab==="fc") renderFC(); });
     return;
   }
-
-  var B = fcBuild(), win = B.win;
-  document.getElementById("fc-name").textContent = win.label + " · " +
+  var B=fcBuild(), win=B.win;
+  document.getElementById("fc-name").textContent=win.label+" · "+
     (S.fc.region==="ALL"?t("fc.allRegions"):(S.fc.region==="North"?t("region.North"):S.fc.region==="South"?t("region.South"):S.fc.region));
 
-  /* nhóm hiển thị theo filter */
-  var groups = [
-    {k:"existing", nm:t("fc.g.existing"), col:"#2E7D32", nodes:B.existing},
-    {k:"pending",  nm:t("fc.g.pending"),  col:"#F57C00", nodes:B.pending},
-    {k:"remaining",nm:t("fc.g.remaining"),col:"#5B7DB1", nodes:B.remaining},
-    {k:"new",      nm:t("fc.g.new"),      col:"#8E44AD", nodes:B.newConvert}
-  ];
-  var showGroups = groups.filter(function(g){ return S.fc.group==="all" || S.fc.group===g.k; });
-
-  /* lọc potential + tính tổng doanh số */
-  function potOK(n){ return S.fc.potential==="all" || n.potential===S.fc.potential; }
-  var grandVND=0, cntPkg=0;
-  showGroups.forEach(function(g){
-    g.nodes = g.nodes.filter(potOK);
-    g.nodes.forEach(function(n){
-      n._rev = fcNodeRevenue(n, win);
-      grandVND += n._rev.vnd;
-      if(n._rev.months>0) cntPkg++;
-    });
-    // ẩn dòng trắng: chỉ giữ node có doanh số > 0 trong kỳ (khi lọc theo kỳ)
-    g.nodesVisible = g.nodes.filter(function(n){ return n._rev.months>0 && n._rev.vnd>0; });
+  var q=norm(S.fc.q||"");
+  var nodes=B.nodes.filter(function(n){
+    if(S.fc.group!=="all" && n.group!==S.fc.group) return false;
+    if(S.fc.potential!=="all" && n.potential!==S.fc.potential) return false;
+    n._rev=fcNodeRevenue(n,win);
+    if(n._rev.months<=0 || n._rev.vnd<=0) return false;
+    if(q){ var hay=norm((n.account||"")+" "+(n.prov||"")+" "+(n.tbmt||"")); if(hay.indexOf(q)<0) return false; }
+    return true;
   });
 
-  /* ── HERO: EXPECTED REVENUE in đậm ── */
-  var H = '';
-  H += '<div class="fc-hero reveal in">'
-     + '<div class="fc-hero-l"><div class="fc-hero-lbl">'+t("fc.expected")+'</div>'
-     +   '<div class="fc-hero-val">'+fcMoneyUSD(grandVND)+'</div>'
-     +   '<div class="fc-hero-sub">'+fcMoneyVND(grandVND)+' · '+win.label+' · '+cntPkg+' '+t("fc.pkgs")+'</div></div>'
-     + '<div class="fc-hero-r">'+fcPriceFxPanel()+'</div>'
-     + '</div>';
+  var grandVND=nodes.reduce(function(s,n){return s+n._rev.vnd;},0);
+  var byGroupVND={existing:0,pending:0,remaining:0,new:0}, byGroupCnt={existing:0,pending:0,remaining:0,new:0};
+  nodes.forEach(function(n){ byGroupVND[n.group]+=n._rev.vnd; byGroupCnt[n.group]++; });
 
-  /* ── mỗi nhóm: bảng editable + Gantt ── */
-  showGroups.forEach(function(g){
-    H += fcGroupBlock(g, win);
-  });
+  var H="";
+  H+=fcBannerHTML();
+  H+='<div class="fc-hero reveal in">'
+    +'<div class="fc-hero-l"><div class="fc-hero-lbl">'+t("fc.expected")+'</div>'
+    +  '<div class="fc-hero-val">'+fcMoneyUSD(grandVND)+'</div>'
+    +  '<div class="fc-hero-sub">'+fcMoneyVND(grandVND)+' · '+win.label+' · '+nodes.length+' '+t("fc.pkgs")+'</div></div>'
+    +'<div class="fc-hero-r">'+fcPriceFxPanel()+'</div></div>';
 
-  document.getElementById("fc-body").innerHTML = H;
+  H+='<div class="card reveal fc-gantt-card">'
+    +'<div class="ch"><div><div class="ct">'+t("fc.gantt")+'</div><div class="cs">'+t("fc.ganttSub")+'</div></div>'
+    +'<div class="fc-gantt-total">'+t("fc.total")+' <b>'+fcMoneyUSD(grandVND)+'</b></div></div>'
+    +'<div class="cb">'+fcLegend(byGroupVND,byGroupCnt)
+    +'<div class="fc-gantt-scroll"><div class="fc-gantt-wrap"><canvas id="c-fc-gantt"></canvas></div></div></div></div>';
 
-  /* vẽ Gantt cho từng nhóm hiển thị */
-  showGroups.forEach(function(g){
-    if(g.nodesVisible.length) fcDrawGantt(g, win);
-  });
+  H+=fcTable(nodes, win);
 
+  document.getElementById("fc-body").innerHTML=H;
+  if(nodes.length) fcDrawGantt(nodes, win);
   afterRender("sec-fc");
 }
 
-/* ── Controls sidebar ── */
-function fcRenderCtrl(){
-  var fys = buildFyList(), sel = fcFY();
-  var fyChips = fys.map(function(fy){
-    var on = sel.indexOf(fy)>=0;
-    return '<button class="chip '+(on?"on":"")+'" onclick="fcToggleFY(\''+fy+'\',event)" title="'+t("fc.selectFY")+'">'+fy+'</button>';
+function fcLegend(byG, byC){
+  var GN=FC_GNAME(); var order=["existing","pending","remaining","new"];
+  var chips=order.map(function(g){
+    var act=(S.fc.group==="all"||S.fc.group===g);
+    return '<button class="fc-lg '+(act?"":"off")+'" onclick="fcToggleGroup(\''+g+'\')" style="--gc:'+FC_GCOL[g]+'">'
+      +'<span class="fc-lg-dot"></span><span class="fc-lg-nm">'+esc(GN[g])+'</span>'
+      +'<span class="fc-lg-val">'+fcMoneyUSD(byG[g]||0)+'</span>'
+      +'<span class="fc-lg-cnt">'+(byC[g]||0)+' '+t("fc.pkgs")+'</span></button>';
   }).join("");
-  var regs = ["ALL"].concat(REGIONS);
-  var regChips = regs.map(function(rg){
-    var lbl = rg==="ALL"?t("fc.allRegions"):(rg==="North"?t("region.North"):rg==="South"?t("region.South"):rg);
+  return '<div class="fc-legend">'+chips+'</div>';
+}
+function fcToggleGroup(g){ S.fc.group=(S.fc.group===g?"all":g); renderFC(); }
+
+function fcRenderCtrl(){
+  var fys=fcFyListExtended(), sel=fcFY();
+  var base=buildFyList(); var baseSet={}; base.forEach(function(f){baseSet[f]=1;});
+  var fyChips=fys.map(function(fy){
+    var on=sel.indexOf(fy)>=0; var future=!baseSet[fy];
+    return '<button class="chip '+(on?"on":"")+(future?" fut":"")+'" onclick="fcToggleFY(\''+fy+'\',event)" title="'+t("fc.selectFY")+'">'+fy+(future?" ✦":"")+'</button>';
+  }).join("");
+  var regs=["ALL"].concat(typeof REGIONS!=="undefined"?REGIONS:["South","North"]);
+  var regChips=regs.map(function(rg){
+    var lbl=rg==="ALL"?t("fc.allRegions"):(rg==="North"?t("region.North"):rg==="South"?t("region.South"):rg);
     return '<button class="chip '+(S.fc.region===rg?"on":"")+'" onclick="S.fc.region=\''+rg+'\';renderFC()">'+esc(lbl)+'</button>';
   }).join("");
-  var grps = [["all",t("fc.allGroups")],["existing",t("fc.g.existing")],["pending",t("fc.g.pending")],["remaining",t("fc.g.remaining")],["new",t("fc.g.new")]];
-  var grpChips = grps.map(function(x){ return '<button class="chip '+(S.fc.group===x[0]?"on":"")+'" onclick="S.fc.group=\''+x[0]+'\';renderFC()">'+esc(x[1])+'</button>'; }).join("");
-  var pots = [["all",t("fc.allGroups")],["High",t("fc.high")],["Medium",t("fc.mid")],["Low",t("fc.low")]];
-  var potChips = pots.map(function(x){ return '<button class="chip '+(S.fc.potential===x[0]?"on":"")+'" onclick="S.fc.potential=\''+x[0]+'\';renderFC()">'+esc(x[1])+'</button>'; }).join("");
-
-  document.getElementById("fc-ctrl").innerHTML =
-      '<span class="cl">'+t("fc.window")+' · '+t("sw.fy")+'</span><div class="sb-side">'+fyChips+'</div>'
-    + '<div class="divx" style="width:auto;height:1px;background:var(--br);margin:8px 2px"></div>'
-    + '<span class="cl">'+t("fc.group")+'</span><div class="sb-side">'+grpChips+'</div>'
+  var pots=[["all",t("fc.allGroups")],["High",t("fc.high")],["Medium",t("fc.mid")],["Low",t("fc.low")]];
+  var potChips=pots.map(function(x){ return '<button class="chip '+(S.fc.potential===x[0]?"on":"")+'" onclick="S.fc.potential=\''+x[0]+'\';renderFC()">'+esc(x[1])+'</button>'; }).join("");
+  document.getElementById("fc-ctrl").innerHTML=
+      '<span class="cl">'+t("fc.window")+'</span><div class="sb-side">'+fyChips+'</div>'
     + '<div class="divx" style="width:auto;height:1px;background:var(--br);margin:8px 2px"></div>'
     + '<span class="cl">'+t("fc.region")+'</span><div class="sb-side">'+regChips+'</div>'
     + '<div class="divx" style="width:auto;height:1px;background:var(--br);margin:8px 2px"></div>'
@@ -4805,236 +4820,183 @@ function fcRenderCtrl(){
     + '<button class="chip" onclick="fcExportExcel()" style="background:rgba(255,225,0,.14);border-color:rgba(255,225,0,.5);color:#B8860B;font-weight:800">📥 '+t("fc.export")+'</button>';
 }
 function fcToggleFY(fy, ev){
-  var multi = ev && (ev.shiftKey||ev.ctrlKey||ev.metaKey);
-  if(multi){
-    if(!S.fc.fys.length) S.fc.fys = fcFY();
-    var i = S.fc.fys.indexOf(fy);
-    if(i>=0) S.fc.fys.splice(i,1); else S.fc.fys.push(fy);
-    if(!S.fc.fys.length) S.fc.fys=[fy];
-  } else S.fc.fys=[fy];
+  var multi=ev&&(ev.shiftKey||ev.ctrlKey||ev.metaKey);
+  if(multi){ if(!S.fc.fys.length) S.fc.fys=fcFY(); var i=S.fc.fys.indexOf(fy); if(i>=0) S.fc.fys.splice(i,1); else S.fc.fys.push(fy); if(!S.fc.fys.length) S.fc.fys=[fy]; }
+  else S.fc.fys=[fy];
   renderFC();
 }
 
-/* ── Panel giá + tỉ giá ── */
 function fcPriceFxPanel(){
-  function inp(key,label){
-    return '<div class="fc-pin"><span class="fc-pin-l">'+label+'</span>'
-      + '<input type="text" value="'+nf(S.fc.price[key])+'" onchange="fcSetPrice(\''+key+'\',this.value)" onfocus="this.select()" class="fc-pin-i">'
-      + '<span class="fc-pin-u">'+t("fc.perpc")+'</span></div>';
-  }
-  return '<div class="fc-price-grid">'
-    + '<div class="fc-pin-h">⚙ '+t("fc.price")+'</div>'
-    + inp("MSL",t("fc.msl")) + inp("MST",t("fc.mst")) + inp("MCU",t("fc.mcu"))
-    + '<div class="fc-pin fx"><span class="fc-pin-l">'+t("fc.fx")+'</span>'
-    +   '<input type="text" value="'+nf(S.fc.fxFC)+'" onchange="fcSetFx(this.value)" onfocus="this.select()" class="fc-pin-i">'
-    +   '<span class="fc-pin-u">₫/$</span></div>'
-    + '</div>';
+  function inp(key,label){ return '<div class="fc-pin"><span class="fc-pin-l">'+label+'</span>'
+    +'<input type="text" value="'+nf(S.fc.price[key])+'" onchange="fcSetPrice(\''+key+'\',this.value)" onfocus="this.select()" class="fc-pin-i">'
+    +'<span class="fc-pin-u">'+t("fc.perpc")+'</span></div>'; }
+  return '<div class="fc-price-grid"><div class="fc-pin-h">⚙ '+t("fc.price")+'</div>'
+    +inp("MSL",t("fc.msl"))+inp("MST",t("fc.mst"))+inp("MCU",t("fc.mcu"))
+    +'<div class="fc-pin fx"><span class="fc-pin-l">'+t("fc.fx")+'</span>'
+    +'<input type="text" value="'+nf(S.fc.fxFC)+'" onchange="fcSetFx(this.value)" onfocus="this.select()" class="fc-pin-i">'
+    +'<span class="fc-pin-u">₫/$</span></div></div>';
 }
 function fcSetPrice(k,v){ var n=+String(v).replace(/[^\d]/g,""); if(!isFinite(n)||n<0)n=0; S.fc.price[k]=n; try{localStorage.setItem("mmh_fc_price2",JSON.stringify(S.fc.price));}catch(e){} renderFC(); }
 function fcSetFx(v){ var n=+String(v).replace(/[^\d]/g,""); if(!isFinite(n)||n<=0)n=26400; S.fc.fxFC=n; try{localStorage.setItem("mmh_fc_fx",String(n));}catch(e){} renderFC(); }
 
-/* ── 1 khối nhóm: bảng editable + Gantt ── */
-function fcGroupBlock(g, win){
-  var editable = (g.k!=="existing");
-  var potColor = {High:"#C0392B",Medium:"#F57C00",Low:"#5B7DB1"};
-  var rows = g.nodesVisible.map(function(n){
-    var pd = potColor[n.potential]||"#5B7DB1";
-    var rk = esc(n.rowKey).replace(/'/g,"\\'");
-    var expStr = n.expKey? fcKeyToMoStr(n.expKey):"—";
-    var mst = editable
-      ? '<input class="fc-cell-i" value="'+nf(n.mst)+'" onchange="fcEdit(\''+rk+'\',\'mst\',this.value)">'
-      : nf(n.mst);
-    var msl = editable
-      ? '<input class="fc-cell-i" value="'+nf(n.msl)+'" onchange="fcEdit(\''+rk+'\',\'msl\',this.value)">'
-      : nf(n.msl);
-    var mcu = editable
-      ? '<input class="fc-cell-i" value="'+nf(n.mcu)+'" onchange="fcEdit(\''+rk+'\',\'mcu\',this.value)">'
-      : nf(n.mcu);
-    // Existing/pending/remaining/new: cột editable riêng
-    var potSel = editable
+/* ── BẢNG (bỏ Support need) + smart search ── */
+function fcTable(nodes, win){
+  var GN=FC_GNAME(); var potColor={High:"#C0392B",Medium:"#F57C00",Low:"#5B7DB1"};
+  var order={existing:0,pending:1,remaining:2,new:3};
+  nodes=nodes.slice().sort(function(a,b){ if(order[a.group]!==order[b.group]) return order[a.group]-order[b.group]; return b._rev.vnd-a._rev.vnd; });
+
+  var rows=nodes.map(function(n){
+    var editable=(n.group!=="existing"); var pd=potColor[n.potential]||"#5B7DB1";
+    var rk=esc(n.rowKey).replace(/'/g,"\\'");
+    var gtag='<span class="fc-gtag" style="background:'+FC_GCOL[n.group]+'1A;color:'+FC_GCOL[n.group]+'">'+esc(GN[n.group])+'</span>';
+    var mst=editable?'<input class="fc-cell-i" value="'+nf(n.mst)+'" onchange="fcEdit(\''+rk+'\',\'mst\',this.value)">':nf(n.mst);
+    var msl=editable?'<input class="fc-cell-i" value="'+nf(n.msl)+'" onchange="fcEdit(\''+rk+'\',\'msl\',this.value)">':nf(n.msl);
+    var mcu=editable?'<input class="fc-cell-i" value="'+nf(n.mcu)+'" onchange="fcEdit(\''+rk+'\',\'mcu\',this.value)">':nf(n.mcu);
+    var potSel=editable
       ? '<select class="fc-pot-sel" style="color:'+pd+'" onchange="fcEdit(\''+rk+'\',\'potential\',this.value)">'
-        + ['High','Medium','Low'].map(function(p){return '<option value="'+p+'"'+(n.potential===p?" selected":"")+'>'+t("fc."+(p==="High"?"high":p==="Medium"?"mid":"low"))+'</option>';}).join("")
-        + '</select>'
+        +['High','Medium','Low'].map(function(p){return '<option value="'+p+'"'+(n.potential===p?" selected":"")+'>'+t("fc."+(p==="High"?"high":p==="Medium"?"mid":"low"))+'</option>';}).join("")+'</select>'
       : '<span class="fc-pot-tag" style="background:'+pd+'22;color:'+pd+'">'+t("fc."+(n.potential==="High"?"high":n.potential==="Medium"?"mid":"low"))+'</span>';
-    var support = '<input class="fc-cell-i txt" value="'+esc(n.support)+'" placeholder="…" onchange="fcEdit(\''+rk+'\',\'support\',this.value)">';
-    var expCell, durCell, resMoCell="";
-    if(g.k==="existing"){
-      expCell = '<span class="fc-fix">'+expStr+'</span>';
-      durCell = '<span class="fc-fix">'+n.dur+' '+t("fc.months")+'</span>';
-    } else if(g.k==="pending"){
-      resMoCell = fcMonthBtn(n.rowKey,"resultMonth", n.resultMonth||fcKeyToMoStr(win.fromKey));
-      expCell = '<span class="fc-fix">'+expStr+'</span>';
-      durCell = '<input class="fc-cell-i sm" value="'+n.dur+'" onchange="fcEdit(\''+rk+'\',\'dur\',this.value)">';
-    } else {
-      expCell = fcMonthBtn(n.rowKey,"expMonth", n.expKey?fcKeyToMoStr(n.startKey):"");
-      durCell = '<input class="fc-cell-i sm" value="'+n.dur+'" onchange="fcEdit(\''+rk+'\',\'dur\',this.value)">';
-    }
+    var expCell,durCell,resMoCell;
+    if(n.group==="existing"){ expCell='<span class="fc-fix">'+fcKeyToMoStr(n.expKey)+'</span>'; durCell='<span class="fc-fix">'+n.dur+' '+t("fc.months")+'</span>'; resMoCell="<span class='fc-dash'>—</span>"; }
+    else if(n.group==="pending"){ resMoCell=fcMonthBtn(n.rowKey,"resultMonth",n.resultMonth||fcKeyToMoStr(win.fromKey)); expCell='<span class="fc-fix">'+fcKeyToMoStr(n.expKey)+'</span>'; durCell='<input class="fc-cell-i sm" value="'+n.dur+'" onchange="fcEdit(\''+rk+'\',\'dur\',this.value)">'; }
+    else { expCell=fcMonthBtn(n.rowKey,"expMonth",n.expKey?fcKeyToMoStr(n.startKey):""); durCell='<input class="fc-cell-i sm" value="'+n.dur+'" onchange="fcEdit(\''+rk+'\',\'dur\',this.value)">'; resMoCell="<span class='fc-dash'>—</span>"; }
     return "<tr class='fc-row'>"
-      + "<td class='tl fc-acct' title='"+esc(n.account)+"'>"+esc(n.account)+"<div class='fc-prov'>"+esc(n.prov||"")+(n.tbmt?" · "+esc(n.tbmt):"")+"</div></td>"
-      + "<td>"+potSel+"</td>"
-      + "<td class='tl'>"+support+"</td>"
-      + "<td>"+nf(n.demandY)+"</td>"
-      + "<td class='tl fc-winner'>"+esc(n.winnerTxt)+"</td>"
-      + (g.k==="pending" ? "<td>"+resMoCell+"</td>" : "")
-      + "<td>"+expCell+"</td><td>"+durCell+"</td>"
-      + "<td>"+mst+"</td><td>"+msl+"</td><td>"+mcu+"</td>"
-      + "<td><b style='color:var(--pos)'>"+fcMoneyUSD(n._rev.vnd)+"</b><div class='fc-permo'>"+fcMoneyUSD(n._rev.perMonthVND)+t("fc.perMonth")+"</div></td>"
-      + "</tr>";
+      +"<td class='tl fc-acct' title='"+esc(n.account)+"'>"+gtag+"<div class='fc-acct-nm'>"+esc(n.account)+"</div><div class='fc-prov'>"+esc(n.prov||"")+(n.tbmt?" · "+esc(n.tbmt):"")+"</div></td>"
+      +"<td>"+potSel+"</td>"
+      +"<td>"+nf(n.demandY)+"</td>"
+      +"<td class='tl fc-winner'>"+esc(n.winnerTxt)+"</td>"
+      +"<td>"+resMoCell+"</td>"
+      +"<td>"+expCell+"</td><td>"+durCell+"</td>"
+      +"<td>"+mst+"</td><td>"+msl+"</td><td>"+mcu+"</td>"
+      +"<td><b style='color:var(--pos)'>"+fcMoneyUSD(n._rev.vnd)+"</b><div class='fc-permo'>"+fcMoneyUSD(n._rev.perMonthVND)+t("fc.perMonth")+"</div></td>"
+      +"</tr>";
   }).join("");
 
-  var totVND = g.nodesVisible.reduce(function(s,n){return s+n._rev.vnd;},0);
-  var extraTh = g.k==="pending" ? "<th>"+t("fc.resultMonth")+"</th>" : "";
-  var editBadge = editable ? " <span class='fc-edit-badge'>✎ "+t("fc.editHint")+"</span>" : "";
+  var searchBar='<div class="fc-search"><span class="fc-search-ic">🔍</span>'
+    +'<input id="fc-search-in" class="fc-search-in" placeholder="'+t("fc.search")+'" value="'+esc(S.fc.q)+'" oninput="fcSearch(this.value)">'
+    +(S.fc.q? '<button class="fc-search-clr" onclick="fcSearch(\'\')">'+t("fc.clear")+'</button>':'')+'</div>';
 
-  return '<div class="card reveal fc-gcard" style="border-top:4px solid '+g.col+'">'
-    + '<div class="ch" style="background:'+g.col+'0F"><div class="ct" style="color:'+g.col+'">'+g.nm+editBadge+'</div>'
-    +   '<div class="cs">'+g.nodesVisible.length+' '+t("fc.pkgs")+' · '+fcMoneyUSD(totVND)+'</div></div>'
-    + '<div class="cb" style="padding:0"><div class="tw"><table class="fc-tbl">'
-    +   '<thead><tr><th class="tl">'+t("fc.acct")+'</th><th>'+t("fc.potential")+'</th><th class="tl">'+t("fc.support")+'</th>'
-    +     '<th>'+t("fc.demandY")+'</th><th class="tl">'+t("fc.winner")+'</th>'+extraTh
-    +     '<th>'+t("fc.exp")+'</th><th>'+t("fc.dur")+'</th>'
-    +     '<th>'+t("fc.mst")+'</th><th>'+t("fc.msl")+'</th><th>'+t("fc.mcu")+'</th><th>'+t("fc.expected")+'</th></tr></thead>'
-    +   '<tbody>'+(rows||("<tr><td colspan='12' class='tl' style='text-align:center;color:var(--t3);padding:20px'>"+t("fc.noRow")+"</td></tr>"))+'</tbody>'
-    +   '</table></div>'
-    + '<div style="padding:12px 16px 4px"><div class="ct" style="font-size:12px;margin-bottom:6px">'+t("fc.gantt")+'</div>'
-    +   '<div class="fc-gantt-wrap"><canvas id="c-fc-gantt-'+g.k+'"></canvas></div></div>'
-    + '</div></div>';
+  return '<div class="card reveal fc-table-card">'
+    +'<div class="ch"><div class="ct">'+t("fc.tableTitle")+'</div><div class="cs">'+t("fc.showing")+' '+nodes.length+' '+t("fc.pkgs")+'</div></div>'
+    +'<div class="cb" style="padding:14px 16px 0">'+searchBar+'</div>'
+    +'<div class="cb" style="padding:8px 0 0"><div class="tw"><table class="fc-tbl">'
+    +'<thead><tr><th class="tl">'+t("fc.acct")+'</th><th>'+t("fc.potential")+'</th>'
+    +'<th>'+t("fc.demandY")+'</th><th class="tl">'+t("fc.winner")+'</th>'
+    +'<th>'+t("fc.resultMonth")+'</th><th>'+t("fc.exp")+'</th><th>'+t("fc.dur")+'</th>'
+    +'<th>'+t("fc.mst")+'</th><th>'+t("fc.msl")+'</th><th>'+t("fc.mcu")+'</th><th>'+t("fc.expected")+'</th></tr></thead>'
+    +'<tbody>'+(rows||("<tr><td colspan='11' style='text-align:center;color:var(--t3);padding:22px'>"+t("fc.noRow")+"</td></tr>"))+'</tbody>'
+    +'</table></div></div></div>';
 }
-
-/* month picker button dùng lại _mpk từ core */
+var _fcSearchT=null;
+function fcSearch(v){
+  S.fc.q=v;
+  if(_fcSearchT) clearTimeout(_fcSearchT);
+  _fcSearchT=setTimeout(function(){
+    renderFC();
+    var el=document.getElementById("fc-search-in");
+    if(el){ el.focus(); var L=el.value.length; try{el.setSelectionRange(L,L);}catch(e){} }
+  },160);
+}
 function fcMonthBtn(rowKey, field, value){
-  var id = "mp-fc-"+field+"-"+Math.abs(hashCode(rowKey));
-  var minMo = MONTHS_SORTED[0] || "01/2023";
-  // max xa 3 năm
-  var lastK = MONTHS_SORTED.length? moKey(MONTHS_SORTED[MONTHS_SORTED.length-1]):202608;
-  var maxK = fcAddMonths(lastK, 36); var maxMo = fcKeyToMoStr(maxK);
-  var rk = esc(rowKey).replace(/'/g,"\\'");
+  var minMo=(typeof MONTHS_SORTED!=="undefined"&&MONTHS_SORTED.length)?MONTHS_SORTED[0]:"01/2023";
+  var lastK=(typeof MONTHS_SORTED!=="undefined"&&MONTHS_SORTED.length)?fcMoStrToKey(MONTHS_SORTED[MONTHS_SORTED.length-1]):202608;
+  var maxMo=fcKeyToMoStr(fcAddMonths(lastK,48));
+  var rk=esc(rowKey).replace(/'/g,"\\'");
   return '<button class="mp-btn sm" data-min="'+minMo+'" data-max="'+maxMo+'" data-value="'+(value||"")+'" '
-    + 'onclick="openMpick(this,{value:this.dataset.value,min:this.dataset.min,max:this.dataset.max,onPick:function(mo){fcEdit(\''+rk+'\',\''+field+'\',mo);}})">'
-    + '<span class="ic">📅</span><span>'+(value?moToBtnLabel(value):"—")+'</span></button>';
+    +'onclick="openMpick(this,{value:this.dataset.value,min:this.dataset.min,max:this.dataset.max,onPick:function(mo){fcEdit(\''+rk+'\',\''+field+'\',mo);}})">'
+    +'<span class="ic">📅</span><span>'+(value?(typeof moToBtnLabel==="function"?moToBtnLabel(value):value):"—")+'</span></button>';
 }
-function hashCode(s){ var h=0; for(var i=0;i<s.length;i++) h=(h*31+s.charCodeAt(i))>>>0; return h; }
-
-/* Áp 1 chỉnh sửa vào edits → re-render (live) */
 function fcEdit(rowKey, field, val){
   if(!S.fc.edits[rowKey]) S.fc.edits[rowKey]={};
-  if(field==="mst"||field==="msl"||field==="dur"||field==="mcu"){
-    var n=+String(val).replace(/[^\d]/g,""); if(!isFinite(n))n=0; S.fc.edits[rowKey][field]=n;
-  } else {
-    S.fc.edits[rowKey][field]=val;
-  }
+  if(field==="mst"||field==="msl"||field==="mcu"||field==="dur"){ var n=+String(val).replace(/[^\d]/g,""); if(!isFinite(n))n=0; S.fc.edits[rowKey][field]=n; }
+  else S.fc.edits[rowKey][field]=val;
   renderFC();
 }
 
-/* ══════════════════════════════════════════════════════════════════════════════════════════
- *  GANTT (bôi màu theo hiệu lực + nhãn doanh số $/tháng)
- * ══════════════════════════════════════════════════════════════════════════════════════════ */
-function fcDrawGantt(g, win){
-  var id = "c-fc-gantt-"+g.k;
-  if(S.fc.charts[id]){ try{S.fc.charts[id].destroy();}catch(e){} delete S.fc.charts[id]; }
-  var el = document.getElementById(id); if(!el) return;
-
-  var months = win.months;                                  // trục X
-  var labels = months.map(fcMonthKeyToLabel);
-  var nodes  = g.nodesVisible.slice(0, 30);                 // giới hạn 30 dòng cho gọn
-
-  // mỗi node = 1 dataset dạng floating bar [startIdx, endIdx] trên trục Y (categorical)
-  var yLabels = nodes.map(function(n){ return (n.account.length>26?n.account.slice(0,25)+"…":n.account); });
-
-  // Chart.js horizontal floating bar: dùng {x:[from,to], y:label}
-  var barData = nodes.map(function(n, i){
-    var s = Math.max(fcKeyOrd(n.startKey||win.fromKey), fcKeyOrd(win.fromKey));
-    var e = Math.min(fcKeyOrd(n.expKey||win.toKey),   fcKeyOrd(win.toKey));
-    var sIdx = s - fcKeyOrd(win.fromKey);
-    var eIdx = e - fcKeyOrd(win.fromKey) + 1;               // +1 để phủ hết tháng cuối
-    return { x:[sIdx, eIdx], y:yLabels[i], node:n };
+/* ════ GANTT liền mạch, phân màu theo nhóm ════ */
+function fcDrawGantt(nodes, win){
+  var id="c-fc-gantt";
+  if(S.fc.chart){ try{S.fc.chart.destroy();}catch(e){} S.fc.chart=null; }
+  var el=document.getElementById(id); if(!el) return;
+  var order={existing:0,pending:1,remaining:2,new:3};
+  var arr=nodes.slice().sort(function(a,b){ if(order[a.group]!==order[b.group]) return order[a.group]-order[b.group]; return (a.expKey||0)-(b.expKey||0); });
+  arr=arr.slice(0,60);
+  var labels=arr.map(function(n){ return n.account.length>30?n.account.slice(0,29)+"…":n.account; });
+  var months=win.months; var xLabels=months.map(fcMonthKeyToLabel);
+  var barData=arr.map(function(n,idx){
+    var s=Math.max(fcKeyOrd(n.startKey||win.fromKey), fcKeyOrd(win.fromKey));
+    var e=Math.min(fcKeyOrd(n.expKey||win.toKey), fcKeyOrd(win.toKey));
+    return { x:[s-fcKeyOrd(win.fromKey), e-fcKeyOrd(win.fromKey)+1], y:labels[idx], node:n };
   });
+  var bg=arr.map(function(n){ return hexA(FC_GCOL[n.group], .62); });
+  var bd=arr.map(function(n){ return FC_GCOL[n.group]; });
 
-  S.fc.charts[id] = new Chart(el, {
+  S.fc.chart=new Chart(el,{
     type:"bar",
-    data:{ labels:yLabels, datasets:[{
-      label:g.nm, data:barData,
-      backgroundColor: hexA(g.col,.55), borderColor:g.col, borderWidth:1.5, borderRadius:5,
-      borderSkipped:false, barPercentage:.7,
-      parsing:{ xAxisKey:"x", yAxisKey:"y" },
-      datalabels:{
-        display:true, color:"#0F1E33", anchor:"center", align:"center", clamp:true,
-        font:{family:FF,size:10,weight:"800"},
-        formatter:function(v,ctx){ var n=barData[ctx.dataIndex].node; return n._rev.perMonthVND>0 ? fcMoneyUSD(n._rev.perMonthVND) : ""; }
-      }
+    data:{ labels:labels, datasets:[{
+      data:barData, backgroundColor:bg, borderColor:bd, borderWidth:1.5, borderRadius:6, borderSkipped:false, barPercentage:.78, categoryPercentage:.86,
+      parsing:{xAxisKey:"x",yAxisKey:"y"},
+      datalabels:{ display:true, color:"#0B1524", anchor:"center", align:"center", clamp:true, font:{family:FF,size:10.5,weight:"800"},
+        formatter:function(v,ctx){ var n=barData[ctx.dataIndex].node; return n._rev.vnd>0? fcMoneyUSD(n._rev.vnd):""; } }
     }]},
     options:{
-      indexAxis:"y", responsive:true, maintainAspectRatio:false, animation:{duration:700},
-      plugins:{
-        legend:{display:false}, datalabels:{},
-        tooltip:{ enabled:false, external:function(ctx){ chartTip(ctx, function(i){
-          var n = barData[i].node;
+      indexAxis:"y", responsive:true, maintainAspectRatio:false, animation:{duration:600},
+      plugins:{ legend:{display:false}, datalabels:{},
+        tooltip:{ enabled:false, external:function(ctx){ chartTip(ctx,function(i){
+          var n=barData[i].node; var GN=FC_GNAME();
           return { title:n.account, rows:[
+            {label:t("fc.group"), val:GN[n.group]},
             {label:t("fc.exp"), val:fcKeyToMoStr(n.expKey)},
             {label:t("fc.dur"), val:n.dur+" "+t("fc.months")},
             {label:"MST/MSL/MCU", val:nf(n.mst)+"/"+nf(n.msl)+"/"+nf(n.mcu)},
             {label:t("fc.expected")+"/"+t("fc.months"), val:fcMoneyUSD(n._rev.perMonthVND)},
             {label:t("fc.expected")+" ("+win.label+")", val:fcMoneyUSD(n._rev.vnd)}
           ], note:n.winnerTxt };
-        }); } }
-      },
+        }); } } },
       scales:{
-        x:{ min:0, max:months.length, position:"top",
-            grid:{color:gridColor()},
-            ticks:{ font:{family:FF,size:9}, color:axisColor(),
-              stepSize:1, callback:function(v){ return (v>=0 && v<labels.length)? labels[v] : ""; } } },
+        x:{ min:0, max:months.length, position:"top", grid:{color:gridColor()},
+            ticks:{font:{family:FF,size:9.5},color:axisColor(),autoSkip:true,maxTicksLimit:24,callback:function(v){ return (v>=0&&v<xLabels.length)?xLabels[v]:""; }} },
         y:{ grid:{display:false}, ticks:{font:{family:FF,size:10.5,weight:"700"},color:axisColor()} }
       },
-      layout:{padding:{top:4,right:10,left:4,bottom:4}}
+      layout:{padding:{top:6,right:14,left:4,bottom:4}}
     }
   });
-  // chiều cao động theo số dòng
-  el.parentNode.style.height = Math.max(140, nodes.length*34 + 40) + "px";
+  el.parentNode.style.height=Math.max(220, arr.length*38+46)+"px";
+  el.parentNode.style.minWidth=Math.max(720, months.length*54)+"px";
 }
 
-/* ══════════════════════════════════════════════════════════════════════════════════════════
- *  EXPORT EXCEL
- * ══════════════════════════════════════════════════════════════════════════════════════════ */
+/* ════ EXPORT ════ */
 function fcExportExcel(){
   if(typeof XLSX==="undefined"){ showToast(LANG==="vi"?"Thư viện Excel chưa tải":"Excel not loaded","warn"); return; }
-  var B = fcBuild(), win = B.win;
+  var B=fcBuild(), win=B.win; var GN=FC_GNAME();
   showToast(LANG==="vi"?"Đang tạo Excel…":"Building Excel…","load");
-  var groups = [["existing",B.existing],["pending",B.pending],["remaining",B.remaining],["new",B.newConvert]];
-  var gname = {existing:"Existing_Win",pending:"Pending",remaining:"Remaining",new:"New_Convert"};
-  var rows=[];
-  groups.forEach(function(gp){
-    gp[1].forEach(function(n){
-      n._rev = fcNodeRevenue(n, win);
-      if(n._rev.months<=0) return;
-      rows.push({
-        "Nhom": gname[gp[0]], "Account": n.account, "Tinh": n.prov, "TBMT": n.tbmt,
-        "KhuVuc": n.region==="South"?"Nam":(n.region==="North"?"Bac":n.region),
-        "KetQua": n.result, "Potential": n.potential, "Support need": n.support||"",
-        "Demand TB/nam": n.demandY,
-        "MST (pcs)": n.mst, "MSL (pcs)": n.msl, "MCU (pcs)": n.mcu,
-        "Het hieu luc": fcKeyToMoStr(n.expKey), "Hieu luc (thang)": n.dur,
-        "Thang overlap ky": n._rev.months,
-        "DS ky vong (VND)": Math.round(n._rev.vnd),
-        "DS ky vong ($)": Math.round(fcUSD(n._rev.vnd)),
-        "Hang trung gan nhat": n.winnerTxt
-      });
-    });
+  var q=norm(S.fc.q||""); var rows=[];
+  B.nodes.forEach(function(n){
+    if(S.fc.group!=="all"&&n.group!==S.fc.group) return;
+    if(S.fc.potential!=="all"&&n.potential!==S.fc.potential) return;
+    n._rev=fcNodeRevenue(n,win);
+    if(n._rev.months<=0||n._rev.vnd<=0) return;
+    if(q){ var hay=norm((n.account||"")+" "+(n.prov||"")+" "+(n.tbmt||"")); if(hay.indexOf(q)<0) return; }
+    rows.push({ "Nhom":GN[n.group],"Account":n.account,"Tinh":n.prov,"TBMT":n.tbmt,
+      "KhuVuc":n.region==="South"?"Nam":(n.region==="North"?"Bac":n.region),
+      "KetQua":n.result,"Potential":n.potential,"Demand TB/nam":n.demandY,
+      "MST (pcs)":n.mst,"MSL (pcs)":n.msl,"MCU (pcs)":n.mcu,
+      "Het hieu luc":fcKeyToMoStr(n.expKey),"Hieu luc (thang)":n.dur,"Thang overlap ky":n._rev.months,
+      "DS ky vong (VND)":Math.round(n._rev.vnd),"DS ky vong ($)":Math.round(fcUSD(n._rev.vnd)),"Hang trung gan nhat":n.winnerTxt });
   });
   try{
     var wb=XLSX.utils.book_new();
     var meta=[
-      {"Thong so":"Ky du bao","Gia tri":win.label},
-      {"Thong so":"Khu vuc","Gia tri":S.fc.region},
-      {"Thong so":"Gia MSL (VND)","Gia tri":S.fc.price.MSL},
-      {"Thong so":"Gia MST (VND)","Gia tri":S.fc.price.MST},
-      {"Thong so":"Gia MCU (VND)","Gia tri":S.fc.price.MCU},
-      {"Thong so":"Ti gia (VND/$)","Gia tri":S.fc.fxFC},
+      {"Thong so":"Ky du bao","Gia tri":win.label},{"Thong so":"Khu vuc","Gia tri":S.fc.region},
+      {"Thong so":"Tim kiem","Gia tri":S.fc.q||"(khong)"},
+      {"Thong so":"Gia MSL (VND)","Gia tri":S.fc.price.MSL},{"Thong so":"Gia MST (VND)","Gia tri":S.fc.price.MST},
+      {"Thong so":"Gia MCU (VND)","Gia tri":S.fc.price.MCU},{"Thong so":"Ti gia (VND/$)","Gia tri":S.fc.fxFC},
       {"Thong so":"Tong DS ky vong (VND)","Gia tri":Math.round(rows.reduce(function(s,r){return s+r["DS ky vong (VND)"];},0))}
     ];
-    var ws0=XLSX.utils.json_to_sheet(meta); ws0["!cols"]=[{wch:24},{wch:20}];
+    var ws0=XLSX.utils.json_to_sheet(meta); ws0["!cols"]=[{wch:24},{wch:22}];
     XLSX.utils.book_append_sheet(wb,ws0,"ThongTin");
     var ws1=XLSX.utils.json_to_sheet(rows);
-    ws1["!cols"]=[{wch:14},{wch:40},{wch:14},{wch:16},{wch:8},{wch:9},{wch:10},{wch:20},{wch:14},{wch:10},{wch:10},{wch:10},{wch:12},{wch:12},{wch:12},{wch:16},{wch:14},{wch:30}];
+    ws1["!cols"]=[{wch:14},{wch:40},{wch:14},{wch:16},{wch:8},{wch:9},{wch:10},{wch:14},{wch:10},{wch:10},{wch:10},{wch:12},{wch:12},{wch:12},{wch:16},{wch:14},{wch:30}];
     XLSX.utils.book_append_sheet(wb,ws1,"DuTru_TheoDoi");
     var fname=("MMH_DuTru_TheoDoi_Thau_"+win.label+".xlsx").replace(/[^\w.\-]+/g,"_");
     XLSX.writeFile(wb,fname);

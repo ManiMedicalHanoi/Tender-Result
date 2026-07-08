@@ -629,6 +629,46 @@ html[data-theme="dark"] .ss-drop{box-shadow:0 14px 42px rgba(0,0,0,.55);}
 .hbtn.gold{background:rgba(255,225,0,.18);border-color:rgba(255,225,0,.55);color:var(--yellow);font-weight:800;}
 .hbtn.gold:hover{background:var(--yellow);color:#003047;}
 .hbtn.gold:disabled{opacity:.6;cursor:wait;}
+/* ════ TAB 5 — Dự trù & Theo dõi thầu (v3) ════ */
+.fc-hero{display:grid;grid-template-columns:1.1fr 1.5fr;gap:16px;background:var(--sf);border:1px solid var(--br);border-radius:var(--r);box-shadow:var(--sh);padding:18px 20px;margin-bottom:16px;align-items:center;}
+@media(max-width:900px){.fc-hero{grid-template-columns:1fr;}}
+.fc-hero-l{display:flex;flex-direction:column;justify-content:center;border-left:5px solid var(--pos);padding-left:16px;}
+.fc-hero-lbl{font-size:12px;font-weight:900;letter-spacing:1.5px;color:var(--t3);text-transform:uppercase;}
+.fc-hero-val{font-size:44px;font-weight:900;color:var(--pos);letter-spacing:-1px;line-height:1.02;font-variant-numeric:tabular-nums;margin:2px 0;}
+html[data-theme="dark"] .fc-hero-val{color:#4ADE80;}
+.fc-hero-sub{font-size:12.5px;color:var(--t2);font-weight:600;}
+.fc-hero-r{min-width:0;}
+
+.fc-price-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.fc-pin-h{grid-column:1/-1;font-size:11px;font-weight:900;letter-spacing:.5px;color:var(--blue);text-transform:uppercase;margin-bottom:2px;}
+.fc-pin{display:flex;align-items:center;gap:7px;background:var(--sf2);border:1px solid var(--br);border-radius:9px;padding:7px 11px;}
+.fc-pin.fx{border-color:var(--yellow);background:rgba(255,225,0,.06);}
+.fc-pin-l{font-size:11.5px;font-weight:800;color:var(--t2);white-space:nowrap;flex:1;}
+.fc-pin-i{width:92px;padding:5px 8px;font-family:var(--ff);font-size:13.5px;font-weight:800;border:1.5px solid var(--br);border-radius:6px;color:var(--navy);background:var(--sf);font-variant-numeric:tabular-nums;text-align:right;outline:none;}
+html[data-theme="dark"] .fc-pin-i{color:var(--sky);}
+.fc-pin-i:focus{border-color:var(--blue);}
+.fc-pin-u{font-size:10px;color:var(--t3);font-weight:700;white-space:nowrap;}
+
+.fc-gcard{margin-bottom:16px;}
+.fc-edit-badge{font-size:10px;font-weight:800;background:rgba(58,92,170,.12);color:var(--blue);padding:2px 8px;border-radius:10px;margin-left:6px;vertical-align:middle;}
+.fc-tbl{font-size:12.5px;}
+.fc-tbl thead th{font-size:10px;padding:8px 9px;}
+.fc-tbl td{padding:6px 9px;vertical-align:middle;}
+.fc-row:hover{background:var(--pale);}
+.fc-acct{max-width:230px;overflow:hidden;text-overflow:ellipsis;font-weight:700;line-height:1.25;}
+.fc-prov{font-size:10px;color:var(--t3);font-weight:600;margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.fc-winner{font-size:11px;color:var(--t2);max-width:200px;white-space:normal;line-height:1.3;}
+.fc-cell-i{width:66px;padding:4px 6px;font-family:var(--ff);font-size:12.5px;font-weight:700;border:1.5px solid var(--br);border-radius:6px;color:var(--navy);background:var(--sf);text-align:right;outline:none;font-variant-numeric:tabular-nums;}
+html[data-theme="dark"] .fc-cell-i{color:var(--sky);}
+.fc-cell-i:focus{border-color:var(--blue);background:var(--pale);}
+.fc-cell-i.sm{width:44px;text-align:center;}
+.fc-cell-i.txt{width:130px;text-align:left;font-weight:600;}
+.fc-fix{font-weight:700;color:var(--t2);}
+.fc-permo{font-size:10px;color:var(--t3);font-weight:700;margin-top:1px;}
+.fc-pot-sel{font-family:var(--ff);font-size:11.5px;font-weight:800;border:1.5px solid var(--br);border-radius:7px;padding:4px 6px;background:var(--sf);cursor:pointer;outline:none;}
+.fc-pot-sel:focus{border-color:var(--blue);}
+.fc-pot-tag{font-size:11px;font-weight:800;padding:3px 9px;border-radius:12px;}
+.fc-gantt-wrap{position:relative;width:100%;min-height:140px;}
 </style>
 </head>
 <body>
@@ -4310,661 +4350,704 @@ function exportPPT(){
 </script>
 
 <script>
-/* ════════════════════════════════════════════════════════════════════
-   TAB 5 — FORECASTING vs FOLLOW-UP TENDER  (v2)
-   "Dự trù Doanh số & Theo dõi Thầu"
-   ════════════════════════════════════════════════════════════════════
-   Logic demand:
-   • Mỗi gói hiệu lực Decision Issue Date (issSer) → Expiration date (expSer).
-   • demand/tháng = Quantity / Contract Duration (0/trống → 12).
-   • Demand trong cửa sổ = demand/tháng × số tháng overlap.
-   • Value = demand_qty × awarded_unit_price.
-   v2:
-   • Bộ lọc khu vực (Region_by_Distributor: Nam/Bắc).
-   • Bảng "Doanh số kỳ vọng" + smart search theo chủ đầu tư ngay trên bảng.
-   • Panel giá compact 1 hàng.
-   • Multi-select nhiều chủ đầu tư → panel cộng dồn doanh số mục tiêu, tag bỏ chọn được.
-   • Panel địa bàn gọn: cardbox + tag brand trúng gần nhất + số lượng.
-   ════════════════════════════════════════════════════════════════════ */
+/* ════════════════════════════════════════════════════════════════════════════════════════════
+   TAB 5 — DỰ TRÙ & THEO DÕI THẦU  (v3 · Gantt 4 nhóm · nối 2 webapp NPP)
+   ────────────────────────────────────────────────────────────────────────────────────────────
+   Thay thế hoàn toàn Tab "Forecasting & Follow-up" cũ.
 
-/* ── i18n ── */
+   NGUỒN DỮ LIỆU
+     • ROWS            — tender tổng (đã có sẵn, dùng cho New/Convert & demand đối thủ).
+     • NPP_FEED.ICARE  — kết quả thầu NPP miền Nam  (fetch runtime từ URL hardcode).
+     • NPP_FEED.HUNGVI — kết quả thầu NPP miền Bắc  (fetch runtime từ URL hardcode).
+
+   4 NHÓM (Gantt bôi màu theo hiệu lực gói thầu):
+     ① Existing-Win   — NPP đã Win, hiệu lực kéo dài → doanh số chắc chắn (FIX, không sửa SL).
+     ② Pending        — NPP đang Pending → điền [Tháng ra KQ] + [Hiệu lực] → hiện DS dự kiến nếu trúng.
+     ③ Remaining      — gói Existing-Win sắp hết hạn trong kỳ → "duy trì" gói kế tiếp (editable Tháng/Hiệu lực/SL).
+     ④ New / Convert  — địa bàn hãng khác trúng (lấy từ tender tổng, loại các TBMT đã có ở NPP) → cơ hội chiếm (editable).
+
+   DOANH SỐ = Σ (SL loại dao × giá Mani bán cho NPP), quy đổi $ theo tỉ giá editable.
+   Chỉ tính phần THÁNG rơi vào FY được chọn (phân bổ đều theo tháng).
+   ════════════════════════════════════════════════════════════════════════════════════════════ */
+
+/* ── i18n bổ sung ── */
 (function(){
   var add = {
     en:{
       "nav.fc":"Forecasting & Follow-up",
       "sec.fc.title":"Forecasting & Follow-up Tender",
-      "sec.fc.sub":"Demand forecast (contract-weighted) · expected Mani revenue · live tender follow-up",
-      "fc.window":"Forecast window",
-      "fc.demandQty":"Total demand — Quantity",
-      "fc.demandVal":"Total demand — Awarded value",
-      "fc.expRev":"Expected Mani revenue",
-      "fc.buyers":"Buyers in window",
-      "fc.pcsWin":"pcs in window",
-      "fc.pricePanel":"Mani selling price",
-      "fc.slit":"Slit","fc.stab":"Stab","fc.crescent":"Crescent","fc.other":"Other",
-      "fc.perpc":"₫/pc",
-      "fc.scopeAll":"All demand (assume Mani wins)",
-      "fc.scopeMani":"Mani-won demand only",
-      "fc.expTitle":"Expected revenue",
-      "fc.byBuyer":"Demand & expected revenue by buyer",
-      "fc.search":"Search buyer…","fc.searchAll":"Search buyer / province / region…",
-      "fc.clickHint":"Tick buyers to build a combined target →",
-      "fc.history":"Tender history",
-      "fc.noSel":"Tick one or more buyers to view combined target revenue & tender history",
-      "fc.contractDur":"Contract","fc.months":"mo","fc.expires":"Expires","fc.issued":"Issued",
-      "fc.demandMo":"Demand/mo","fc.inWindow":"In window",
-      "fc.expiring":"Expiring soon (next 6 months)","fc.expiringSub":"Contracts ending — re-tender opportunities",
-      "fc.daysLeft":"d left","fc.expired":"expired",
-      "fc.region":"Region","fc.province":"Province","fc.buyer":"Buyer","fc.allRegions":"Nationwide",
-      "fc.demandTrend":"Demand over time (contract-weighted)",
-      "fc.expExplain":"Expected = monthly demand × Mani price. Achievable revenue if Mani wins these tenders.",
-      "fc.export":"Export (Excel)",
-      "fc.tblType":"Knife type","fc.tblDemandMo":"Demand/mo (pcs)","fc.tblWinPcs":"Window (pcs)","fc.tblManiPrice":"Mani price","fc.tblExpRev":"Expected rev.","fc.tblCurWin":"Current winner",
-      "fc.total":"TOTAL","fc.noData":"No demand in this window",
-      "fc.lastWin":"Latest wins","fc.selected":"Selected buyers","fc.clearSel":"Clear all",
-      "fc.combinedTarget":"Combined target revenue","fc.nSelected":"buyers selected"
+      "sec.fc.sub":"Distributor tender status · Gantt by contract validity · editable revenue opportunity",
+      "fc.expected":"EXPECTED REVENUE",
+      "fc.window":"Forecast window","fc.group":"Tender group","fc.potential":"Potential","fc.region":"Region",
+      "fc.allGroups":"All groups","fc.allRegions":"Nationwide",
+      "fc.g.existing":"Existing · Win","fc.g.pending":"Pending","fc.g.remaining":"Remaining (renew)","fc.g.new":"New / Convert",
+      "fc.price":"Selling price to NPP","fc.fx":"FX rate (₫/$)","fc.perpc":"₫/pc",
+      "fc.acct":"Account / Hospital","fc.support":"Support need","fc.demandY":"Demand/yr","fc.winner":"Latest winner + price",
+      "fc.exp":"Expiration","fc.dur":"Duration","fc.result":"Result","fc.gantt":"Contract Gantt · monthly expected revenue ($)",
+      "fc.high":"High","fc.mid":"Medium","fc.low":"Low",
+      "fc.resWin":"Win","fc.resPending":"Pending","fc.months":"mo",
+      "fc.loadingNPP":"Loading distributor tender feeds…","fc.nppErr":"Could not load NPP feed",
+      "fc.noRow":"No tender in this window","fc.export":"Export (Excel)",
+      "fc.resultMonth":"Result month","fc.editHint":"editable","fc.total":"TOTAL",
+      "fc.perMonth":"/mo","fc.mst":"MST (Stab)","fc.msl":"MSL (Slit)","fc.mcu":"MCU",
+      "fc.pkgs":"packages","fc.buyers":"buyers","fc.selectFY":"Pick fiscal year(s) — Shift+Click to compare"
     },
     vi:{
       "nav.fc":"Dự trù & Theo dõi thầu",
       "sec.fc.title":"Dự trù Doanh số & Theo dõi Thầu",
-      "sec.fc.sub":"Dự báo demand (chia theo hợp đồng) · doanh số kỳ vọng · theo dõi thầu trực tiếp",
-      "fc.window":"Kỳ dự báo",
-      "fc.demandQty":"Tổng demand — Số lượng",
-      "fc.demandVal":"Tổng demand — Giá trị trúng",
-      "fc.expRev":"Doanh số kỳ vọng Mani",
-      "fc.buyers":"Chủ đầu tư trong kỳ",
-      "fc.pcsWin":"chiếc trong kỳ",
-      "fc.pricePanel":"Giá bán Mani",
-      "fc.slit":"Slit","fc.stab":"Stab","fc.crescent":"Lưỡi liềm","fc.other":"Khác",
-      "fc.perpc":"₫/chiếc",
-      "fc.scopeAll":"Toàn bộ demand (giả định Mani thắng)",
-      "fc.scopeMani":"Chỉ demand Mani đang trúng",
-      "fc.expTitle":"Doanh số kỳ vọng",
-      "fc.byBuyer":"Demand & doanh số kỳ vọng theo chủ đầu tư",
-      "fc.search":"Tìm chủ đầu tư…","fc.searchAll":"Tìm chủ đầu tư / tỉnh / khu vực…",
-      "fc.clickHint":"Tích chọn nhiều chủ đầu tư để gộp doanh số mục tiêu →",
-      "fc.history":"Lịch sử trúng thầu",
-      "fc.noSel":"Tích 1 hoặc nhiều chủ đầu tư để xem doanh số mục tiêu gộp & lịch sử thầu",
-      "fc.contractDur":"Hợp đồng","fc.months":"tháng","fc.expires":"Hết hạn","fc.issued":"Ra QĐ",
-      "fc.demandMo":"Demand/tháng","fc.inWindow":"Trong kỳ",
-      "fc.expiring":"Sắp hết hạn (6 tháng tới)","fc.expiringSub":"Hợp đồng sắp kết thúc — cơ hội tái đấu thầu",
-      "fc.daysLeft":"ngày","fc.expired":"đã hết hạn",
-      "fc.region":"Khu vực","fc.province":"Tỉnh/Thành","fc.buyer":"Chủ đầu tư","fc.allRegions":"Toàn quốc",
-      "fc.demandTrend":"Demand theo thời gian (chia theo hợp đồng)",
-      "fc.expExplain":"Kỳ vọng = demand/tháng × giá Mani. Doanh thu khả dĩ nếu Mani trúng các thầu này.",
-      "fc.export":"Xuất (Excel)",
-      "fc.tblType":"Loại dao","fc.tblDemandMo":"Demand/tháng (chiếc)","fc.tblWinPcs":"Trong kỳ (chiếc)","fc.tblManiPrice":"Giá Mani","fc.tblExpRev":"DS kỳ vọng","fc.tblCurWin":"Hãng đang trúng",
-      "fc.total":"TỔNG","fc.noData":"Không có demand trong kỳ này",
-      "fc.lastWin":"Trúng gần nhất","fc.selected":"Đã chọn","fc.clearSel":"Bỏ hết",
-      "fc.combinedTarget":"Doanh số mục tiêu (gộp)","fc.nSelected":"chủ đầu tư đã chọn"
+      "sec.fc.sub":"Trạng thái thầu NPP · Gantt theo hiệu lực hợp đồng · cơ hội doanh số editable",
+      "fc.expected":"EXPECTED REVENUE",
+      "fc.window":"Kỳ dự báo","fc.group":"Loại gói thầu","fc.potential":"Tiềm năng","fc.region":"Khu vực",
+      "fc.allGroups":"Tất cả nhóm","fc.allRegions":"Toàn quốc",
+      "fc.g.existing":"Existing · Win","fc.g.pending":"Pending","fc.g.remaining":"Duy trì (thầu kế)","fc.g.new":"New / Convert",
+      "fc.price":"Giá bán cho NPP","fc.fx":"Tỉ giá (₫/$)","fc.perpc":"₫/chiếc",
+      "fc.acct":"Account / Bệnh viện","fc.support":"Support need","fc.demandY":"Demand TB/năm","fc.winner":"Hãng trúng + giá gần nhất",
+      "fc.exp":"Hết hiệu lực","fc.dur":"Hiệu lực","fc.result":"Kết quả","fc.gantt":"Gantt hợp đồng · doanh số kỳ vọng/tháng ($)",
+      "fc.high":"Cao","fc.mid":"Trung bình","fc.low":"Thấp",
+      "fc.resWin":"Trúng","fc.resPending":"Chờ KQ","fc.months":"tháng",
+      "fc.loadingNPP":"Đang tải dữ liệu thầu NPP…","fc.nppErr":"Không tải được dữ liệu NPP",
+      "fc.noRow":"Không có gói thầu trong kỳ này","fc.export":"Xuất (Excel)",
+      "fc.resultMonth":"Tháng ra KQ","fc.editHint":"sửa được","fc.total":"TỔNG",
+      "fc.perMonth":"/tháng","fc.mst":"MST (Stab)","fc.msl":"MSL (Slit)","fc.mcu":"MCU",
+      "fc.pkgs":"gói","fc.buyers":"chủ đầu tư","fc.selectFY":"Chọn năm tài chính — Shift+Click để so sánh"
     }
   };
-  Object.keys(add).forEach(function(lg){
-    if(!I18N[lg]) I18N[lg]={};
-    Object.keys(add[lg]).forEach(function(k){ I18N[lg][k]=add[lg][k]; });
-  });
+  Object.keys(add).forEach(function(lg){ if(!I18N[lg]) I18N[lg]={}; Object.keys(add[lg]).forEach(function(k){ I18N[lg][k]=add[lg][k]; }); });
 })();
+
+/* ── URL 2 webapp NPP (fix cứng) ── */
+var NPP_URL = {
+  ICARE:  "https://script.google.com/macros/s/AKfycbx8xuGaBOVgLxb8JtaH25t1pcisacigDecTMLKOVaBucuDWZ7hw2W_W4IngA1nSODg4/exec",
+  HUNGVI: "https://script.google.com/macros/s/AKfycbyL5FRVXl0Zr35ndE1PGJMGXzHOYzHjdsyQK7vHwIYhqe5owjSg3o1QtH-i8qGNBKJ-/exec"
+};
+var NPP_FEED = { ICARE:null, HUNGVI:null, loaded:false, loading:false, error:null };
 
 /* ── State ── */
 S.fc = {
-  win:{mode:"fy", fys:[], from:null, to:null},
-  scope:"all",
-  region:"ALL",                 // ALL | North | South | N/A
-  price:{ slit:240000, stab:140000, crescent:250000, other:200000 },
-  sel:{},                       // multi-select buyers: {buyerName:true}
-  query:"",                     // smart-search filter for buyer table
-  charts:{}
+  fys: [],                 // FY được chọn (rỗng = FY hiện hành mặc định)
+  group: "all",            // all | existing | pending | remaining | new
+  region: "ALL",           // ALL | South | North
+  potential: "all",        // all | High | Medium | Low
+  price: { MSL:240000, MST:140000, MCU:250000 },  // giá Mani bán cho NPP (₫/chiếc)
+  fxFC: 26400,             // tỉ giá riêng tab này (editable)
+  edits: {},               // { rowKey : {mst,msl,mcu,expMonth,dur,resultMonth,potential,support} }
+  charts: {}
 };
 
-/* ── Phân loại loại dao → nhóm giá ── */
-function fcPriceKey(ptype){
-  var p = norm(ptype||"");
-  if(/slit/.test(p)) return "slit";
-  if(/stab|mvr|side\s*port|paracentesis/.test(p)) return "stab";
-  if(/crescent|luoi\s*liem|tunnel|bevel/.test(p)) return "crescent";
-  if(/keratome/.test(p)) return "slit";
-  return "other";
+/* ── Helpers dùng chung ── */
+function fcFY(){
+  var list = buildFyList();
+  if(S.fc.fys && S.fc.fys.length) return S.fc.fys.slice().sort();
+  // mặc định: FY hiện hành = FY chứa tháng dữ liệu mới nhất
+  var last = list[list.length-1] || "FY67";
+  return [last];
 }
-function fcManiPrice(ptype){ return +S.fc.price[fcPriceKey(ptype)] || 0; }
+function fcWinKeys(){
+  // trả {fromKey, toKey, months[], label} gộp toàn bộ FY đang chọn
+  var fys = fcFY();
+  var r0 = fyRange(fys[0]), r1 = fyRange(fys[fys.length-1]);
+  var fromKey=r0.fromKey, toKey=r1.toKey;
+  var months=[], y=Math.floor(fromKey/100), m=fromKey%100, g=0;
+  while((y*100+m)<=toKey && g<300){ months.push(y*100+m); m++; if(m>12){m=1;y++;} g++; }
+  return {fromKey:fromKey, toKey:toKey, months:months, label:(fys.length>1?(fys[0]+"→"+fys[fys.length-1]):fys[0])};
+}
+function fcKeyOrd(k){ return Math.floor(k/100)*12 + (k%100); }
+function fcOverlap(aF,aT,bF,bT){ var lo=Math.max(fcKeyOrd(aF),fcKeyOrd(bF)), hi=Math.min(fcKeyOrd(aT),fcKeyOrd(bT)); return hi>=lo?(hi-lo+1):0; }
+function fcMonthKeyToLabel(k){ var y=Math.floor(k/100),m=k%100; return pad2FC(m)+"/"+y; }
+function pad2FC(x){ x=String(x); return x.length<2?"0"+x:x; }
+/* "MM/YYYY" → key số */
+function fcMoStrToKey(s){ if(!s) return 0; var p=String(s).split("/"); if(p.length<2) return 0; return (+p[1])*100 + (+p[0]); }
+/* serial ms → key số */
+function fcSerialToKey(ms){ if(!ms) return 0; var d=new Date(ms); return d.getFullYear()*100 + (d.getMonth()+1); }
+/* key + n tháng */
+function fcAddMonths(key, n){ var y=Math.floor(key/100), m=key%100; m+=n; while(m>12){m-=12;y++;} while(m<1){m+=12;y--;} return y*100+m; }
 
-/* ── Cửa sổ dự báo ── */
-function fcWindow(){
-  var W = S.fc.win, fromKey, toKey, label;
-  if(W.mode==="fy" && W.fys && W.fys.length){
-    var fys = W.fys.slice().sort();
-    var r0 = fyRange(fys[0]), r1 = fyRange(fys[fys.length-1]);
-    fromKey = r0.fromKey; toKey = r1.toKey;
-    label = fys.length>1 ? (fys[0]+" → "+fys[fys.length-1]) : fys[0];
-  } else if(W.mode==="range" && W.from && W.to){
-    fromKey = moKey(W.from); toKey = moKey(W.to);
-    if(fromKey>toKey){ var t=fromKey; fromKey=toKey; toKey=t; }
-    label = moLabel(W.from)+" → "+moLabel(W.to);
-  } else {
-    var list = buildFyList(); var fy = list[list.length-1] || "FY67";
-    var rr = fyRange(fy); fromKey=rr.fromKey; toKey=rr.toKey; label=fy;
-    S.fc.win = {mode:"fy", fys:[fy], from:null, to:null};
+/* ── Giá Mani theo nhóm dao (knifeType từ NPP feed hoặc Knife Type từ ROWS) ── */
+function fcKnifeGroup(t){
+  var s = norm(t||"");
+  if(/mcu|crescent|luoi\s*liem|nao\s*mong|lang\s*mong|cresent/.test(s)) return "MCU";
+  if(/msl|slit|phaco|2\.?[28]|2\.?2|clear\s*corneal/.test(s)) return "MSL";
+  if(/mst|stab|15|choc\s*tien\s*phong|side\s*port|mvr|keratome/.test(s)) return "MST";
+  return "MSL"; // mặc định slit
+}
+function fcPriceOf(group){ return +S.fc.price[group] || 0; }
+/* quy đổi ₫ → $ theo tỉ giá riêng tab */
+function fcUSD(vnd){ var fx = +S.fc.fxFC || 26400; return (vnd||0)/fx; }
+function fcMoneyUSD(vnd){ var v=fcUSD(vnd); if(v>=1e6) return "$"+(v/1e6).toFixed(2).replace(/\.?0+$/,"")+"M"; if(v>=1e3) return "$"+(v/1e3).toFixed(1).replace(/\.0$/,"")+"K"; return "$"+Math.round(v); }
+function fcMoneyVND(vnd){ return money(vnd); }
+
+/* ══════════════════════════════════════════════════════════════════════════════════════════
+ *  FETCH 2 NPP FEEDS
+ * ══════════════════════════════════════════════════════════════════════════════════════════ */
+function fcLoadNPP(force){
+  if(NPP_FEED.loaded && !force) return Promise.resolve();
+  if(NPP_FEED.loading) return NPP_FEED._p || Promise.resolve();
+  NPP_FEED.loading = true; NPP_FEED.error=null;
+  function one(url){
+    return fetch(url,{method:"GET",redirect:"follow"})
+      .then(function(r){ return r.json(); })
+      .then(function(d){ return (d && d.ok!==false) ? (d.rows||[]) : []; })
+      .catch(function(e){ console.warn("NPP fetch fail",url,e); return null; });
   }
-  var months=[], y=Math.floor(fromKey/100), m=fromKey%100, guard=0;
-  while((y*100+m) <= toKey && guard<600){ months.push(y*100+m); m++; if(m>12){m=1;y++;} guard++; }
-  return {fromKey:fromKey, toKey:toKey, months:months, nMonths:months.length||1, label:label};
+  NPP_FEED._p = Promise.all([one(NPP_URL.ICARE), one(NPP_URL.HUNGVI)]).then(function(res){
+    NPP_FEED.ICARE  = res[0];   // có thể null nếu lỗi
+    NPP_FEED.HUNGVI = res[1];
+    NPP_FEED.loaded = true; NPP_FEED.loading=false;
+    if(res[0]===null && res[1]===null) NPP_FEED.error = "both";
+  });
+  return NPP_FEED._p;
 }
-function fcContract(r){
-  var dur = (+r.cdur>0) ? +r.cdur : 12, startKey, endKey;
-  if(r.issSer){ var d=new Date(r.issSer); startKey = d.getFullYear()*100 + (d.getMonth()+1); }
-  else { startKey = moKey(r.month) || 0; }
-  if(!startKey) startKey = moKey(r.month) || 0;
-  if(r.expSer){ var e=new Date(r.expSer); endKey = e.getFullYear()*100 + (e.getMonth()+1); }
-  else { var y=Math.floor(startKey/100), m=startKey%100; m += (dur-1); while(m>12){m-=12;y++;} endKey = y*100+m; }
-  if(endKey < startKey) endKey = startKey;
-  return {startKey:startKey, endKey:endKey, dur:dur};
-}
-function fcKeyToOrd(k){ return Math.floor(k/100)*12 + (k%100); }
-function fcOverlapMonths(aFrom,aTo,bFrom,bTo){
-  var lo = Math.max(fcKeyToOrd(aFrom), fcKeyToOrd(bFrom));
-  var hi = Math.min(fcKeyToOrd(aTo),   fcKeyToOrd(bTo));
-  return hi>=lo ? (hi-lo+1) : 0;
-}
-function fcKeyToDate(k){ var y=Math.floor(k/100), m=k%100; return (m<10?"0":"")+m+"/"+y; }
-function fcExpColor(expSer){
-  if(!expSer) return "var(--t1)";
-  var days = (expSer - Date.now())/(1000*60*60*24);
-  if(days < 0) return "var(--neg)";
-  if(days < 180) return "var(--warn)";
-  return "var(--pos)";
-}
-function fcRegOK(r){ return S.fc.region==="ALL" || r.region===S.fc.region; }
 
-/* ── Compute demand toàn dataset trong cửa sổ (đã lọc khu vực) ── */
-function fcCompute(){
-  var W = fcWindow();
-  var perBuyer = {};
-  var scopeMani = (S.fc.scope==="mani");
+/* Chuẩn hoá 1 dòng NPP feed → object thống nhất */
+function fcNormNPP(r, npp){
+  var group = fcKnifeGroup(r.knifeType || r.pcodeRaw);
+  // approve/exp: dùng serial nếu có, else parse từ ISO/month
+  var startKey = r.approveSerial ? fcSerialToKey(r.approveSerial) : (r.month? fcMoStrToKey(r.month):0);
+  var dur = (+r.durationMonths>0) ? +r.durationMonths : 12;
+  var expKey = r.expirationSerial ? fcSerialToKey(r.expirationSerial) : (startKey? fcAddMonths(startKey,dur):0);
+  return {
+    src:"NPP", npp:npp, region:r.region||(npp==="ICARE"?"South":"North"),
+    tbmt: r.tbmt||"", hospital:r.hospital||"(?)", prov:r.city||"",
+    result:(r.result||"").trim(), group:group,
+    qty:+r.qty||0, price:+r.price||0,
+    startKey:startKey||0, dur:dur, expKey:expKey||0,
+    knifeType:r.knifeType||"", pcode:r.pcodeRaw||""
+  };
+}
 
+/* ══════════════════════════════════════════════════════════════════════════════════════════
+ *  BUILD 4 GROUPS
+ * ══════════════════════════════════════════════════════════════════════════════════════════ */
+function fcBuild(){
+  var win = fcWinKeys();
+  var regOK = function(rg){ return S.fc.region==="ALL" || rg===S.fc.region; };
+
+  /* gom NPP rows theo TBMT (gói) → mỗi gói có nhiều loại dao */
+  var nppRows = [];
+  ["ICARE","HUNGVI"].forEach(function(k){
+    var arr = NPP_FEED[k];
+    if(!arr) return;
+    arr.forEach(function(r){ nppRows.push(fcNormNPP(r,k)); });
+  });
+
+  /* khóa gói: tbmt nếu có, else hospital||start */
+  function pkKey(r){ return (r.tbmt||("H:"+r.hospital))+"|"+r.npp; }
+  var pkg = {};
+  nppRows.forEach(function(r){
+    if(!regOK(r.region)) return;
+    var k = pkKey(r);
+    if(!pkg[k]) pkg[k] = {key:k, tbmt:r.tbmt, npp:r.npp, region:r.region, hospital:r.hospital, prov:r.prov,
+                          results:{}, startKey:0, dur:12, expKey:0, byGroup:{MST:0,MSL:0,MCU:0}, priceByGroup:{}, rows:[]};
+    var p = pkg[k];
+    p.results[r.result] = (p.results[r.result]||0)+1;
+    if(r.startKey && (!p.startKey || r.startKey>p.startKey)) p.startKey = r.startKey;
+    if(r.dur) p.dur = r.dur;
+    if(r.expKey && r.expKey>p.expKey) p.expKey = r.expKey;
+    // chỉ cộng SL cho dòng Win (hoặc Pending) — để tính demand
+    p.byGroup[r.group] = (p.byGroup[r.group]||0) + r.qty;
+    if(r.price>0) p.priceByGroup[r.group] = r.price; // giá trúng gần nhất theo nhóm
+    p.rows.push(r);
+  });
+  var pkgArr = Object.keys(pkg).map(function(k){ return pkg[k]; });
+
+  /* set TBMT đã xuất hiện ở NPP (chuẩn hoá) — để loại khỏi New/Convert */
+  var nppTBMT = {};
+  pkgArr.forEach(function(p){ if(p.tbmt) nppTBMT[p.tbmt]=1; });
+
+  /* ── NHÓM ① EXISTING-WIN & ③ REMAINING ── */
+  var existing=[], remaining=[], pending=[];
+  pkgArr.forEach(function(p){
+    var isWin = !!p.results["Win"];
+    var isPending = !!p.results["Pending"] && !isWin;
+    if(isPending){
+      pending.push(fcPkgToNode(p, "pending", win));
+      return;
+    }
+    if(!isWin) return; // Fail/Cancel → bỏ khỏi dự trù doanh số
+    // Existing-Win: gói còn hiệu lực overlap kỳ
+    var ov = fcOverlap(p.startKey||win.fromKey, p.expKey||win.toKey, win.fromKey, win.toKey);
+    if(ov>0){
+      existing.push(fcPkgToNode(p, "existing", win));
+    }
+    // Remaining: nếu gói hết hạn TRONG hoặc TRƯỚC kỳ → đề xuất gói kế tiếp (duy trì)
+    if(p.expKey && p.expKey <= win.toKey){
+      var node = fcPkgToNode(p, "remaining", win);
+      // gói kế tiếp mặc định: bắt đầu ngay sau khi hết hạn, cùng duration
+      node.nextStartKey = fcAddMonths(p.expKey, 1);
+      node.nextExpKey   = fcAddMonths(node.nextStartKey, p.dur-1);
+      remaining.push(node);
+    }
+  });
+
+  /* ── NHÓM ④ NEW / CONVERT (từ tender tổng) ── */
+  // Lấy các dòng tender tổng: region South/North theo NPP; loại TBMT đã có ở NPP.
+  var newConvert = [];
+  var byBuyerTBMT = {};
   ROWS.forEach(function(r){
-    if(!r.ptype) return;
-    if(!fcRegOK(r)) return;
-    var c = fcContract(r);
-    if(!c.startKey) return;
-    var ov = fcOverlapMonths(c.startKey, c.endKey, W.fromKey, W.toKey);
-    if(ov<=0) return;
-    var demandMo = r.qty / c.dur;
-    var winPcs   = demandMo * ov;
-    var winVal   = winPcs * (r.price||0);
-
-    var b = r.buyer || "(Không rõ)";
-    if(!perBuyer[b]) perBuyer[b] = {buyer:b, region:r.region, prov:r.prov, byType:{}, rows:[],
-                                    totWinPcs:0, totWinVal:0, totExpRev:0, totDemandMo:0};
-    var pb = perBuyer[b];
-    if(r.region && r.region!=="N/A") pb.region = r.region;
-    if(r.prov) pb.prov = r.prov;
-
-    var pt = r.ptype;
-    if(!pb.byType[pt]) pb.byType[pt] = {ptype:pt, demandMo:0, winPcs:0, winVal:0,
-                                        maniWinPcs:0, maniWinVal:0, maniDemandMo:0, winnerAgg:{}, rows:[]};
-    var bt = pb.byType[pt];
-    bt.demandMo += demandMo; bt.winPcs += winPcs; bt.winVal += winVal;
-    bt.winnerAgg[r.brand] = (bt.winnerAgg[r.brand]||0) + winPcs;
-    if(r.brand==="Mani"){ bt.maniWinPcs += winPcs; bt.maniWinVal += winVal; bt.maniDemandMo += demandMo; }
-    bt.rows.push(r); pb.rows.push(r);
+    if(!regOK(r.region)) return;
+    var t = (r.kqtt||"").replace(/[\s\r\n]+/g,"").replace(/-\d+$/,"");
+    if(t && nppTBMT[t]) return;               // gói NPP đã tham dự → bỏ
+    // chỉ xét kỳ gần (FY67 chưa trúng) — dùng toàn bộ, đánh dấu hãng trúng
+    var key = (r.buyer||"")+"|"+t;
+    if(!byBuyerTBMT[key]) byBuyerTBMT[key] = {buyer:r.buyer, prov:r.prov, region:r.region, tbmt:t,
+                                              startKey:0, dur:12, expKey:0, byGroup:{MST:0,MSL:0,MCU:0}, brands:{}, winner:{}, rows:[]};
+    var o = byBuyerTBMT[key];
+    var g = fcKnifeGroup(r.ptype);
+    o.byGroup[g] = (o.byGroup[g]||0) + r.qty;
+    o.brands[r.brand] = (o.brands[r.brand]||0) + r.qty;
+    // hãng trúng + giá trúng gần nhất theo nhóm
+    if(!o.winner[g] || r.qty>o.winner[g].qty) o.winner[g] = {brand:r.brand, price:r.price, qty:r.qty};
+    var sk = fcMoStrToKey(r.month);
+    if(sk>o.startKey) o.startKey = sk;
+    var dur = 12; // tender tổng thường thiếu → 12
+    o.dur = dur;
+    o.rows.push(r);
+  });
+  Object.keys(byBuyerTBMT).forEach(function(k){
+    var o = byBuyerTBMT[k];
+    // bỏ qua nếu Mani là hãng trúng chính (đó là existing rồi) — chỉ giữ đối thủ trúng = cơ hội convert
+    var lead = Object.keys(o.brands).sort(function(a,b){return o.brands[b]-o.brands[a];})[0];
+    if(lead==="Mani") return;
+    o.expKey = o.startKey? fcAddMonths(o.startKey, o.dur-1) : 0;
+    newConvert.push(fcNewNode(o, win));
   });
 
-  var totQty=0, totVal=0, totExp=0;
-  Object.keys(perBuyer).forEach(function(b){
-    var pb = perBuyer[b];
-    Object.keys(pb.byType).forEach(function(pt){
-      var bt = pb.byType[pt];
-      var wk = Object.keys(bt.winnerAgg).sort(function(x,y){return bt.winnerAgg[y]-bt.winnerAgg[x];});
-      bt.curWinner = wk[0] || "";
-      var pcsForRev = scopeMani ? bt.maniWinPcs : bt.winPcs;
-      var demandMoForRev = scopeMani ? bt.maniDemandMo : bt.demandMo;
-      bt.expRev = pcsForRev * fcManiPrice(pt);
-      bt.pcsForRev = pcsForRev; bt.demandMoForRev = demandMoForRev;
-      pb.totWinPcs += bt.winPcs; pb.totWinVal += bt.winVal;
-      pb.totExpRev += bt.expRev; pb.totDemandMo += bt.demandMo;
-      totQty += pcsForRev; totVal += (scopeMani ? bt.maniWinVal : bt.winVal); totExp += bt.expRev;
+  return {win:win, existing:existing, pending:pending, remaining:remaining, newConvert:newConvert};
+}
+
+/* Chuyển 1 gói NPP → node hiển thị (áp edits nếu có) */
+function fcPkgToNode(p, group, win){
+  var rowKey = group+"|"+p.key;
+  var e = S.fc.edits[rowKey] || {};
+  var demandY = fcDemandPerYear(p.byGroup, p.dur);
+  // winner + giá trúng gần nhất
+  var winnerTxt = fcWinnerText(p);
+  var node = {
+    rowKey:rowKey, group:group, src:"NPP", npp:p.npp, region:p.region,
+    account:p.hospital, prov:p.prov, tbmt:p.tbmt,
+    result: p.results["Win"]?"Win":(p.results["Pending"]?"Pending":"—"),
+    startKey: p.startKey, dur: (e.dur||p.dur||12),
+    expKey: (e.expMonth? fcMoStrToKey(e.expMonth) : (p.expKey||0)),
+    mst: (group==="existing") ? (p.byGroup.MST||0) : (e.mst!=null? e.mst : (p.byGroup.MST||0)),
+    msl: (group==="existing") ? (p.byGroup.MSL||0) : (e.msl!=null? e.msl : (p.byGroup.MSL||0)),
+    mcu: (group==="existing") ? (p.byGroup.MCU||0) : (e.mcu!=null? e.mcu : (p.byGroup.MCU||0)),
+    demandY: demandY, winnerTxt: winnerTxt,
+    potential: e.potential || fcAutoPotential(demandY),
+    support: e.support || "",
+    resultMonth: e.resultMonth || (group==="pending" ? fcKeyToMoStr(win.fromKey) : ""),
+    editable: (group!=="existing")   // existing FIX, còn lại editable
+  };
+  // gói remaining: start = nextStart (gói kế tiếp), editable
+  if(group==="remaining"){
+    node.startKey = e.expMonth ? fcMoStrToKey(e.expMonth) : fcAddMonths(p.expKey||win.fromKey, 1);
+    node.expKey   = fcAddMonths(node.startKey, (node.dur||12)-1);
+  }
+  if(group==="pending"){
+    // pending: hiệu lực bắt đầu từ tháng ra KQ (editable), duration editable
+    var rm = node.resultMonth ? fcMoStrToKey(node.resultMonth) : win.fromKey;
+    node.startKey = rm;
+    node.expKey = fcAddMonths(rm, (node.dur||12)-1);
+  }
+  return node;
+}
+/* node New/Convert */
+function fcNewNode(o, win){
+  var rowKey = "new|"+o.buyer+"|"+o.tbmt;
+  var e = S.fc.edits[rowKey] || {};
+  var demandY = fcDemandPerYear(o.byGroup, o.dur);
+  // hãng trúng + giá trúng gần nhất theo loại (Slit/Stab)
+  var winnerTxt = fcWinnerTextNew(o);
+  var startKey = e.expMonth ? fcMoStrToKey(e.expMonth) : (o.expKey? fcAddMonths(o.expKey,1) : win.fromKey);
+  var dur = e.dur || o.dur || 12;
+  return {
+    rowKey:rowKey, group:"new", src:"MARKET", npp:"", region:o.region,
+    account:o.buyer, prov:o.prov, tbmt:o.tbmt, result:"Convert",
+    startKey:startKey, dur:dur, expKey:fcAddMonths(startKey, dur-1),
+    mst: e.mst!=null? e.mst : (o.byGroup.MST||0),
+    msl: e.msl!=null? e.msl : (o.byGroup.MSL||0),
+    mcu: e.mcu!=null? e.mcu : (o.byGroup.MCU||0),
+    demandY:demandY, winnerTxt:winnerTxt,
+    potential: e.potential || fcAutoPotential(demandY),
+    support: e.support || "", resultMonth:"", editable:true
+  };
+}
+function fcKeyToMoStr(k){ if(!k) return ""; var y=Math.floor(k/100),m=k%100; return pad2FC(m)+"/"+y; }
+
+/* Demand TB/năm = Σ SL ÷ (hiệu lực/12) */
+function fcDemandPerYear(byGroup, dur){
+  var tot = (byGroup.MST||0)+(byGroup.MSL||0)+(byGroup.MCU||0);
+  var yrs = (dur||12)/12; if(yrs<=0) yrs=1;
+  return Math.round(tot/yrs);
+}
+function fcAutoPotential(demandY){
+  if(demandY>=2000) return "High";
+  if(demandY>=500)  return "Medium";
+  return "Low";
+}
+function fcWinnerText(p){
+  // Mani thắng (NPP) → hiển thị theo nhóm + giá trúng gần nhất
+  var parts=[];
+  ["MSL","MST","MCU"].forEach(function(g){
+    if(p.priceByGroup[g]) parts.push(g+": Mani-"+nf(p.priceByGroup[g]));
+  });
+  return parts.join(" · ") || "Mani";
+}
+function fcWinnerTextNew(o){
+  var parts=[];
+  ["MSL","MST","MCU"].forEach(function(g){
+    var w=o.winner[g];
+    if(w) parts.push(g+": "+w.brand+"-"+nf(w.price));
+  });
+  return parts.join(" · ") || "—";
+}
+
+/* Doanh số 1 node trong kỳ (chỉ phần tháng overlap) — trả {vnd, months, perMonthVND, expected} */
+function fcNodeRevenue(node, win){
+  var ov = fcOverlap(node.startKey||win.fromKey, node.expKey||win.toKey, win.fromKey, win.toKey);
+  if(ov<=0) return {vnd:0, months:0, perMonthVND:0};
+  var dur = node.dur||12;
+  // SL × giá Mani theo nhóm → tổng cả hợp đồng, rồi phân bổ đều × tháng overlap
+  var totVND = (node.mst||0)*fcPriceOf("MST") + (node.msl||0)*fcPriceOf("MSL") + (node.mcu||0)*fcPriceOf("MCU");
+  var perMonth = totVND / dur;
+  return { vnd: perMonth*ov, months:ov, perMonthVND:perMonth };
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════════════════
+ *  RENDER
+ * ══════════════════════════════════════════════════════════════════════════════════════════ */
+function renderFC(){
+  fcRenderCtrl();
+  // đảm bảo NPP đã load
+  if(!NPP_FEED.loaded){
+    document.getElementById("fc-body").innerHTML =
+      '<div class="emptynote" style="margin:20px 0">'+t("fc.loadingNPP")+'</div>';
+    fcLoadNPP().then(function(){ if(S.tab==="fc") renderFC(); });
+    return;
+  }
+
+  var B = fcBuild(), win = B.win;
+  document.getElementById("fc-name").textContent = win.label + " · " +
+    (S.fc.region==="ALL"?t("fc.allRegions"):(S.fc.region==="North"?t("region.North"):S.fc.region==="South"?t("region.South"):S.fc.region));
+
+  /* nhóm hiển thị theo filter */
+  var groups = [
+    {k:"existing", nm:t("fc.g.existing"), col:"#2E7D32", nodes:B.existing},
+    {k:"pending",  nm:t("fc.g.pending"),  col:"#F57C00", nodes:B.pending},
+    {k:"remaining",nm:t("fc.g.remaining"),col:"#5B7DB1", nodes:B.remaining},
+    {k:"new",      nm:t("fc.g.new"),      col:"#8E44AD", nodes:B.newConvert}
+  ];
+  var showGroups = groups.filter(function(g){ return S.fc.group==="all" || S.fc.group===g.k; });
+
+  /* lọc potential + tính tổng doanh số */
+  function potOK(n){ return S.fc.potential==="all" || n.potential===S.fc.potential; }
+  var grandVND=0, cntPkg=0;
+  showGroups.forEach(function(g){
+    g.nodes = g.nodes.filter(potOK);
+    g.nodes.forEach(function(n){
+      n._rev = fcNodeRevenue(n, win);
+      grandVND += n._rev.vnd;
+      if(n._rev.months>0) cntPkg++;
     });
+    // ẩn dòng trắng: chỉ giữ node có doanh số > 0 trong kỳ (khi lọc theo kỳ)
+    g.nodesVisible = g.nodes.filter(function(n){ return n._rev.months>0 && n._rev.vnd>0; });
   });
-  return {window:W, perBuyer:perBuyer, totals:{qty:totQty, val:totVal, expRev:totExp, nBuyers:Object.keys(perBuyer).length}};
+
+  /* ── HERO: EXPECTED REVENUE in đậm ── */
+  var H = '';
+  H += '<div class="fc-hero reveal in">'
+     + '<div class="fc-hero-l"><div class="fc-hero-lbl">'+t("fc.expected")+'</div>'
+     +   '<div class="fc-hero-val">'+fcMoneyUSD(grandVND)+'</div>'
+     +   '<div class="fc-hero-sub">'+fcMoneyVND(grandVND)+' · '+win.label+' · '+cntPkg+' '+t("fc.pkgs")+'</div></div>'
+     + '<div class="fc-hero-r">'+fcPriceFxPanel()+'</div>'
+     + '</div>';
+
+  /* ── mỗi nhóm: bảng editable + Gantt ── */
+  showGroups.forEach(function(g){
+    H += fcGroupBlock(g, win);
+  });
+
+  document.getElementById("fc-body").innerHTML = H;
+
+  /* vẽ Gantt cho từng nhóm hiển thị */
+  showGroups.forEach(function(g){
+    if(g.nodesVisible.length) fcDrawGantt(g, win);
+  });
+
+  afterRender("sec-fc");
 }
 
 /* ── Controls sidebar ── */
 function fcRenderCtrl(){
-  var W = S.fc.win, fys = buildFyList();
-  var selFY = (W.mode==="fy" && W.fys) ? W.fys.slice() : [];
+  var fys = buildFyList(), sel = fcFY();
   var fyChips = fys.map(function(fy){
-    var on = selFY.indexOf(fy)>=0;
-    return '<button class="chip '+(on?"on":"")+'" onclick="fcSetFY(\''+fy+'\',event)" title="Click = chọn 1 · Shift+Click = gộp">'+fy+'</button>';
+    var on = sel.indexOf(fy)>=0;
+    return '<button class="chip '+(on?"on":"")+'" onclick="fcToggleFY(\''+fy+'\',event)" title="'+t("fc.selectFY")+'">'+fy+'</button>';
   }).join("");
-  var firstMo = MONTHS_SORTED[0], lastMo = MONTHS_SORTED[MONTHS_SORTED.length-1];
-  var maxFuture = (function(){ if(!lastMo) return lastMo; var k=moKey(lastMo),y=Math.floor(k/100),m=k%100; m+=36; while(m>12){m-=12;y++;} return (m<10?"0":"")+m+"/"+y; })();
-  var fromVal = W.from || firstMo, toVal = W.to || maxFuture;
-
-  /* Region chips — dùng REGIONS (đã theo Region_by_Distributor) */
-  var regList = ["ALL"].concat(REGIONS);
-  if(ROWS.some(function(r){return r.region==="N/A";})) regList.push("N/A");
-  var regChips = regList.map(function(rg){
-    var lbl = rg==="ALL"?t("fc.allRegions"):(rg==="North"?t("region.North"):rg==="South"?t("region.South"):rg==="N/A"?"N/A":rg);
+  var regs = ["ALL"].concat(REGIONS);
+  var regChips = regs.map(function(rg){
+    var lbl = rg==="ALL"?t("fc.allRegions"):(rg==="North"?t("region.North"):rg==="South"?t("region.South"):rg);
     return '<button class="chip '+(S.fc.region===rg?"on":"")+'" onclick="S.fc.region=\''+rg+'\';renderFC()">'+esc(lbl)+'</button>';
   }).join("");
+  var grps = [["all",t("fc.allGroups")],["existing",t("fc.g.existing")],["pending",t("fc.g.pending")],["remaining",t("fc.g.remaining")],["new",t("fc.g.new")]];
+  var grpChips = grps.map(function(x){ return '<button class="chip '+(S.fc.group===x[0]?"on":"")+'" onclick="S.fc.group=\''+x[0]+'\';renderFC()">'+esc(x[1])+'</button>'; }).join("");
+  var pots = [["all",t("fc.allGroups")],["High",t("fc.high")],["Medium",t("fc.mid")],["Low",t("fc.low")]];
+  var potChips = pots.map(function(x){ return '<button class="chip '+(S.fc.potential===x[0]?"on":"")+'" onclick="S.fc.potential=\''+x[0]+'\';renderFC()">'+esc(x[1])+'</button>'; }).join("");
 
-  var H = '<span class="cl">'+t("fc.window")+' · '+t("sw.fy")+'</span>'+fyChips
+  document.getElementById("fc-ctrl").innerHTML =
+      '<span class="cl">'+t("fc.window")+' · '+t("sw.fy")+'</span><div class="sb-side">'+fyChips+'</div>'
     + '<div class="divx" style="width:auto;height:1px;background:var(--br);margin:8px 2px"></div>'
-    + '<span class="cl">'+t("sb.refwin")+'</span>'
-    + '<div style="display:flex;flex-direction:column;gap:4px">'
-    +   '<div style="font-size:10.5px;color:var(--t3);font-weight:700">'+t("sb.from")+'</div>'+mpickBtnHtml("mp-fc-from", fromVal, firstMo, maxFuture, "fcOnFrom",{small:true})
-    +   '<div style="font-size:10.5px;color:var(--t3);font-weight:700">'+t("sb.to")+'</div>'+mpickBtnHtml("mp-fc-to", toVal, firstMo, maxFuture, "fcOnTo",{small:true})
-    + '</div>'
+    + '<span class="cl">'+t("fc.group")+'</span><div class="sb-side">'+grpChips+'</div>'
     + '<div class="divx" style="width:auto;height:1px;background:var(--br);margin:8px 2px"></div>'
     + '<span class="cl">'+t("fc.region")+'</span><div class="sb-side">'+regChips+'</div>'
     + '<div class="divx" style="width:auto;height:1px;background:var(--br);margin:8px 2px"></div>'
-    + '<span class="cl">Scope</span><div class="sb-side">'
-    +   '<button class="chip '+(S.fc.scope==="all"?"on":"")+'" onclick="S.fc.scope=\'all\';renderFC()">'+t("fc.scopeAll")+'</button>'
-    +   '<button class="chip '+(S.fc.scope==="mani"?"on":"")+'" onclick="S.fc.scope=\'mani\';renderFC()">'+t("fc.scopeMani")+'</button>'
-    + '</div>';
-  document.getElementById("fc-ctrl").innerHTML = H;
+    + '<span class="cl">'+t("fc.potential")+'</span><div class="sb-side">'+potChips+'</div>'
+    + '<div class="divx" style="width:auto;height:1px;background:var(--br);margin:8px 2px"></div>'
+    + '<button class="chip" onclick="fcExportExcel()" style="background:rgba(255,225,0,.14);border-color:rgba(255,225,0,.5);color:#B8860B;font-weight:800">📥 '+t("fc.export")+'</button>';
 }
-function fcSetFY(fy, ev){
-  var W = S.fc.win, multi = ev && (ev.shiftKey||ev.ctrlKey||ev.metaKey);
-  if(multi && W.mode==="fy"){
-    var i = W.fys.indexOf(fy);
-    if(i>=0) W.fys.splice(i,1); else W.fys.push(fy);
-    if(!W.fys.length) W.fys=[fy];
-  } else S.fc.win = {mode:"fy", fys:[fy], from:null, to:null};
-  renderFC();
-}
-function fcOnFrom(mo){ if(!mo) return; S.fc.win={mode:"range", fys:[], from:mo, to:(S.fc.win.to||mo)}; if(moKey(S.fc.win.from)>moKey(S.fc.win.to)) S.fc.win.to=S.fc.win.from; renderFC(); }
-function fcOnTo(mo){ if(!mo) return; S.fc.win={mode:"range", fys:[], from:(S.fc.win.from||mo), to:mo}; if(moKey(S.fc.win.from)>moKey(S.fc.win.to)) S.fc.win.from=S.fc.win.to; renderFC(); }
-
-function fcSetPrice(key, val){
-  var v = +String(val).replace(/[^\d]/g,""); if(!isFinite(v)||v<0) v=0;
-  S.fc.price[key]=v;
-  try{ localStorage.setItem("mmh_fc_price", JSON.stringify(S.fc.price)); }catch(e){}
+function fcToggleFY(fy, ev){
+  var multi = ev && (ev.shiftKey||ev.ctrlKey||ev.metaKey);
+  if(multi){
+    if(!S.fc.fys.length) S.fc.fys = fcFY();
+    var i = S.fc.fys.indexOf(fy);
+    if(i>=0) S.fc.fys.splice(i,1); else S.fc.fys.push(fy);
+    if(!S.fc.fys.length) S.fc.fys=[fy];
+  } else S.fc.fys=[fy];
   renderFC();
 }
 
-/* ── Main render ── */
-function renderFC(){
-  fcRenderCtrl();
-  var D = fcCompute(), W = D.window, T = D.totals;
-  document.getElementById("fc-name").textContent = W.label + " · " + (S.fc.region==="ALL"?t("fc.allRegions"):(S.fc.region==="North"?t("region.North"):S.fc.region==="South"?t("region.South"):S.fc.region));
-
-  /* buyer list (lọc theo query smart-search) */
-  var q = norm(S.fc.query||"");
-  var buyers = Object.keys(D.perBuyer).map(function(b){return D.perBuyer[b];});
-  if(q) buyers = buyers.filter(function(pb){ return norm(pb.buyer).indexOf(q)>=0 || norm(pb.region).indexOf(q)>=0 || norm(pb.prov).indexOf(q)>=0; });
-  buyers.sort(function(a,b){ return b.totExpRev - a.totExpRev || b.totWinPcs - a.totWinPcs; });
-
-  /* dọn sel không còn tồn tại trong dataset (giữ nếu còn) */
-  Object.keys(S.fc.sel).forEach(function(b){ if(!D.perBuyer[b]) delete S.fc.sel[b]; });
-  var selKeys = Object.keys(S.fc.sel);
-
-  /* ── KPI ── */
-  var KPI = '<div class="kr">'
-    + kpiCard({lbl:t("fc.demandQty"), val:T.qty, mode:"q", suf:" "+t("cs.pcs"), note:nf(W.nMonths)+" "+t("fc.months")+" · "+T.nBuyers+" "+t("kpi.buyers").toLowerCase()})
-    + kpiCard({lbl:t("fc.demandVal"), val:T.val, mode:"vnd", cls:"y", note:t("fc.window")+": "+W.label})
-    + kpiCard({lbl:t("fc.expRev"), val:T.expRev, mode:"vnd", cls:"pos", note:t("fc.expExplain")})
-    + kpiCard({lbl:t("fc.buyers"), val:T.nBuyers, mode:"n", note:qf(T.qty)+" "+t("fc.pcsWin")})
-    + '</div>';
-
-  var H = '';
-  H += fcPricePanelCompact();
-  H += KPI;
-
-  /* row: bảng Doanh số kỳ vọng (có smart search buyer) + trend */
-  H += '<div class="g23">'
-    + '<div class="card reveal"><div class="ch"><div class="ct">'+t("fc.expTitle")+'</div><div class="cs">'+W.label+' · '+(S.fc.scope==="mani"?t("fc.scopeMani"):t("fc.scopeAll"))+'</div>'
-      + '<div style="margin-left:auto">'+ssHtml("ss-fc-type",t("fc.search"),"fcTypeBuyerSuggest")+'</div></div>'
-      + '<div class="cb" style="padding:0"><div class="tw" id="fc-typetbl"></div></div></div>'
-    + '<div class="card reveal"><div class="ch"><div class="ct">'+t("fc.demandTrend")+'</div><div class="cs">'+t("cs.pcs")+'/'+t("fc.months")+'</div></div><div class="cb"><div class="cw t"><canvas id="c-fc-trend"></canvas></div></div></div>'
-    + '</div>';
-
-  H += fcExpiringCardHtml();
-
-  /* buyer list + multi-select detail */
-  H += '<div class="grpdt-layout">'
-    + '<div class="grpdt-main">'
-      + '<div class="card reveal"><div class="ch"><div class="ct">'+t("fc.byBuyer")+'</div><div class="cs">'+buyers.length+' '+t("kpi.buyers").toLowerCase()+' · '+t("fc.clickHint")+'</div>'
-        + '<div style="margin-left:auto">'+ssHtml("ss-fc",t("fc.searchAll"),"fcSuggest")+'</div>'
-        + '<button class="dl-btn" onclick="fcExportExcel()">📥 '+t("fc.export")+'</button></div>'
-      + '<div class="cb" style="padding:0"><div class="tw" id="fc-buyertbl"></div></div></div>'
-    + '</div>'
-    + '<div class="grpdt-sidebar" id="fc-detail" style="position:sticky;top:90px;max-height:calc(100vh - 110px);overflow-y:auto">'
-      + (selKeys.length ? fcDetailHtml(D, selKeys, W) : '<div class="emptynote" style="margin:0">'+t("fc.noSel")+'</div>')
-    + '</div></div>';
-
-  document.getElementById("fc-body").innerHTML = H;
-
-  fcRenderTypeTable(D);
-  fcRenderBuyerTable(buyers);
-  fcRenderTrend(D, W);
-  afterRender("sec-fc");
-}
-
-/* ── Price panel compact (1 hàng) ── */
-function fcPricePanelCompact(){
+/* ── Panel giá + tỉ giá ── */
+function fcPriceFxPanel(){
   function inp(key,label){
-    return '<div style="display:flex;align-items:center;gap:6px;background:var(--sf2);border:1px solid var(--br);border-radius:9px;padding:6px 10px">'
-      + '<span style="font-size:11.5px;font-weight:800;color:var(--t2);white-space:nowrap">'+label+'</span>'
-      + '<input type="text" value="'+nf(S.fc.price[key])+'" onchange="fcSetPrice(\''+key+'\',this.value)" onblur="fcSetPrice(\''+key+'\',this.value)" onfocus="this.style.borderColor=\'var(--blue)\';this.select()" '
-      + 'style="width:88px;padding:4px 7px;font-family:var(--ff);font-size:13px;font-weight:800;border:1.5px solid var(--br);border-radius:6px;color:var(--navy);background:var(--sf);font-variant-numeric:tabular-nums;text-align:right;outline:none">'
-      + '<span style="font-size:10.5px;color:var(--t3);font-weight:700;white-space:nowrap">'+t("fc.perpc")+'</span></div>';
+    return '<div class="fc-pin"><span class="fc-pin-l">'+label+'</span>'
+      + '<input type="text" value="'+nf(S.fc.price[key])+'" onchange="fcSetPrice(\''+key+'\',this.value)" onfocus="this.select()" class="fc-pin-i">'
+      + '<span class="fc-pin-u">'+t("fc.perpc")+'</span></div>';
   }
-  return '<div class="ctrl" style="margin-bottom:14px;align-items:center">'
-    + '<span class="cl" style="margin-right:2px">⚙ '+t("fc.pricePanel")+'</span>'
-    + inp("slit",t("fc.slit")) + inp("stab",t("fc.stab")) + inp("crescent",t("fc.crescent")) + inp("other",t("fc.other"))
+  return '<div class="fc-price-grid">'
+    + '<div class="fc-pin-h">⚙ '+t("fc.price")+'</div>'
+    + inp("MSL",t("fc.msl")) + inp("MST",t("fc.mst")) + inp("MCU",t("fc.mcu"))
+    + '<div class="fc-pin fx"><span class="fc-pin-l">'+t("fc.fx")+'</span>'
+    +   '<input type="text" value="'+nf(S.fc.fxFC)+'" onchange="fcSetFx(this.value)" onfocus="this.select()" class="fc-pin-i">'
+    +   '<span class="fc-pin-u">₫/$</span></div>'
     + '</div>';
 }
+function fcSetPrice(k,v){ var n=+String(v).replace(/[^\d]/g,""); if(!isFinite(n)||n<0)n=0; S.fc.price[k]=n; try{localStorage.setItem("mmh_fc_price2",JSON.stringify(S.fc.price));}catch(e){} renderFC(); }
+function fcSetFx(v){ var n=+String(v).replace(/[^\d]/g,""); if(!isFinite(n)||n<=0)n=26400; S.fc.fxFC=n; try{localStorage.setItem("mmh_fc_fx",String(n));}catch(e){} renderFC(); }
 
-/* ── Bảng Doanh số kỳ vọng theo loại dao ── */
-function fcRenderTypeTable(D){
-  var agg = {};
-  Object.keys(D.perBuyer).forEach(function(b){
-    var pb = D.perBuyer[b];
-    Object.keys(pb.byType).forEach(function(pt){
-      var bt = pb.byType[pt];
-      if(!agg[pt]) agg[pt] = {ptype:pt, demandMo:0, winPcs:0, expRev:0, winnerAgg:{}};
-      agg[pt].demandMo += bt.demandMoForRev; agg[pt].winPcs += bt.pcsForRev; agg[pt].expRev += bt.expRev;
-      Object.keys(bt.winnerAgg).forEach(function(w){ agg[pt].winnerAgg[w]=(agg[pt].winnerAgg[w]||0)+bt.winnerAgg[w]; });
-    });
-  });
-  var arr = Object.keys(agg).map(function(k){return agg[k];}).sort(function(a,b){return b.expRev-a.expRev;});
-  var totMo=0, totPcs=0, totRev=0;
-  var body = arr.map(function(a){
-    totMo+=a.demandMo; totPcs+=a.winPcs; totRev+=a.expRev;
-    var wk = Object.keys(a.winnerAgg).sort(function(x,y){return a.winnerAgg[y]-a.winnerAgg[x];})[0]||"—";
-    var isMani = wk==="Mani", pk = fcPriceKey(a.ptype);
-    return "<tr"+(isMani?" class='mani'":"")+">"
-      + "<td class='tl'>"+esc(a.ptype)+"</td>"
-      + "<td>"+nf(Math.round(a.demandMo))+"</td>"
-      + "<td>"+nf(Math.round(a.winPcs))+"</td>"
-      + "<td>"+money(S.fc.price[pk])+"</td>"
-      + "<td><b style='color:var(--pos)'>"+money(a.expRev)+"</b></td>"
-      + "<td class='tl'><span class='badge' style='background:"+brandColor(wk)+";color:"+(isMani?"#003047":"#fff")+"'>"+esc(wk)+"</span></td></tr>";
+/* ── 1 khối nhóm: bảng editable + Gantt ── */
+function fcGroupBlock(g, win){
+  var editable = (g.k!=="existing");
+  var potColor = {High:"#C0392B",Medium:"#F57C00",Low:"#5B7DB1"};
+  var rows = g.nodesVisible.map(function(n){
+    var pd = potColor[n.potential]||"#5B7DB1";
+    var rk = esc(n.rowKey).replace(/'/g,"\\'");
+    var expStr = n.expKey? fcKeyToMoStr(n.expKey):"—";
+    var mst = editable
+      ? '<input class="fc-cell-i" value="'+nf(n.mst)+'" onchange="fcEdit(\''+rk+'\',\'mst\',this.value)">'
+      : nf(n.mst);
+    var msl = editable
+      ? '<input class="fc-cell-i" value="'+nf(n.msl)+'" onchange="fcEdit(\''+rk+'\',\'msl\',this.value)">'
+      : nf(n.msl);
+    var mcu = editable
+      ? '<input class="fc-cell-i" value="'+nf(n.mcu)+'" onchange="fcEdit(\''+rk+'\',\'mcu\',this.value)">'
+      : nf(n.mcu);
+    // Existing/pending/remaining/new: cột editable riêng
+    var potSel = editable
+      ? '<select class="fc-pot-sel" style="color:'+pd+'" onchange="fcEdit(\''+rk+'\',\'potential\',this.value)">'
+        + ['High','Medium','Low'].map(function(p){return '<option value="'+p+'"'+(n.potential===p?" selected":"")+'>'+t("fc."+(p==="High"?"high":p==="Medium"?"mid":"low"))+'</option>';}).join("")
+        + '</select>'
+      : '<span class="fc-pot-tag" style="background:'+pd+'22;color:'+pd+'">'+t("fc."+(n.potential==="High"?"high":n.potential==="Medium"?"mid":"low"))+'</span>';
+    var support = '<input class="fc-cell-i txt" value="'+esc(n.support)+'" placeholder="…" onchange="fcEdit(\''+rk+'\',\'support\',this.value)">';
+    var expCell, durCell, resMoCell="";
+    if(g.k==="existing"){
+      expCell = '<span class="fc-fix">'+expStr+'</span>';
+      durCell = '<span class="fc-fix">'+n.dur+' '+t("fc.months")+'</span>';
+    } else if(g.k==="pending"){
+      resMoCell = fcMonthBtn(n.rowKey,"resultMonth", n.resultMonth||fcKeyToMoStr(win.fromKey));
+      expCell = '<span class="fc-fix">'+expStr+'</span>';
+      durCell = '<input class="fc-cell-i sm" value="'+n.dur+'" onchange="fcEdit(\''+rk+'\',\'dur\',this.value)">';
+    } else {
+      expCell = fcMonthBtn(n.rowKey,"expMonth", n.expKey?fcKeyToMoStr(n.startKey):"");
+      durCell = '<input class="fc-cell-i sm" value="'+n.dur+'" onchange="fcEdit(\''+rk+'\',\'dur\',this.value)">';
+    }
+    return "<tr class='fc-row'>"
+      + "<td class='tl fc-acct' title='"+esc(n.account)+"'>"+esc(n.account)+"<div class='fc-prov'>"+esc(n.prov||"")+(n.tbmt?" · "+esc(n.tbmt):"")+"</div></td>"
+      + "<td>"+potSel+"</td>"
+      + "<td class='tl'>"+support+"</td>"
+      + "<td>"+nf(n.demandY)+"</td>"
+      + "<td class='tl fc-winner'>"+esc(n.winnerTxt)+"</td>"
+      + (g.k==="pending" ? "<td>"+resMoCell+"</td>" : "")
+      + "<td>"+expCell+"</td><td>"+durCell+"</td>"
+      + "<td>"+mst+"</td><td>"+msl+"</td><td>"+mcu+"</td>"
+      + "<td><b style='color:var(--pos)'>"+fcMoneyUSD(n._rev.vnd)+"</b><div class='fc-permo'>"+fcMoneyUSD(n._rev.perMonthVND)+t("fc.perMonth")+"</div></td>"
+      + "</tr>";
   }).join("");
-  document.getElementById("fc-typetbl").innerHTML =
-    "<table><thead><tr><th class='tl'>"+t("fc.tblType")+"</th><th>"+t("fc.tblDemandMo")+"</th><th>"+t("fc.tblWinPcs")+"</th><th>"+t("fc.tblManiPrice")+"</th><th>"+t("fc.tblExpRev")+"</th><th class='tl'>"+t("fc.tblCurWin")+"</th></tr></thead><tbody>"
-    + (body||"<tr><td colspan='6' class='tl' style='text-align:center;color:var(--t3);padding:20px'>"+t("fc.noData")+"</td></tr>")
-    + (arr.length?"<tr class='grand'><td class='tl'>"+t("fc.total")+"</td><td>"+nf(Math.round(totMo))+"</td><td>"+nf(Math.round(totPcs))+"</td><td></td><td>"+money(totRev)+"</td><td></td></tr>":"")
-    + "</tbody></table>";
+
+  var totVND = g.nodesVisible.reduce(function(s,n){return s+n._rev.vnd;},0);
+  var extraTh = g.k==="pending" ? "<th>"+t("fc.resultMonth")+"</th>" : "";
+  var editBadge = editable ? " <span class='fc-edit-badge'>✎ "+t("fc.editHint")+"</span>" : "";
+
+  return '<div class="card reveal fc-gcard" style="border-top:4px solid '+g.col+'">'
+    + '<div class="ch" style="background:'+g.col+'0F"><div class="ct" style="color:'+g.col+'">'+g.nm+editBadge+'</div>'
+    +   '<div class="cs">'+g.nodesVisible.length+' '+t("fc.pkgs")+' · '+fcMoneyUSD(totVND)+'</div></div>'
+    + '<div class="cb" style="padding:0"><div class="tw"><table class="fc-tbl">'
+    +   '<thead><tr><th class="tl">'+t("fc.acct")+'</th><th>'+t("fc.potential")+'</th><th class="tl">'+t("fc.support")+'</th>'
+    +     '<th>'+t("fc.demandY")+'</th><th class="tl">'+t("fc.winner")+'</th>'+extraTh
+    +     '<th>'+t("fc.exp")+'</th><th>'+t("fc.dur")+'</th>'
+    +     '<th>'+t("fc.mst")+'</th><th>'+t("fc.msl")+'</th><th>'+t("fc.mcu")+'</th><th>'+t("fc.expected")+'</th></tr></thead>'
+    +   '<tbody>'+(rows||("<tr><td colspan='12' class='tl' style='text-align:center;color:var(--t3);padding:20px'>"+t("fc.noRow")+"</td></tr>"))+'</tbody>'
+    +   '</table></div>'
+    + '<div style="padding:12px 16px 4px"><div class="ct" style="font-size:12px;margin-bottom:6px">'+t("fc.gantt")+'</div>'
+    +   '<div class="fc-gantt-wrap"><canvas id="c-fc-gantt-'+g.k+'"></canvas></div></div>'
+    + '</div></div>';
 }
 
-/* ── Bảng theo chủ đầu tư (checkbox multi-select) ── */
-function fcRenderBuyerTable(buyers){
-  var body = buyers.slice(0,300).map(function(pb){
-    var reg = pb.region==="North"?t("region.North"):pb.region==="South"?t("region.South"):(pb.region||"—");
-    var checked = !!S.fc.sel[pb.buyer];
-    var bq = esc(pb.buyer).replace(/'/g,"\\'");
-    return "<tr class='clk"+(checked?" mani":"")+"' onclick=\"fcToggleBuyer('"+bq+"')\">"
-      + "<td class='tl' style='width:34px;text-align:center'><input type='checkbox' "+(checked?"checked":"")+" onclick=\"event.stopPropagation();fcToggleBuyer('"+bq+"')\" style='width:15px;height:15px;accent-color:var(--blue);cursor:pointer'></td>"
-      + "<td class='tl' title='"+esc(pb.buyer)+"' style='max-width:280px;overflow:hidden;text-overflow:ellipsis'>"+esc(pb.buyer)+"</td>"
-      + "<td class='tl'>"+esc(reg)+"</td>"
-      + "<td class='tl'>"+esc(pb.prov||"—")+"</td>"
-      + "<td>"+nf(Math.round(pb.totDemandMo))+"</td>"
-      + "<td>"+nf(Math.round(pb.totWinPcs))+"</td>"
-      + "<td><b style='color:var(--pos)'>"+money(pb.totExpRev)+"</b></td></tr>";
-  }).join("");
-  document.getElementById("fc-buyertbl").innerHTML =
-    "<table><thead><tr><th></th><th class='tl'>"+t("fc.buyer")+"</th><th class='tl'>"+t("fc.region")+"</th><th class='tl'>"+t("fc.province")+"</th><th>"+t("fc.demandMo")+"</th><th>"+t("fc.tblWinPcs")+"</th><th>"+t("fc.expRev")+"</th></tr></thead><tbody>"
-    + (body||"<tr><td colspan='7' class='tl' style='text-align:center;color:var(--t3);padding:24px'>"+t("fc.noData")+"</td></tr>")
-    + "</tbody></table>";
+/* month picker button dùng lại _mpk từ core */
+function fcMonthBtn(rowKey, field, value){
+  var id = "mp-fc-"+field+"-"+Math.abs(hashCode(rowKey));
+  var minMo = MONTHS_SORTED[0] || "01/2023";
+  // max xa 3 năm
+  var lastK = MONTHS_SORTED.length? moKey(MONTHS_SORTED[MONTHS_SORTED.length-1]):202608;
+  var maxK = fcAddMonths(lastK, 36); var maxMo = fcKeyToMoStr(maxK);
+  var rk = esc(rowKey).replace(/'/g,"\\'");
+  return '<button class="mp-btn sm" data-min="'+minMo+'" data-max="'+maxMo+'" data-value="'+(value||"")+'" '
+    + 'onclick="openMpick(this,{value:this.dataset.value,min:this.dataset.min,max:this.dataset.max,onPick:function(mo){fcEdit(\''+rk+'\',\''+field+'\',mo);}})">'
+    + '<span class="ic">📅</span><span>'+(value?moToBtnLabel(value):"—")+'</span></button>';
 }
-function fcToggleBuyer(name){
-  if(S.fc.sel[name]) delete S.fc.sel[name]; else S.fc.sel[name]=true;
+function hashCode(s){ var h=0; for(var i=0;i<s.length;i++) h=(h*31+s.charCodeAt(i))>>>0; return h; }
+
+/* Áp 1 chỉnh sửa vào edits → re-render (live) */
+function fcEdit(rowKey, field, val){
+  if(!S.fc.edits[rowKey]) S.fc.edits[rowKey]={};
+  if(field==="mst"||field==="msl"||field==="dur"||field==="mcu"){
+    var n=+String(val).replace(/[^\d]/g,""); if(!isFinite(n))n=0; S.fc.edits[rowKey][field]=n;
+  } else {
+    S.fc.edits[rowKey][field]=val;
+  }
   renderFC();
-  setTimeout(function(){ var d=document.getElementById("fc-detail"); if(d && Object.keys(S.fc.sel).length) d.scrollIntoView({behavior:"smooth",block:"nearest"}); },50);
-}
-function fcClearSel(){ S.fc.sel={}; renderFC(); }
-
-/* ── Detail panel: cộng dồn nhiều buyer + tag bỏ chọn + cardbox gọn ── */
-function fcDetailHtml(D, selKeys, W){
-  var pbs = selKeys.map(function(b){return D.perBuyer[b];}).filter(Boolean);
-  if(!pbs.length) return '<div class="emptynote" style="margin:0">'+t("fc.noSel")+'</div>';
-
-  /* gộp tổng */
-  var totDemandMo=0, totWinPcs=0, totWinVal=0, totExpRev=0;
-  var typeAgg={};   // ptype → {demandMo, winPcs, expRev, winnerAgg, latestBrand, latestSer, latestQty}
-  pbs.forEach(function(pb){
-    totDemandMo+=pb.totDemandMo; totWinPcs+=pb.totWinPcs; totWinVal+=pb.totWinVal; totExpRev+=pb.totExpRev;
-    Object.keys(pb.byType).forEach(function(pt){
-      var bt=pb.byType[pt];
-      if(!typeAgg[pt]) typeAgg[pt]={ptype:pt, demandMo:0, winPcs:0, expRev:0, winnerAgg:{}};
-      typeAgg[pt].demandMo+=bt.demandMo; typeAgg[pt].winPcs+=bt.winPcs; typeAgg[pt].expRev+=bt.expRev;
-      Object.keys(bt.winnerAgg).forEach(function(w){ typeAgg[pt].winnerAgg[w]=(typeAgg[pt].winnerAgg[w]||0)+bt.winnerAgg[w]; });
-    });
-  });
-
-  var H='';
-  /* header + tag chips bỏ chọn */
-  H += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">'
-    + '<div class="hsh" style="margin:0">'+t("fc.selected")+' ('+pbs.length+')</div>'
-    + '<button class="chip" style="padding:3px 10px;font-size:11px" onclick="fcClearSel()">✕ '+t("fc.clearSel")+'</button></div>';
-  H += '<div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:12px">'
-    + pbs.map(function(pb){ var bq=esc(pb.buyer).replace(/'/g,"\\'");
-        return '<span class="tbk" style="background:var(--pale);border-color:var(--lblue);cursor:pointer" onclick="fcToggleBuyer(\''+bq+'\')" title="'+esc(pb.buyer)+'">'+esc(pb.buyer.length>22?pb.buyer.slice(0,21)+"…":pb.buyer)+' <span class="pin-x" style="padding:0 2px">✕</span></span>';
-      }).join("") + '</div>';
-
-  /* combined target cardboxes */
-  H += '<div class="grpheader" style="background:var(--pale);border-left:4px solid var(--pos);margin-bottom:12px">'
-    + '<div class="ghh" style="color:var(--pos);font-size:15px">'+t("fc.combinedTarget")+'</div>'
-    + '<div class="ghs">'+pbs.length+' '+t("fc.nSelected")+' · '+t("fc.window")+': '+W.label+'</div></div>';
-
-  H += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">'
-    + '<div class="mstat"><div class="ml">'+t("fc.demandMo")+'</div><div class="mv">'+nf(Math.round(totDemandMo))+'</div><div class="ms">'+t("cs.pcs")+'/'+t("fc.months")+'</div></div>'
-    + '<div class="mstat"><div class="ml">'+t("fc.inWindow")+'</div><div class="mv">'+nf(Math.round(totWinPcs))+'</div><div class="ms">'+t("cs.pcs")+'</div></div>'
-    + '<div class="mstat"><div class="ml">'+t("fc.demandVal")+'</div><div class="mv" style="font-size:16px">'+money(totWinVal)+'</div></div>'
-    + '<div class="mstat" style="border-color:var(--pos)"><div class="ml">'+t("fc.expRev")+'</div><div class="mv" style="font-size:16px;color:var(--pos)">'+money(totExpRev)+'</div></div>'
-    + '</div>';
-
-  /* breakdown theo loại dao — gọn: tag brand trúng gần nhất + số lượng bn */
-  H += '<div class="hsh" style="margin:6px 0 8px">'+t("fc.lastWin")+'</div>';
-  var types = Object.keys(typeAgg).map(function(k){return typeAgg[k];}).sort(function(a,b){return b.expRev-a.expRev;});
-  H += types.map(function(ta){
-    var wk = Object.keys(ta.winnerAgg).sort(function(x,y){return ta.winnerAgg[y]-ta.winnerAgg[x];})[0]||"—";
-    var isMani = wk==="Mani";
-    return '<div class="tdcard" style="margin-bottom:6px"><div class="tdh" style="border-bottom:none;padding-bottom:0;margin-bottom:4px">'
-      + '<span class="tdtot" style="font-weight:800;color:var(--t1)">'+esc(ta.ptype)+'</span>'
-      + '<span class="mtag" style="background:'+brandColor(wk)+';color:'+(isMani?"#003047":"#fff")+'">'+esc(wk)+' · '+qf(Math.round(ta.winPcs))+' '+t("cs.pcs")+'</span></div>'
-      + '<div style="display:flex;justify-content:space-between;font-size:11.5px;color:var(--t2);padding:0 2px">'
-      +   '<span>'+t("fc.demandMo")+': <b style="color:var(--blue)">'+nf(Math.round(ta.demandMo))+'</b></span>'
-      +   '<span>'+t("fc.expRev")+': <b style="color:var(--pos)">'+money(ta.expRev)+'</b></span></div></div>';
-  }).join("");
-
-  /* full tender history (gộp mọi buyer đã chọn) */
-  var allRows = [];
-  pbs.forEach(function(pb){ pb.rows.forEach(function(r){ allRows.push(r); }); });
-  allRows.sort(function(a,b){ return (b.issSer||moKey(b.month)*100) - (a.issSer||moKey(a.month)*100); });
-  H += '<div class="hsh" style="margin:12px 0 8px">'+t("fc.history")+' ('+allRows.length+')</div>';
-  H += allRows.slice(0,60).map(function(r){
-    var c = fcContract(r), isMani = r.brand==="Mani";
-    var expTxt = r.expStr || fcKeyToDate(c.endKey), issTxt = r.issStr || moLabel(r.month);
-    var shortBuyer = pbs.length>1 ? ('<div style="font-size:10px;color:var(--t3);margin-bottom:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(r.buyer)+'</div>') : '';
-    return '<div class="tdcard" style="border-left:3px solid '+brandColor(r.brand)+'">'
-      + shortBuyer
-      + '<div class="tdh"><span class="mtag" style="background:'+brandColor(r.brand)+';color:'+(isMani?"#003047":"#fff")+'">'+esc(r.brand)+'</span>'
-      +   '<span class="tdtot pt-hov" data-pcode="'+esc(r.pcode).replace(/"/g,"&quot;")+'" data-tspec="'+esc(r.tspec).replace(/"/g,"&quot;")+'" onmouseover="showTspec(event,this)" onmouseleave="hideTspec()">'+esc(r.ptype)+'</span></div>'
-      + '<div style="font-size:11px;color:var(--t2);line-height:1.65;padding:2px 2px 0">'
-      +   '<div style="display:flex;justify-content:space-between"><span>'+t("th.qty")+'</span><b style="color:var(--t1)">'+nf(r.qty)+' '+t("cs.pcs")+'</b></div>'
-      +   '<div style="display:flex;justify-content:space-between"><span>'+t("dk.unitprice")+'</span><b style="color:var(--t1)">'+money(r.price)+'</b></div>'
-      +   '<div style="display:flex;justify-content:space-between"><span>'+t("fc.contractDur")+'</span><b style="color:var(--t1)">'+(r.cdur>0?r.cdur:"12*")+' '+t("fc.months")+'</b></div>'
-      +   '<div style="display:flex;justify-content:space-between"><span>'+t("fc.issued")+'</span><b style="color:var(--t1)">'+esc(issTxt)+'</b></div>'
-      +   '<div style="display:flex;justify-content:space-between"><span>'+t("fc.expires")+'</span><b style="color:'+fcExpColor(r.expSer)+'">'+esc(expTxt)+'</b></div>'
-      +   (r.kqtt?'<div style="display:flex;justify-content:space-between"><span>KQTT</span><span style="font-size:10px">'+esc(r.kqtt)+'</span></div>':'')
-      + '</div></div>';
-  }).join("");
-  return H;
 }
 
-/* ── Trend chart ── */
-function fcRenderTrend(D, W){
-  var months = W.months, labels = months.map(function(k){ return fcKeyToDate(k); });
-  var demandSeries = new Array(months.length).fill(0), maniSeries = new Array(months.length).fill(0);
-  ROWS.forEach(function(r){
-    if(!r.ptype || !fcRegOK(r)) return;
-    var c = fcContract(r); if(!c.startKey) return;
-    var demandMo = r.qty / c.dur, sOrd = fcKeyToOrd(c.startKey), eOrd = fcKeyToOrd(c.endKey);
-    months.forEach(function(k, i){
-      var o = fcKeyToOrd(k);
-      if(o>=sOrd && o<=eOrd){ demandSeries[i]+=demandMo; if(r.brand==="Mani") maniSeries[i]+=demandMo; }
-    });
+/* ══════════════════════════════════════════════════════════════════════════════════════════
+ *  GANTT (bôi màu theo hiệu lực + nhãn doanh số $/tháng)
+ * ══════════════════════════════════════════════════════════════════════════════════════════ */
+function fcDrawGantt(g, win){
+  var id = "c-fc-gantt-"+g.k;
+  if(S.fc.charts[id]){ try{S.fc.charts[id].destroy();}catch(e){} delete S.fc.charts[id]; }
+  var el = document.getElementById(id); if(!el) return;
+
+  var months = win.months;                                  // trục X
+  var labels = months.map(fcMonthKeyToLabel);
+  var nodes  = g.nodesVisible.slice(0, 30);                 // giới hạn 30 dòng cho gọn
+
+  // mỗi node = 1 dataset dạng floating bar [startIdx, endIdx] trên trục Y (categorical)
+  var yLabels = nodes.map(function(n){ return (n.account.length>26?n.account.slice(0,25)+"…":n.account); });
+
+  // Chart.js horizontal floating bar: dùng {x:[from,to], y:label}
+  var barData = nodes.map(function(n, i){
+    var s = Math.max(fcKeyOrd(n.startKey||win.fromKey), fcKeyOrd(win.fromKey));
+    var e = Math.min(fcKeyOrd(n.expKey||win.toKey),   fcKeyOrd(win.toKey));
+    var sIdx = s - fcKeyOrd(win.fromKey);
+    var eIdx = e - fcKeyOrd(win.fromKey) + 1;               // +1 để phủ hết tháng cuối
+    return { x:[sIdx, eIdx], y:yLabels[i], node:n };
   });
-  killFC("c-fc-trend");
-  var el = document.getElementById("c-fc-trend"); if(!el) return;
-  S.fc.charts["c-fc-trend"] = new Chart(el,{
+
+  S.fc.charts[id] = new Chart(el, {
     type:"bar",
-    data:{labels:labels, datasets:[
-      {label:t("fc.scopeAll"), data:demandSeries.map(function(v){return Math.round(v);}), backgroundColor:hexA("#3A5CAA",.85), borderRadius:4, datalabels:{display:false}},
-      {type:"line", label:"Mani", data:maniSeries.map(function(v){return Math.round(v);}), borderColor:"#E0A800", backgroundColor:hexA("#FFC400",.2), borderWidth:2.5, tension:.3, pointRadius:2, fill:true, datalabels:{display:false}}
-    ]},
-    options:{responsive:true, maintainAspectRatio:false, animation:{duration:800}, interaction:{mode:"index",intersect:false},
-      plugins:{legend:{position:"bottom",labels:{font:{family:FF,size:11},boxWidth:12,padding:9,color:axisColor()}}, datalabels:{display:false},
-        tooltip:{titleFont:{family:FF,size:12,weight:"800"},bodyFont:{family:FF,size:11.5},
-          callbacks:{label:function(c){return " "+c.dataset.label+": "+qf(c.parsed.y)+" "+t("cs.pcs")+"/"+t("fc.months");}}}},
-      scales:{x:{grid:{display:false},ticks:{font:{family:FF,size:10},color:axisColor(),maxRotation:60,minRotation:0}},
-        y:{beginAtZero:true,grid:{color:gridColor()},ticks:{font:{family:FF,size:10},color:axisColor(),callback:function(v){return qf(v);}}}},
-      layout:{padding:{top:8,right:8}}}
+    data:{ labels:yLabels, datasets:[{
+      label:g.nm, data:barData,
+      backgroundColor: hexA(g.col,.55), borderColor:g.col, borderWidth:1.5, borderRadius:5,
+      borderSkipped:false, barPercentage:.7,
+      parsing:{ xAxisKey:"x", yAxisKey:"y" },
+      datalabels:{
+        display:true, color:"#0F1E33", anchor:"center", align:"center", clamp:true,
+        font:{family:FF,size:10,weight:"800"},
+        formatter:function(v,ctx){ var n=barData[ctx.dataIndex].node; return n._rev.perMonthVND>0 ? fcMoneyUSD(n._rev.perMonthVND) : ""; }
+      }
+    }]},
+    options:{
+      indexAxis:"y", responsive:true, maintainAspectRatio:false, animation:{duration:700},
+      plugins:{
+        legend:{display:false}, datalabels:{},
+        tooltip:{ enabled:false, external:function(ctx){ chartTip(ctx, function(i){
+          var n = barData[i].node;
+          return { title:n.account, rows:[
+            {label:t("fc.exp"), val:fcKeyToMoStr(n.expKey)},
+            {label:t("fc.dur"), val:n.dur+" "+t("fc.months")},
+            {label:"MST/MSL/MCU", val:nf(n.mst)+"/"+nf(n.msl)+"/"+nf(n.mcu)},
+            {label:t("fc.expected")+"/"+t("fc.months"), val:fcMoneyUSD(n._rev.perMonthVND)},
+            {label:t("fc.expected")+" ("+win.label+")", val:fcMoneyUSD(n._rev.vnd)}
+          ], note:n.winnerTxt };
+        }); } }
+      },
+      scales:{
+        x:{ min:0, max:months.length, position:"top",
+            grid:{color:gridColor()},
+            ticks:{ font:{family:FF,size:9}, color:axisColor(),
+              stepSize:1, callback:function(v){ return (v>=0 && v<labels.length)? labels[v] : ""; } } },
+        y:{ grid:{display:false}, ticks:{font:{family:FF,size:10.5,weight:"700"},color:axisColor()} }
+      },
+      layout:{padding:{top:4,right:10,left:4,bottom:4}}
+    }
   });
-}
-function killFC(id){ if(S.fc.charts[id]){try{S.fc.charts[id].destroy();}catch(e){} delete S.fc.charts[id];} }
-
-/* ── Expiring soon ── */
-function fcExpiringCardHtml(){
-  var now = Date.now(), horizon = now + 180*24*60*60*1000, items=[];
-  ROWS.forEach(function(r){ if(!fcRegOK(r)) return; if(r.expSer && r.expSer>=now && r.expSer<=horizon) items.push(r); });
-  items.sort(function(a,b){ return a.expSer - b.expSer; });
-  var seen={}, uniq=[];
-  items.forEach(function(r){ var k=r.buyer+"||"+r.ptype; if(seen[k]) return; seen[k]=1; uniq.push(r); });
-  if(!uniq.length) return "";
-  var body = uniq.slice(0,30).map(function(r){
-    var days = Math.round((r.expSer-now)/(1000*60*60*24)), isMani = r.brand==="Mani", bq=esc(r.buyer).replace(/'/g,"\\'");
-    return "<tr class='clk' onclick=\"fcToggleBuyer('"+bq+"')\">"
-      + "<td class='tl' title='"+esc(r.buyer)+"' style='max-width:260px;overflow:hidden;text-overflow:ellipsis'>"+esc(r.buyer)+"</td>"
-      + "<td class='tl'>"+esc(r.ptype)+"</td>"
-      + "<td class='tl'><span class='badge' style='background:"+brandColor(r.brand)+";color:"+(isMani?"#003047":"#fff")+"'>"+esc(r.brand)+"</span></td>"
-      + "<td>"+nf(r.qty)+"</td>"
-      + "<td class='tl' style='color:var(--warn);font-weight:800'>"+esc(r.expStr||fcKeyToDate(fcContract(r).endKey))+"</td>"
-      + "<td style='color:"+(days<60?"var(--neg)":"var(--warn)")+";font-weight:800'>"+days+" "+t("fc.daysLeft")+"</td></tr>";
-  }).join("");
-  return '<div class="card reveal"><div class="ch"><div class="ct">⏰ '+t("fc.expiring")+'</div><div class="cs">'+t("fc.expiringSub")+' · '+uniq.length+'</div></div>'
-    + '<div class="cb" style="padding:0"><div class="tw"><table><thead><tr><th class="tl">'+t("fc.buyer")+'</th><th class="tl">'+t("fc.tblType")+'</th><th class="tl">'+t("dk.brand")+'</th><th>'+t("th.qty")+'</th><th class="tl">'+t("fc.expires")+'</th><th>'+t("fc.daysLeft")+'</th></tr></thead><tbody>'+body+'</tbody></table></div></div></div>';
+  // chiều cao động theo số dòng
+  el.parentNode.style.height = Math.max(140, nodes.length*34 + 40) + "px";
 }
 
-/* ── Smart search: buyer table (buyer/prov/region) ── */
-function fcSuggest(inp){
-  S.fc.query = inp.value.trim();
-  var drop = document.getElementById("ss-fc-drop");
-  var q = norm(S.fc.query);
-  if(drop){
-    if(!q){ drop.classList.remove("open"); }
-    else {
-      var set={}, res=[];
-      ROWS.forEach(function(r){
-        if(!fcRegOK(r)) return;
-        [["buyer",r.buyer],["prov",r.prov],["region",r.region]].forEach(function(pair){
-          var v=pair[1]; if(!v||v==="N/A") return;
-          var key=pair[0]+":"+v; if(set[key]) return;
-          if(norm(v).indexOf(q)>=0 && res.length<10){ set[key]=1; res.push({type:pair[0], val:v}); }
-        });
-      });
-      drop.innerHTML = res.length ? res.map(function(x){
-        var tag = x.type==="buyer"?t("fc.buyer"):(x.type==="prov"?t("fc.province"):t("fc.region"));
-        return '<div class="ss-it" onmousedown="fcPick(\''+esc(x.val).replace(/'/g,"\\'")+'\')"><span>'+esc(x.val)+'</span><small>'+tag+'</small></div>';
-      }).join("") : '<div class="ss-empty">'+t("fc.noData")+'</div>';
-      drop.classList.add("open");
-    }
-  }
-  renderFC();
-}
-function fcPick(val){
-  S.fc.query = val;
-  var inp = document.getElementById("ss-fc"); if(inp) inp.value = val;
-  var drop = document.getElementById("ss-fc-drop"); if(drop) drop.classList.remove("open");
-  renderFC();
-}
-/* Smart search trên bảng loại dao → thực chất lọc buyer (dùng chung query) */
-function fcTypeBuyerSuggest(inp){
-  S.fc.query = inp.value.trim();
-  var drop = document.getElementById("ss-fc-type-drop");
-  var q = norm(S.fc.query);
-  if(drop){
-    if(!q){ drop.classList.remove("open"); }
-    else {
-      var set={}, res=[];
-      ROWS.forEach(function(r){
-        if(!fcRegOK(r)) return;
-        var v=r.buyer; if(!v) return;
-        if(set[v]) return;
-        if(norm(v).indexOf(q)>=0 && res.length<10){ set[v]=1; res.push(v); }
-      });
-      drop.innerHTML = res.length ? res.map(function(v){
-        return '<div class="ss-it" onmousedown="fcPickType(\''+esc(v).replace(/'/g,"\\'")+'\')"><span>'+esc(v)+'</span><small>'+t("fc.buyer")+'</small></div>';
-      }).join("") : '<div class="ss-empty">'+t("fc.noData")+'</div>';
-      drop.classList.add("open");
-    }
-  }
-  renderFC();
-}
-function fcPickType(val){
-  S.fc.query = val;
-  var i1=document.getElementById("ss-fc-type"); if(i1) i1.value=val;
-  var i2=document.getElementById("ss-fc"); if(i2) i2.value=val;
-  var drop=document.getElementById("ss-fc-type-drop"); if(drop) drop.classList.remove("open");
-  renderFC();
-}
-
-/* ── Export Excel ── */
+/* ══════════════════════════════════════════════════════════════════════════════════════════
+ *  EXPORT EXCEL
+ * ══════════════════════════════════════════════════════════════════════════════════════════ */
 function fcExportExcel(){
-  if(typeof XLSX==="undefined"){ showToast(LANG==="vi"?"Thư viện Excel chưa tải":"Excel library not loaded","warn"); return; }
-  var D = fcCompute(), W = D.window;
+  if(typeof XLSX==="undefined"){ showToast(LANG==="vi"?"Thư viện Excel chưa tải":"Excel not loaded","warn"); return; }
+  var B = fcBuild(), win = B.win;
   showToast(LANG==="vi"?"Đang tạo Excel…":"Building Excel…","load");
-  var detail=[];
-  Object.keys(D.perBuyer).forEach(function(b){
-    var pb=D.perBuyer[b];
-    Object.keys(pb.byType).forEach(function(pt){
-      var bt=pb.byType[pt], pk=fcPriceKey(pt);
-      detail.push({
-        "Chu dau tu":pb.buyer, "Khu vuc":pb.region==="North"?"Bac":(pb.region==="South"?"Nam":(pb.region||"")),
-        "Tinh/Thanh":pb.prov||"", "Loai dao":pt,
-        "Demand/thang (pcs)":Math.round(bt.demandMo), "Trong ky (pcs)":Math.round(bt.winPcs),
-        "Gia tri trung (VND)":Math.round(bt.winVal), "Gia Mani (VND)":S.fc.price[pk],
-        "DS ky vong (VND)":Math.round(bt.expRev), "Hang dang trung":bt.curWinner||""
+  var groups = [["existing",B.existing],["pending",B.pending],["remaining",B.remaining],["new",B.newConvert]];
+  var gname = {existing:"Existing_Win",pending:"Pending",remaining:"Remaining",new:"New_Convert"};
+  var rows=[];
+  groups.forEach(function(gp){
+    gp[1].forEach(function(n){
+      n._rev = fcNodeRevenue(n, win);
+      if(n._rev.months<=0) return;
+      rows.push({
+        "Nhom": gname[gp[0]], "Account": n.account, "Tinh": n.prov, "TBMT": n.tbmt,
+        "KhuVuc": n.region==="South"?"Nam":(n.region==="North"?"Bac":n.region),
+        "KetQua": n.result, "Potential": n.potential, "Support need": n.support||"",
+        "Demand TB/nam": n.demandY,
+        "MST (pcs)": n.mst, "MSL (pcs)": n.msl, "MCU (pcs)": n.mcu,
+        "Het hieu luc": fcKeyToMoStr(n.expKey), "Hieu luc (thang)": n.dur,
+        "Thang overlap ky": n._rev.months,
+        "DS ky vong (VND)": Math.round(n._rev.vnd),
+        "DS ky vong ($)": Math.round(fcUSD(n._rev.vnd)),
+        "Hang trung gan nhat": n.winnerTxt
       });
     });
   });
-  detail.sort(function(a,b){ return b["DS ky vong (VND)"]-a["DS ky vong (VND)"]; });
-  var summary = Object.keys(D.perBuyer).map(function(b){
-    var pb=D.perBuyer[b];
-    return {"Chu dau tu":pb.buyer, "Khu vuc":pb.region==="North"?"Bac":(pb.region==="South"?"Nam":(pb.region||"")),
-      "Tinh/Thanh":pb.prov||"", "Demand/thang (pcs)":Math.round(pb.totDemandMo),
-      "Trong ky (pcs)":Math.round(pb.totWinPcs), "Gia tri trung (VND)":Math.round(pb.totWinVal),
-      "DS ky vong Mani (VND)":Math.round(pb.totExpRev)};
-  }).sort(function(a,b){ return b["DS ky vong Mani (VND)"]-a["DS ky vong Mani (VND)"]; });
   try{
     var wb=XLSX.utils.book_new();
     var meta=[
-      {"Thong so":"Ky du bao","Gia tri":W.label},
-      {"Thong so":"Khu vuc","Gia tri":S.fc.region==="ALL"?"Toan quoc":(S.fc.region==="North"?"Bac":S.fc.region==="South"?"Nam":S.fc.region)},
-      {"Thong so":"Scope","Gia tri":S.fc.scope==="mani"?"Chi Mani trung":"Toan bo (gia dinh Mani thang)"},
-      {"Thong so":"Gia slit (VND)","Gia tri":S.fc.price.slit},
-      {"Thong so":"Gia stab (VND)","Gia tri":S.fc.price.stab},
-      {"Thong so":"Gia luoi liem (VND)","Gia tri":S.fc.price.crescent},
-      {"Thong so":"Gia dao khac (VND)","Gia tri":S.fc.price.other},
-      {"Thong so":"Tong DS ky vong (VND)","Gia tri":Math.round(D.totals.expRev)}
+      {"Thong so":"Ky du bao","Gia tri":win.label},
+      {"Thong so":"Khu vuc","Gia tri":S.fc.region},
+      {"Thong so":"Gia MSL (VND)","Gia tri":S.fc.price.MSL},
+      {"Thong so":"Gia MST (VND)","Gia tri":S.fc.price.MST},
+      {"Thong so":"Gia MCU (VND)","Gia tri":S.fc.price.MCU},
+      {"Thong so":"Ti gia (VND/$)","Gia tri":S.fc.fxFC},
+      {"Thong so":"Tong DS ky vong (VND)","Gia tri":Math.round(rows.reduce(function(s,r){return s+r["DS ky vong (VND)"];},0))}
     ];
-    var ws0=XLSX.utils.json_to_sheet(meta); ws0["!cols"]=[{wch:26},{wch:40}];
+    var ws0=XLSX.utils.json_to_sheet(meta); ws0["!cols"]=[{wch:24},{wch:20}];
     XLSX.utils.book_append_sheet(wb,ws0,"ThongTin");
-    var ws1=XLSX.utils.json_to_sheet(detail); ws1["!cols"]=[{wch:38},{wch:8},{wch:16},{wch:20},{wch:16},{wch:14},{wch:18},{wch:16},{wch:18},{wch:16}];
-    XLSX.utils.book_append_sheet(wb,ws1,"ChiTiet_DiaBan_x_Dao");
-    var ws2=XLSX.utils.json_to_sheet(summary); ws2["!cols"]=[{wch:38},{wch:8},{wch:16},{wch:16},{wch:14},{wch:18},{wch:20}];
-    XLSX.utils.book_append_sheet(wb,ws2,"TongHop_DiaBan");
-    var fname=("MMH_DuTru_DoanhSo_"+W.label+".xlsx").replace(/[^\w.\-]+/g,"_");
+    var ws1=XLSX.utils.json_to_sheet(rows);
+    ws1["!cols"]=[{wch:14},{wch:40},{wch:14},{wch:16},{wch:8},{wch:9},{wch:10},{wch:20},{wch:14},{wch:10},{wch:10},{wch:10},{wch:12},{wch:12},{wch:12},{wch:16},{wch:14},{wch:30}];
+    XLSX.utils.book_append_sheet(wb,ws1,"DuTru_TheoDoi");
+    var fname=("MMH_DuTru_TheoDoi_Thau_"+win.label+".xlsx").replace(/[^\w.\-]+/g,"_");
     XLSX.writeFile(wb,fname);
     showToast((LANG==="vi"?"Đã xuất: ":"Exported: ")+fname,"success");
   }catch(e){ console.error(e); showToast((LANG==="vi"?"Xuất thất bại: ":"Export failed: ")+(e.message||e),"warn"); }
 }
 
-/* restore giá đã lưu */
+/* restore prefs */
 (function(){
-  try{ var p=localStorage.getItem("mmh_fc_price"); if(p){ var o=JSON.parse(p); ["slit","stab","crescent","other"].forEach(function(k){ if(o[k]!=null) S.fc.price[k]=+o[k]; }); } }catch(e){}
+  try{
+    var p=localStorage.getItem("mmh_fc_price2"); if(p){var o=JSON.parse(p);["MSL","MST","MCU"].forEach(function(k){if(o[k]!=null)S.fc.price[k]=+o[k];});}
+    var fx=localStorage.getItem("mmh_fc_fx"); if(fx) S.fc.fxFC=+fx;
+  }catch(e){}
 })();
 </script>
 

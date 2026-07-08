@@ -649,17 +649,33 @@ html[data-theme="dark"] .fc-marquee{background:linear-gradient(90deg,#0a1b2e,#0d
 .fc-mq-item.lose b{color:#FF8A8A;}
 .fc-mq-sep{color:rgba(255,255,255,.32);padding:0 12px;font-weight:700;}
 
-/* ─ Hero ─ */
-.fc-hero{display:grid;grid-template-columns:1.05fr 1.55fr;gap:16px;background:var(--sf);border:1px solid var(--br);border-radius:var(--r);box-shadow:var(--sh);padding:18px 20px;margin-bottom:16px;align-items:center;}
-@media(max-width:900px){.fc-hero{grid-template-columns:1fr;}}
+/* ─ Hero: 3 vùng — Doanh số · Thống kê · Giá bán ─ */
+.fc-hero{display:grid;grid-template-columns:0.92fr 1fr 1.35fr;gap:16px;background:var(--sf);border:1px solid var(--br);border-radius:var(--r);box-shadow:var(--sh);padding:18px 20px;margin-bottom:16px;align-items:center;}
+@media(max-width:1100px){.fc-hero{grid-template-columns:1fr 1fr;}}
+@media(max-width:720px){.fc-hero{grid-template-columns:1fr;}}
 .fc-hero-l{display:flex;flex-direction:column;justify-content:center;border-left:5px solid var(--pos);padding-left:16px;}
 .fc-hero-lbl{font-size:12px;font-weight:900;letter-spacing:1.5px;color:var(--t3);text-transform:uppercase;}
-.fc-hero-val{font-size:46px;font-weight:900;color:var(--pos);letter-spacing:-1px;line-height:1.02;font-variant-numeric:tabular-nums;margin:2px 0;}
+.fc-hero-val{font-size:42px;font-weight:900;color:var(--pos);letter-spacing:-1px;line-height:1.02;font-variant-numeric:tabular-nums;margin:2px 0;}
 html[data-theme="dark"] .fc-hero-val{color:#4ADE80;}
 .fc-hero-sub{font-size:12.5px;color:var(--t2);font-weight:600;}
 
+/* ─ Thống kê thầu ─ */
+.fc-stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.fc-stat{background:var(--sf2);border:1px solid var(--br);border-radius:11px;padding:9px 12px;display:flex;flex-direction:column;gap:1px;border-left:3px solid var(--t3);}
+.fc-stat.win{border-left-color:#2E7D32;}
+.fc-stat.hosp{border-left-color:#3A5CAA;}
+.fc-stat.pend{border-left-color:#F57C00;}
+.fc-stat.fail{border-left-color:#C0392B;}
+.fc-stat-v{font-size:24px;font-weight:900;color:var(--t1);line-height:1;font-variant-numeric:tabular-nums;}
+.fc-stat.win .fc-stat-v{color:#2E7D32;} html[data-theme="dark"] .fc-stat.win .fc-stat-v{color:#4ADE80;}
+.fc-stat.hosp .fc-stat-v{color:#3A5CAA;} html[data-theme="dark"] .fc-stat.hosp .fc-stat-v{color:#7BA0E0;}
+.fc-stat.pend .fc-stat-v{color:#F57C00;}
+.fc-stat.fail .fc-stat-v{color:#C0392B;} html[data-theme="dark"] .fc-stat.fail .fc-stat-v{color:#FF8A8A;}
+.fc-stat-l{font-size:10.5px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.3px;}
+
 /* ─ Price panel ─ */
 .fc-price-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+@media(max-width:1100px){.fc-hero-r{grid-column:1/-1;}}
 .fc-pin-h{grid-column:1/-1;font-size:11px;font-weight:900;letter-spacing:.5px;color:var(--blue);text-transform:uppercase;margin-bottom:2px;}
 .fc-pin{display:flex;align-items:center;gap:7px;background:var(--sf2);border:1px solid var(--br);border-radius:9px;padding:7px 11px;}
 .fc-pin.fx{border-color:var(--yellow);background:rgba(255,225,0,.06);}
@@ -721,6 +737,10 @@ html[data-theme="dark"] .fc-cell-i{color:var(--sky);}
 /* ─ Future FY chip ─ */
 .chip.fut{border-style:dashed;color:var(--blue);}
 .chip.fut.on{border-style:solid;}
+
+/* ─ Feed warning ─ */
+.fc-feedwarn{background:rgba(192,57,43,.10);border:1px solid rgba(192,57,43,.4);color:#C0392B;font-size:12.5px;font-weight:700;border-radius:10px;padding:10px 14px;margin-bottom:12px;line-height:1.4;}
+html[data-theme="dark"] .fc-feedwarn{color:#FF9A9A;background:rgba(192,57,43,.16);}
 </style>
 </head>
 <body>
@@ -4444,7 +4464,9 @@ function exportPPT(){
       "fc.search":"Search account / hospital…","fc.clear":"Clear",
       "fc.ban.expire":"expiring soon","fc.ban.new":"updated this month",
       "fc.ban.left":"left","fc.ban.win":"WIN","fc.ban.lose":"LOSE","fc.ban.pcs":"pcs",
-      "fc.tableTitle":"Package detail","fc.showing":"showing"
+      "fc.tableTitle":"Package detail","fc.showing":"showing",
+      "fc.st.winPkgs":"Won packages","fc.st.winHosps":"Won hospitals","fc.st.pend":"Pending","fc.st.fail":"Failed",
+      "fc.stats":"Tender stats"
     },
     vi:{
       "nav.fc":"Dự trù & Theo dõi thầu",
@@ -4468,7 +4490,9 @@ function exportPPT(){
       "fc.search":"Tìm chủ đầu tư / bệnh viện…","fc.clear":"Xoá",
       "fc.ban.expire":"sắp hết hiệu lực","fc.ban.new":"cập nhật tháng này",
       "fc.ban.left":"còn","fc.ban.win":"TRÚNG","fc.ban.lose":"TRƯỢT","fc.ban.pcs":"chiếc",
-      "fc.tableTitle":"Chi tiết gói thầu","fc.showing":"đang xem"
+      "fc.tableTitle":"Chi tiết gói thầu","fc.showing":"đang xem",
+      "fc.st.winPkgs":"Gói trúng","fc.st.winHosps":"BV trúng thầu","fc.st.pend":"Chờ KQ","fc.st.fail":"Trượt thầu",
+      "fc.stats":"Thống kê thầu"
     }
   };
   Object.keys(add).forEach(function(lg){ if(!I18N[lg]) I18N[lg]={}; Object.keys(add[lg]).forEach(function(k){ I18N[lg][k]=add[lg][k]; }); });
@@ -4568,12 +4592,18 @@ function fcLoadNPP(force){
 }
 function fcNormNPP(r, npp){
   var group=fcKnifeGroup(r.knifeType||r.pcodeRaw);
-  var startKey=r.approveSerial? fcSerialToKey(r.approveSerial):(r.month? fcMoStrToKey(r.month):0);
+  var effKey    = r.effSerial? fcSerialToKey(r.effSerial):0;
+  var approveKey= r.approveSerial? fcSerialToKey(r.approveSerial):0;
+  var monthKey  = r.month? fcMoStrToKey(r.month):0;
+  // Mốc bắt đầu hiệu lực: ưu tiên Ngày phê duyệt → Ngày hiệu lực (G, luôn có ở Hùng Vĩ) → Month
+  var startKey  = approveKey || effKey || monthKey || 0;
   var dur=(+r.durationMonths>0)?+r.durationMonths:12;
+  // Hết hiệu lực: ưu tiên Ngày hết hạn (H, code.gs trả expirationSerial) → start+duration
   var expKey=r.expirationSerial? fcSerialToKey(r.expirationSerial):(startKey? fcAddMonths(startKey,dur):0);
   return { src:"NPP", npp:npp, region:r.region||(npp==="ICARE"?"South":"North"),
     tbmt:r.tbmt||"", hospital:r.hospital||"(?)", prov:r.city||"", result:(r.result||"").trim(), group:group,
     qty:+r.qty||0, price:+r.price||0, startKey:startKey||0, dur:dur, expKey:expKey||0,
+    approveKey:approveKey, effKey:effKey,   // dùng cho banner "cập nhật tháng này"
     knifeType:r.knifeType||"", pcode:r.pcodeRaw||"" };
 }
 
@@ -4708,10 +4738,14 @@ function fcBannerItems(){
     var arr=NPP_FEED[k]; if(!arr) return;
     var pkg={};
     arr.forEach(function(r0){
-      var r=fcNormNPP(r0,k); if(r.startKey!==now) return;
+      var r=fcNormNPP(r0,k);
+      // "cập nhật tháng này" = tháng phê duyệt (ưu tiên) hoặc hiệu lực == tháng data mới nhất
+      var updKey = r.approveKey || r.effKey || r.startKey;
+      if(updKey!==now) return;
+      if(r.result!=="Win" && r.result!=="Fail") return;   // chỉ Win/Fail
       var pk=(r.tbmt||("H:"+r.hospital))+"|"+r.result;
       if(!pkg[pk]) pkg[pk]={hospital:r.hospital,result:r.result,qty:0};
-      pkg[pk].qty+=r.qty;
+      pkg[pk].qty+=r.qty;   // chỉ cộng dao (feed đã lọc dao)
     });
     Object.keys(pkg).forEach(function(pk){
       var p=pkg[pk];
@@ -4734,6 +4768,24 @@ function fcBannerHTML(){
   var dur=Math.max(24, items.length*6);
   return '<div class="fc-marquee"><div class="fc-mq-tag">📣</div>'
     +'<div class="fc-mq-view"><div class="fc-mq-track" style="animation-duration:'+dur+'s">'+track+'</div></div></div>';
+}
+
+/* Cảnh báo feed NPP không tải được (giúp chẩn đoán "$0, 0 gói") */
+function fcFeedWarn(){
+  var bad=[];
+  if(NPP_FEED.ICARE===null)  bad.push("Icare (Nam)");
+  if(NPP_FEED.HUNGVI===null) bad.push("Hùng Vĩ (Bắc)");
+  // rỗng (fetch OK nhưng 0 dòng) cũng đáng lưu ý
+  var empty=[];
+  if(Array.isArray(NPP_FEED.ICARE)  && NPP_FEED.ICARE.length===0)  empty.push("Icare (Nam)");
+  if(Array.isArray(NPP_FEED.HUNGVI) && NPP_FEED.HUNGVI.length===0) empty.push("Hùng Vĩ (Bắc)");
+  if(!bad.length && !empty.length) return "";
+  var msg="";
+  if(bad.length)   msg+=(LANG==="vi"?"Không tải được dữ liệu: ":"Failed to load: ")+bad.join(", ")+". ";
+  if(empty.length) msg+=(LANG==="vi"?"Feed rỗng (0 dòng dao): ":"Empty feed: ")+empty.join(", ")+". ";
+  return '<div class="fc-feedwarn">⚠️ '+esc(msg)
+    +(LANG==="vi"?"Kiểm tra URL webapp & quyền truy cập \u201cAnyone\u201d của Apps Script."
+                 :"Check the webapp URL & Apps Script \u201cAnyone\u201d access.")+'</div>';
 }
 
 /* ════ RENDER ════ */
@@ -4762,12 +4814,17 @@ function renderFC(){
   var byGroupVND={existing:0,pending:0,remaining:0,new:0}, byGroupCnt={existing:0,pending:0,remaining:0,new:0};
   nodes.forEach(function(n){ byGroupVND[n.group]+=n._rev.vnd; byGroupCnt[n.group]++; });
 
+  /* ── Thống kê thầu (theo khu vực đang lọc) ── */
+  var st=fcWinStats(win);
+
   var H="";
+  H+=fcFeedWarn();
   H+=fcBannerHTML();
   H+='<div class="fc-hero reveal in">'
     +'<div class="fc-hero-l"><div class="fc-hero-lbl">'+t("fc.expected")+'</div>'
     +  '<div class="fc-hero-val">'+fcMoneyUSD(grandVND)+'</div>'
     +  '<div class="fc-hero-sub">'+fcMoneyVND(grandVND)+' · '+win.label+' · '+nodes.length+' '+t("fc.pkgs")+'</div></div>'
+    +  fcStatsPanel(st)
     +'<div class="fc-hero-r">'+fcPriceFxPanel()+'</div></div>';
 
   H+='<div class="card reveal fc-gantt-card">'
@@ -4824,6 +4881,49 @@ function fcToggleFY(fy, ev){
   if(multi){ if(!S.fc.fys.length) S.fc.fys=fcFY(); var i=S.fc.fys.indexOf(fy); if(i>=0) S.fc.fys.splice(i,1); else S.fc.fys.push(fy); if(!S.fc.fys.length) S.fc.fys=[fy]; }
   else S.fc.fys=[fy];
   renderFC();
+}
+
+/* Thống kê thầu DAO trong kỳ (theo khu vực đang lọc):
+   - winPkgs   : số gói TRÚNG (Win) còn overlap kỳ
+   - winHosps  : số bệnh viện có ít nhất 1 gói trúng
+   - failPkgs  : số gói TRƯỢT (trong toàn feed, khu vực lọc)
+   - pendPkgs  : số gói Pending */
+function fcWinStats(win){
+  var regOK=function(rg){ return S.fc.region==="ALL"||rg===S.fc.region; };
+  var winPkgSet={}, winHospSet={}, failSet={}, pendSet={};
+  ["ICARE","HUNGVI"].forEach(function(k){
+    var arr=NPP_FEED[k]; if(!arr) return;
+    // gom theo gói
+    var pkg={};
+    arr.forEach(function(r0){
+      var r=fcNormNPP(r0,k); if(!regOK(r.region)) return;
+      var pk=(r.tbmt||("H:"+r.hospital))+"|"+r.npp;
+      if(!pkg[pk]) pkg[pk]={hospital:r.hospital,results:{},startKey:0,expKey:0};
+      pkg[pk].results[r.result]=(pkg[pk].results[r.result]||0)+1;
+      if(r.startKey>pkg[pk].startKey) pkg[pk].startKey=r.startKey;
+      if(r.expKey>pkg[pk].expKey) pkg[pk].expKey=r.expKey;
+    });
+    Object.keys(pkg).forEach(function(pk){
+      var p=pkg[pk];
+      if(p.results["Fail"]) failSet[pk]=1;
+      if(p.results["Pending"]) pendSet[pk]=1;
+      if(p.results["Win"]){
+        var ov=fcOverlap(p.startKey||win.fromKey, p.expKey||win.toKey, win.fromKey, win.toKey);
+        if(ov>0){ winPkgSet[pk]=1; winHospSet[norm(p.hospital)]=1; }
+      }
+    });
+  });
+  return { winPkgs:Object.keys(winPkgSet).length, winHosps:Object.keys(winHospSet).length,
+           failPkgs:Object.keys(failSet).length, pendPkgs:Object.keys(pendSet).length };
+}
+function fcStatsPanel(st){
+  function cell(val,label,cls){ return '<div class="fc-stat '+(cls||"")+'"><div class="fc-stat-v">'+nf(val)+'</div><div class="fc-stat-l">'+label+'</div></div>'; }
+  return '<div class="fc-stats">'
+    + cell(st.winPkgs, t("fc.st.winPkgs"), "win")
+    + cell(st.winHosps, t("fc.st.winHosps"), "hosp")
+    + cell(st.pendPkgs, t("fc.st.pend"), "pend")
+    + cell(st.failPkgs, t("fc.st.fail"), "fail")
+    + '</div>';
 }
 
 function fcPriceFxPanel(){

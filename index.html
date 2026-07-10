@@ -5279,17 +5279,52 @@ function fcDrawGantt(nodes, win){
   if(S.fc.chart){ try{S.fc.chart.destroy();}catch(e){} S.fc.chart=null; }
   var el=document.getElementById(id); if(!el) return;
   var order={existing:0,pending:1,remaining:2,new:3};
-  var arr=nodes.slice().sort(function(a,b){ if(order[a.group]!==order[b.group]) return order[a.group]-order[b.group]; return (a.expKey||0)-(b.expKey||0); });
+  var arr=nodes.slice().sort(function(a,b){ if(order[a.group]!==order[b.group]) return order[a.group]-order[b.group]; return (a.startKey||0)-(b.startKey||0); });
   arr=arr.slice(0,60);
   var labels=arr.map(function(n){ return n.account.length>30?n.account.slice(0,29)+"…":n.account; });
-  var months=win.months; var xLabels=months.map(fcMonthKeyToLabel);
+
+  // ── Trục thời gian TỰ GIÃN: bao trùm cả cửa sổ FY LẪN mọi hợp đồng có trong danh sách ──
+  // (Existing hiển thị theo giá trị hợp đồng, nhiều gói nằm ngoài cửa sổ FY → phải nới trục.)
+  var minOrd=fcKeyOrd(win.fromKey), maxOrd=fcKeyOrd(win.toKey);
+  arr.forEach(function(n){
+    var sK=n.startKey||win.fromKey, eK=n.expKey||win.toKey;
+    if(eK<sK){ var tmp=sK; sK=eK; eK=tmp; }         // phòng đảo ngược
+    minOrd=Math.min(minOrd, fcKeyOrd(sK));
+    maxOrd=Math.max(maxOrd, fcKeyOrd(eK));
+  });
+  var totalMonths=maxOrd-minOrd+1;
+  if(totalMonths<1) totalMonths=win.months.length;
+  // nhãn trục X từ minOrd
+  var xLabels=[]; for(var mi=0; mi<totalMonths; mi++){ var o=minOrd+mi; var y=Math.floor((o-1)/12), m=((o-1)%12)+1; xLabels.push(pad2FC(m)+"/"+String(y).slice(2)); }
+  // vùng tô nền cửa sổ FY (để phân biệt phần trong kỳ)
+  var winStartIdx=fcKeyOrd(win.fromKey)-minOrd;
+  var winEndIdx=fcKeyOrd(win.toKey)-minOrd+1;
+
   var barData=arr.map(function(n,idx){
-    var s=Math.max(fcKeyOrd(n.startKey||win.fromKey), fcKeyOrd(win.fromKey));
-    var e=Math.min(fcKeyOrd(n.expKey||win.toKey), fcKeyOrd(win.toKey));
-    return { x:[s-fcKeyOrd(win.fromKey), e-fcKeyOrd(win.fromKey)+1], y:labels[idx], node:n };
+    var sK=n.startKey||win.fromKey, eK=n.expKey||win.toKey;
+    if(eK<sK){ var tmp=sK; sK=eK; eK=tmp; }
+    var s=fcKeyOrd(sK)-minOrd;
+    var e=fcKeyOrd(eK)-minOrd+1;                    // +1 phủ hết tháng cuối
+    if(e<=s) e=s+1;                                 // đảm bảo LUÔN có bề rộng ≥ 1 tháng
+    return { x:[s, e], y:labels[idx], node:n };
   });
   var bg=arr.map(function(n){ return hexA(FC_GCOL[n.group], .62); });
   var bd=arr.map(function(n){ return FC_GCOL[n.group]; });
+
+  // plugin tô nền cửa sổ FY
+  var winShade={ id:"fcWinShade", beforeDatasetsDraw:function(c){
+    try{
+      var xs=c.scales.x, ya=c.chartArea; if(!xs||!ya) return;
+      var x1=xs.getPixelForValue(Math.max(0,winStartIdx));
+      var x2=xs.getPixelForValue(Math.min(totalMonths,winEndIdx));
+      var ctx=c.ctx; ctx.save();
+      ctx.fillStyle="rgba(58,92,170,0.06)";
+      ctx.fillRect(x1, ya.top, x2-x1, ya.bottom-ya.top);
+      ctx.strokeStyle="rgba(58,92,170,0.25)"; ctx.lineWidth=1;
+      ctx.strokeRect(x1, ya.top, x2-x1, ya.bottom-ya.top);
+      ctx.restore();
+    }catch(e){}
+  }};
 
   S.fc.chart=new Chart(el,{
     type:"bar",
@@ -5299,6 +5334,7 @@ function fcDrawGantt(nodes, win){
       datalabels:{ display:true, color:"#0B1524", anchor:"center", align:"center", clamp:true, font:{family:FF,size:10.5,weight:"800"},
         formatter:function(v,ctx){ var n=barData[ctx.dataIndex].node; var sv=(n._show!=null?n._show:n._rev.vnd); return sv>0? fcMoneyUSD(sv):""; } }
     }]},
+    plugins:[winShade],
     options:{
       indexAxis:"y", responsive:true, maintainAspectRatio:false, animation:{duration:600},
       plugins:{ legend:{display:false}, datalabels:{},
@@ -5306,23 +5342,22 @@ function fcDrawGantt(nodes, win){
           var n=barData[i].node; var GN=FC_GNAME();
           return { title:n.account, rows:[
             {label:t("fc.group"), val:GN[n.group]},
-            {label:t("fc.exp"), val:fcKeyToMoStr(n.expKey)},
+            {label:t("fc.exp"), val:fcKeyToMoStr(n.startKey)+" → "+fcKeyToMoStr(n.expKey)},
             {label:t("fc.dur"), val:n.dur+" "+t("fc.months")},
             {label:"MST/MSL/MCU", val:nf(n.mst)+"/"+nf(n.msl)+"/"+nf(n.mcu)},
-            {label:t("fc.expected")+"/"+t("fc.months"), val:fcMoneyUSD(n._rev.perMonthVND)},
-            {label:t("fc.expected")+" ("+win.label+")", val:fcMoneyUSD(n._show!=null?n._show:n._rev.vnd)}
+            {label:t("fc.expected"), val:fcMoneyUSD(n._show!=null?n._show:n._rev.vnd)}
           ], note:n.winnerTxt };
         }); } } },
       scales:{
-        x:{ min:0, max:months.length, position:"top", grid:{color:gridColor()},
-            ticks:{font:{family:FF,size:9.5},color:axisColor(),autoSkip:true,maxTicksLimit:24,callback:function(v){ return (v>=0&&v<xLabels.length)?xLabels[v]:""; }} },
+        x:{ min:0, max:totalMonths, position:"top", grid:{color:gridColor()},
+            ticks:{font:{family:FF,size:9},color:axisColor(),autoSkip:true,maxTicksLimit:28,stepSize:1,callback:function(v){ return (v>=0&&v<xLabels.length)?xLabels[v]:""; }} },
         y:{ grid:{display:false}, ticks:{font:{family:FF,size:10.5,weight:"700"},color:axisColor()} }
       },
       layout:{padding:{top:6,right:14,left:4,bottom:4}}
     }
   });
   el.parentNode.style.height=Math.max(220, arr.length*38+46)+"px";
-  el.parentNode.style.minWidth=Math.max(720, months.length*54)+"px";
+  el.parentNode.style.minWidth=Math.max(720, totalMonths*46)+"px";
 }
 
 /* ════ EXPORT — sheet "DASHBOARD" giống hệt file mẫu ════ */

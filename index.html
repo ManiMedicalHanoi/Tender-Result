@@ -4652,16 +4652,20 @@ function fcNormNPP(r, npp){
   var effKey    = r.effSerial? fcSerialToKey(r.effSerial):0;
   var approveKey= r.approveSerial? fcSerialToKey(r.approveSerial):0;
   var monthKey  = r.month? fcMoStrToKey(r.month):0;
-  // Mốc bắt đầu hiệu lực: ưu tiên Ngày phê duyệt → Ngày hiệu lực (G, luôn có ở Hùng Vĩ) → Month
   var startKey  = approveKey || effKey || monthKey || 0;
   var dur=(+r.durationMonths>0)?+r.durationMonths:12;
-  if(dur<1 || dur>36) dur=12;   // chặn duration bất thường (vd 120)
-  // Hết hiệu lực: ưu tiên Ngày hết hạn (H, code.gs trả expirationSerial) → start+duration
+  if(dur<1 || dur>36) dur=12;
   var expKey=r.expirationSerial? fcSerialToKey(r.expirationSerial):(startKey? fcAddMonths(startKey,dur):0);
+  // SL theo nhóm: ưu tiên qtyMST/MSL/MCU từ backend; fallback đoán qua fcKnifeGroup
+  var qMST=+r.qtyMST||0, qMSL=+r.qtyMSL||0, qMCU=+r.qtyMCU||0;
+  if(!qMST && !qMSL && !qMCU){
+    var g=fcKnifeGroup(r.knifeType||r.pcodeRaw); var q=+r.qty||0;
+    if(g==="MST") qMST=q; else if(g==="MCU") qMCU=q; else qMSL=q;
+  }
   return { src:"NPP", npp:npp, region:r.region||(npp==="ICARE"?"South":"North"),
-    tbmt:r.tbmt||"", hospital:r.hospital||"(?)", prov:r.city||"", result:(r.result||"").trim(), group:group,
-    qty:+r.qty||0, price:+r.price||0, startKey:startKey||0, dur:dur, expKey:expKey||0,
-    approveKey:approveKey, effKey:effKey,   // dùng cho banner "cập nhật tháng này"
+    tbmt:r.tbmt||"", hospital:r.hospital||"(?)", prov:r.city||"", result:(r.result||"").trim(),
+    qty:+r.qty||0, qMST:qMST, qMSL:qMSL, qMCU:qMCU, price:+r.price||0, startKey:startKey||0, dur:dur, expKey:expKey||0,
+    approveKey:approveKey, effKey:effKey,
     knifeType:r.knifeType||"", pcode:r.pcodeRaw||"" };
 }
 
@@ -4672,43 +4676,42 @@ function fcBuild(){
   var nppRows=[];
   ["ICARE","HUNGVI"].forEach(function(k){ var arr=NPP_FEED[k]; if(!arr) return; arr.forEach(function(r){ nppRows.push(fcNormNPP(r,k)); }); });
 
-  function pkKey(r){ return (r.tbmt||("H:"+r.hospital))+"|"+r.npp; }
+  function normTb(t){ return String(t||"").replace(/[\s\r\n]+/g,"").replace(/-\d+$/,""); }
+  function pkKey(r){ var tb=normTb(r.tbmt); return (tb||("H:"+r.hospital))+"|"+r.npp; }
   var pkg={};
   nppRows.forEach(function(r){
     if(!regOK(r.region)) return;
     var k=pkKey(r);
-    if(!pkg[k]) pkg[k]={key:k,tbmt:r.tbmt,npp:r.npp,region:r.region,hospital:r.hospital,prov:r.prov,results:{},startKey:0,dur:12,expKey:0,byGroup:{MST:0,MSL:0,MCU:0},priceByGroup:{},rows:[]};
+    if(!pkg[k]) pkg[k]={key:k,tbmt:normTb(r.tbmt),npp:r.npp,region:r.region,hospital:r.hospital,prov:r.prov,results:{},startKey:0,dur:12,expKey:0,byGroup:{MST:0,MSL:0,MCU:0},priceByGroup:{},rows:[]};
     var p=pkg[k];
     p.results[r.result]=(p.results[r.result]||0)+1;
     if(r.startKey && (!p.startKey||r.startKey>p.startKey)) p.startKey=r.startKey;
     if(r.dur) p.dur=r.dur;
     if(r.expKey && r.expKey>p.expKey) p.expKey=r.expKey;
-    p.byGroup[r.group]=(p.byGroup[r.group]||0)+r.qty;
-    if(r.price>0) p.priceByGroup[r.group]=r.price;
+    // cộng SL theo nhóm — dùng phân bổ chuẩn từ backend (qMST/qMSL/qMCU)
+    p.byGroup.MST += r.qMST||0;
+    p.byGroup.MSL += r.qMSL||0;
+    p.byGroup.MCU += r.qMCU||0;
+    if(r.price>0){
+      if(r.qMST) p.priceByGroup.MST=r.price;
+      if(r.qMSL) p.priceByGroup.MSL=r.price;
+      if(r.qMCU) p.priceByGroup.MCU=r.price;
+    }
     p.rows.push(r);
   });
   var pkgArr=Object.keys(pkg).map(function(k){return pkg[k];});
   var nppTBMT={}; pkgArr.forEach(function(p){ if(p.tbmt) nppTBMT[p.tbmt]=1; });
 
   var nodes=[];
-  var winByHosp={};   // gom gói Win theo BV để tạo 1 dòng renew/BV
   pkgArr.forEach(function(p){
     var isWin=!!p.results["Win"], isPending=!!p.results["Pending"]&&!isWin;
     if(isPending){ nodes.push(fcPkgToNode(p,"pending",win)); return; }
     if(!isWin) return;
-    var ov=fcOverlap(p.startKey||win.fromKey, p.expKey||win.toKey, win.fromKey, win.toKey);
-    if(ov>0) nodes.push(fcPkgToNode(p,"existing",win));
-    // gom cho renew: theo BV, giữ gói có hết hạn GẦN NHẤT (expKey lớn nhất)
-    var hk=norm(p.hospital)+"|"+p.npp;
-    if(!winByHosp[hk] || (p.expKey||0) > (winByHosp[hk].expKey||0)) winByHosp[hk]=p;
-  });
-  // Renew: 1 dòng / BV — bắt đầu = hết hạn gần nhất +1 tháng; dur & SL = gói gần nhất
-  Object.keys(winByHosp).forEach(function(hk){
-    var p=winByHosp[hk];
-    if(!p.expKey) return;
-    var node=fcRenewNode(p, win);
-    // chỉ hiện nếu gói renew overlap kỳ
-    nodes.push(node);
+    // ① EXISTING = MỌI gói Win (giá trị trúng hiện tại = SL×giá, không lọc kỳ)
+    nodes.push(fcPkgToNode(p,"existing",win));
+    // ③ REMAINING = chuỗi kỳ renew NỐI TIẾP sau khi gói hiện tại hết hạn,
+    //    mỗi kỳ = duration gói gốc, SL giữ nguyên; phủ tới hết kỳ FY đang xem.
+    fcRenewSeries(p, win).forEach(function(nd){ nodes.push(nd); });
   });
 
   var byBuyerTBMT={};
@@ -4755,24 +4758,41 @@ function fcPkgToNode(p, group, win){
   if(group==="pending"){ var rm=node.resultMonth? fcMoStrToKey(node.resultMonth):win.fromKey; node.startKey=rm; node.expKey=fcAddMonths(rm,(node.dur||12)-1); }
   return node;
 }
-/* RENEW (Remaining): 1 dòng/BV. Bắt đầu = hết hạn gần nhất +1 tháng;
-   dur = gói gần nhất; SL fill sẵn = SL gói gần nhất (đều sửa được). */
-function fcRenewNode(p, win){
-  var rowKey="remaining|"+p.key; var e=S.fc.edits[rowKey]||{};
-  var baseDur = e.dur || p.dur || 12;
-  if(baseDur<1 || baseDur>36) baseDur=12;
-  var startKey = e.expMonth ? fcMoStrToKey(e.expMonth) : fcAddMonths(p.expKey, 1);
-  var expKey   = fcAddMonths(startKey, baseDur-1);
-  var demandY=fcDemandPerYear(p.byGroup,baseDur);
+/* RENEW (Remaining): CHUỖI kỳ nối tiếp sau khi gói gốc hết hạn.
+   Ví dụ gói gốc 08/2025–07/2026 (dur 12) → renew 08/2026–07/2027, 08/2027–07/2028…
+   Mỗi kỳ: duration = gói gốc, SL = gói gốc (đều editable). Chỉ sinh các kỳ CÓ OVERLAP
+   với kỳ FY đang xem (để không tạo vô hạn). */
+function fcRenewSeries(p, win){
+  var out=[];
+  if(!p.expKey) return out;
+  var baseDur = p.dur || 12; if(baseDur<1||baseDur>36) baseDur=12;
+  var startKey = fcAddMonths(p.expKey, 1);         // bắt đầu ngay sau gói gốc
+  var guard=0;
+  while(guard++ < 40){
+    var expKey = fcAddMonths(startKey, baseDur-1);
+    // nếu kỳ renew này đã vượt hẳn qua bên phải cửa sổ → dừng
+    if(fcKeyOrd(startKey) > fcKeyOrd(win.toKey)) break;
+    // chỉ thêm nếu overlap cửa sổ
+    if(fcOverlap(startKey, expKey, win.fromKey, win.toKey) > 0){
+      out.push(fcRenewNodeAt(p, startKey, expKey, baseDur, out.length));
+    }
+    startKey = fcAddMonths(expKey, 1);             // kỳ kế tiếp
+  }
+  return out;
+}
+function fcRenewNodeAt(p, startKey, expKey, baseDur, seq){
+  var rowKey="remaining|"+p.key+"|"+startKey;   // mỗi kỳ 1 rowKey riêng (edit độc lập)
+  var e=S.fc.edits[rowKey]||{};
+  var dur = e.dur||baseDur; if(dur<1||dur>36) dur=baseDur;
+  var sK = e.expMonth ? fcMoStrToKey(e.expMonth) : startKey;
+  var eK = fcAddMonths(sK, dur-1);
+  var byG={ MST:(e.mst!=null?e.mst:(p.byGroup.MST||0)), MSL:(e.msl!=null?e.msl:(p.byGroup.MSL||0)), MCU:(e.mcu!=null?e.mcu:(p.byGroup.MCU||0)) };
   return { rowKey:rowKey, group:"remaining", src:"NPP", npp:p.npp, region:p.region,
-    account:p.hospital, prov:p.prov, tbmt:p.tbmt, result:"Renew",
-    startKey:startKey, dur:baseDur, expKey:expKey,
-    prevExpKey:p.expKey,
-    mst:(e.mst!=null?e.mst:(p.byGroup.MST||0)),
-    msl:(e.msl!=null?e.msl:(p.byGroup.MSL||0)),
-    mcu:(e.mcu!=null?e.mcu:(p.byGroup.MCU||0)),
-    demandY:demandY, winnerTxt:fcWinnerText(p),
-    potential:e.potential||fcAutoPotential(demandY),
+    account:p.hospital, prov:p.prov, tbmt:p.tbmt, result:"Renew"+(seq>0?(" +"+(seq+1)):""),
+    startKey:sK, dur:dur, expKey:eK, prevExpKey:p.expKey,
+    mst:byG.MST, msl:byG.MSL, mcu:byG.MCU,
+    demandY:fcDemandPerYear(byG,dur), winnerTxt:fcWinnerText(p),
+    potential:e.potential||fcAutoPotential(fcDemandPerYear(byG,dur)),
     resultMonth:"", editable:true, slEditable:true };
 }
 function fcNewNode(o, win){
@@ -4890,20 +4910,30 @@ function renderFC(){
     if(S.fc.group!=="all" && n.group!==S.fc.group) return false;
     if(S.fc.potential!=="all" && n.potential!==S.fc.potential) return false;
     n._rev=fcNodeRevenue(n,win);
-    if(n._rev.months<=0 || n._rev.vnd<=0) return false;
+    // Existing: LUÔN hiện với "giá trị trúng hiện tại" (contract) — không lọc theo kỳ.
+    // Các nhóm khác: chỉ hiện nếu có doanh số overlap kỳ.
+    if(n.group==="existing"){
+      if((n._rev.contractVND||0)<=0) return false;
+    } else {
+      if(n._rev.months<=0 || n._rev.vnd<=0) return false;
+    }
     if(q){ var hay=norm((n.account||"")+" "+(n.prov||"")+" "+(n.tbmt||"")); if(hay.indexOf(q)<0) return false; }
     return true;
   });
 
-  var grandVND=nodes.reduce(function(s,n){return s+n._rev.vnd;},0);
+  // giá trị hiển thị: Existing = contract (trúng hiện tại); còn lại = doanh số kỳ
+  function nodeShowVND(n){ return n.group==="existing" ? (n._rev.contractVND||0) : n._rev.vnd; }
+  nodes.forEach(function(n){ n._show = nodeShowVND(n); });
+
+  var grandVND=nodes.reduce(function(s,n){return s+nodeShowVND(n);},0);
   var byGroupVND={existing:0,pending:0,remaining:0,new:0}, byGroupCnt={existing:0,pending:0,remaining:0,new:0};
-  nodes.forEach(function(n){ byGroupVND[n.group]+=n._rev.vnd; byGroupCnt[n.group]++; });
+  nodes.forEach(function(n){ byGroupVND[n.group]+=nodeShowVND(n); byGroupCnt[n.group]++; });
 
   /* doanh số theo NPP (để so target) */
   var byNppUSD={ICARE:0,HUNGVI:0};
   nodes.forEach(function(n){
     var npp = n.region==="North"?"HUNGVI":(n.region==="South"?"ICARE":(n.npp||""));
-    if(byNppUSD[npp]!=null) byNppUSD[npp]+=fcUSD(n._rev.vnd);
+    if(byNppUSD[npp]!=null) byNppUSD[npp]+=fcUSD(nodeShowVND(n));
   });
 
   /* ── Thống kê thầu (theo khu vực đang lọc) ── */
@@ -5133,7 +5163,7 @@ function fcTable(nodes, win){
       +"<td>"+resMoCell+"</td>"
       +"<td>"+expCell+"</td><td>"+durCell+"</td>"
       +"<td>"+mst+"</td><td>"+msl+"</td><td>"+mcu+"</td>"
-      +"<td><b style='color:var(--pos)'>"+fcMoneyUSD(n._rev.vnd)+"</b><div class='fc-permo'>"+fcMoneyUSD(n._rev.perMonthVND)+t("fc.perMonth")+"</div></td>"
+      +"<td><b style='color:var(--pos)'>"+fcMoneyUSD(n._show!=null?n._show:n._rev.vnd)+"</b><div class='fc-permo'>"+fcMoneyUSD(n._rev.perMonthVND)+t("fc.perMonth")+"</div></td>"
       +"</tr>";
   }).join("");
 
@@ -5267,7 +5297,7 @@ function fcDrawGantt(nodes, win){
       data:barData, backgroundColor:bg, borderColor:bd, borderWidth:1.5, borderRadius:6, borderSkipped:false, barPercentage:.78, categoryPercentage:.86,
       parsing:{xAxisKey:"x",yAxisKey:"y"},
       datalabels:{ display:true, color:"#0B1524", anchor:"center", align:"center", clamp:true, font:{family:FF,size:10.5,weight:"800"},
-        formatter:function(v,ctx){ var n=barData[ctx.dataIndex].node; return n._rev.vnd>0? fcMoneyUSD(n._rev.vnd):""; } }
+        formatter:function(v,ctx){ var n=barData[ctx.dataIndex].node; var sv=(n._show!=null?n._show:n._rev.vnd); return sv>0? fcMoneyUSD(sv):""; } }
     }]},
     options:{
       indexAxis:"y", responsive:true, maintainAspectRatio:false, animation:{duration:600},
@@ -5280,7 +5310,7 @@ function fcDrawGantt(nodes, win){
             {label:t("fc.dur"), val:n.dur+" "+t("fc.months")},
             {label:"MST/MSL/MCU", val:nf(n.mst)+"/"+nf(n.msl)+"/"+nf(n.mcu)},
             {label:t("fc.expected")+"/"+t("fc.months"), val:fcMoneyUSD(n._rev.perMonthVND)},
-            {label:t("fc.expected")+" ("+win.label+")", val:fcMoneyUSD(n._rev.vnd)}
+            {label:t("fc.expected")+" ("+win.label+")", val:fcMoneyUSD(n._show!=null?n._show:n._rev.vnd)}
           ], note:n.winnerTxt };
         }); } } },
       scales:{

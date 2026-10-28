@@ -1,0 +1,38 @@
+ma_nhom,loai,mau,ghi_chu
+MK-DAO,ten,\bdao\b|lưỡi dao|knife|keratome|\bblade\b,Danh từ chính trong tên hàng
+MK-DAO,ngu_canh,"nhãn khoa|nội nhãn|nhãn cầu|nhãn áp|\bmắt\b|phaco|giác mạc|củng mạc|kết mạc|thủy tinh thể|đục thủy tinh thể|mổ đục|cataract|slit|crescent|lưỡi liềm|\bmvr\b|side ?port|cổng bên|tạo cổng|15 ?(°|độ|o\b)|keratome|mộng|glôcôm|glocom|glaucoma|\blri\b|tiền phòng|đường hầm|\b[1-3][.,]\d{1,2} ?mm\b|bó sợi|\bmani\b|alcon|sharpoint|surgistar|aurolab|oertli|diamatrix|accutome|clearcut|mstech|appasamy|ureal|madhu","Ngữ cảnh nhãn khoa: thuật ngữ mắt, cỡ dao 1.0-3.x mm, hãng dao nhãn khoa"
+MK-DAO,loai_tru,điện|cao tần|siêu âm|hàn mạch|nội soi|niêm mạc|\bda\b|cạo|bào|amidan|plasma|laser|^máy|tay cầm|^(?!.*(nhãn|mắt|phaco)).*(\bsố ?\d|các số)|tiêu bản|bóng|đầu đốt|cơ vòng|mạch|xương|sụn|\btai\b|vi phẫu|nha khoa|\b1[05] ?c\b,"Lưỡi dao mổ thường (số 11, 15...), dao điện/nội soi, dao cắt tiêu bản, bóng nong có dao"
+NK-CHI,ten,\bchỉ\b.*(khâu|phẫu thuật|tiêu|\btan\b|liền kim|nylon|silk|lụa|polyglactin|pga|polyglycolic|polyamide|polypropylene|\d ?/ ?0)|suture,"Phải là chỉ khâu (loại chỉ co nướu, chỉ tơ nha khoa)"
+NK-CHI,ngu_canh,nha khoa|răng hàm mặt|nhổ răng|ổ răng|nướu|\blợi\b|implant nha|(phẫu thuật|tiểu phẫu) (răng|miệng|nha)|khoang miệng|chỉ khâu nha,"Chỉ tín hiệu nha khoa mạnh (tránh ""răng cưa"", ""hàm có răng"")"
+NK-CHI,loai_tru,^máy|kim khâu(?! liền)|co nướu|co lợi|\btơ\b|floss|\btim\b|vít|neo|^kìm|^kẹp|mạch máu,
+MK-CHI,ten,\bchỉ\b(?! (thị|số|định|tiêu chuẩn))|suture,
+MK-CHI,ngu_canh,nhãn khoa|nội nhãn|nhãn cầu|nhãn áp|\bmắt\b|giác mạc|kết mạc|củng mạc|mộng|\blác\b|mi mắt|spatula|trape|thủy tinh thể|phaco|võng mạc|glôcôm|glocom|1[01] ?[/-] ?0\b|\bmani\b|alcon|aurolab|sharpoint,"Ngữ cảnh mắt, cỡ 10-0/11-0 hoặc hãng chỉ nhãn khoa (chỉ MANI có dấu hiệu nha khoa đã vào NK-CHI trước)"
+MK-CHI,loai_tru,mạch máu|\btim\b|van tim|thần kinh|bàn tay|^máy|kim khâu(?! liền)|^túi|băng keo|vít|neo|số ?[0-3]\b(?! ?[/-])|\b[0-3] ?[/-] ?0\b,"Vi phẫu ngoài mắt, thiết bị, cỡ chỉ to (số 0 đến 3/0)"
+MK-TROCAR,ten,trocar|tro-?ca|\bcổng\b|\bport\b|cannula|vitrectomy|bộ cắt dịch kính tổng hợp,
+MK-TROCAR,ngu_canh,dịch kính|võng mạc|nhãn khoa|nội nhãn|nhãn cầu|nhãn áp|\bmắt\b|\b2[357] ?g\b|\b20 ?g\b|pars plana|xuyên củng mạc|vitrectomy,Phải có ngữ cảnh dịch kính hoặc cỡ 20-27G
+MK-TROCAR,loai_tru,nội soi|ổ bụng|khớp|lồng ngực|tiết niệu|máy|đầu cắt|dẫn lưu|bàng quang|phổi|catheter|kim luồn|^dao|đèn,Trocar nội soi ngoại khoa
+MK-KEP,ten,\bkẹp\b|\bpanh\b|forcep|pince|\bkìm\b|gắp,
+MK-KEP,ngu_canh,dịch kính|võng mạc|nội nhãn|bóc màng|\bilm\b|\b2[357] ?g\b|màng ngăn trong|màng trước võng mạc,Kẹp vi phẫu bán phần sau (Micro Forceps)
+MK-KEP,loai_tru,xương|nội soi|sinh thiết|máy,Kẹp bóc tách màng xương / nội soi
+MK-MOC-BE,ten,trabeculotom|mở (vùng )?bè|móc (mở bè|trabecul|schlemm),
+MK-MOC-BE,ngu_canh,bè|trabecul|glôcôm|glocom|glaucoma|nhãn khoa|nội nhãn|nhãn cầu|nhãn áp|\bmắt\b|schlemm,
+MK-MOC-BE,loai_tru,laser|máy|dù|thông liên thất,
+NK-TRAM-MAY,ten,"jizai|protaper|waveone|reciproc|neolix|\bniti\b.*(tủy|nội nha|trâm|file|nong)|(trâm|file|nong|giũa|dũa|rũa).{0,25}(máy|xoay|niti|dẻo|rotary)|engine reamer|gates|peeso|mở miệng ống tủy|orifice",Trâm máy / dụng cụ máy (xét trước trâm tay)
+NK-TRAM-MAY,loai_tru,^máy|^hệ thống|motor|động cơ|dây cung|chỉnh nha|côn|gutta|chất|dung dịch|cone|vật liệu|trám bít,"Máy nội nha, dây cung NiTi chỉnh nha, vật liệu"
+NK-TRAM-BIT,ten,lentull?o|letulo|len ?lulo|lăng tu lô|paste carrier|đưa thuốc|quay thuốc|vật liệu quay|kim quay|đưa chất (hàn|trám)|kim đưa|xoắn đưa|cây lèn|[ln]èn ống tủy|đầu đưa|mũi trám bít|que lèn|\blèn (ngang|dọc|côn)|spreader|plugger|đưa xi măng|trâm đưa,Lentulo (cả các cách viết sai) / cây lèn
+NK-TRAM-BIT,loai_tru,^máy|bơm|côn|gutta,
+NK-TRAM-TAY,ten,trâm|châm gai|kim gai|\bk-? ?(files?|fives?)\b|\bh-? ?(files?|fives?)\b|\bfiles?\b|reamm?er|broach|dũa|nong (giũa|giữa|dũa)|giũa|rũa|^nong\b|nong (ống )?tủy|kim nong|kim khoan răng|gai lấy tủy|lấy tủy|tìm ống tủy|d.?finder|glide.?finder|dụng cụ nội nha,
+NK-TRAM-TAY,loai_tru,profile|bóng nong|stent|catheter|ống thông|guide ?wire|dây dẫn|mạch|xương|^máy|hóa chất|dung dịch|chất (bôi trơn|hàn|trám)|côn|giấy|thước đo|khám răng|kéo|móc|^bộ dụng cụ|thám trâm,"Nhiễu từ ""Files"" (profile), vật liệu nội nha, bộ khám"
+NK-MUI-KHOAN,ten,mũi (khoan|mài|cắt|kim cương|tungsten|carbide|phá|mở tủy)|^mũi (endo|nạo|ngọn|phẫu|phẩu|mở|nội nha|tạo hình|chỉnh)|\bburs?\b|carbide bur|mài kẽ|\bipr\b|zekrya|lindemann,
+NK-MUI-KHOAN,loai_tru,implant|cột sống|\bsọ\b|chỉnh hình|chấn thương|nội soi|tai mũi họng|\btai\b|xoang|stent|mạch vành|^máy|^tay khoan|động cơ|motor|hộp đựng|giá (đỡ|cắm)|\btủ\b|khoan ngược|taro|tự dừng|đầu chụp|dây dẫn|bào mảng xơ|khớp (gối|háng|vai)|nội soi khớp|dây chằng|^mũi đánh bóng|cao su,"Mũi khoan xương ngoại khoa, sọ, khớp, implant; thiết bị"
+NK-MUI-KHOAN,ngu_canh,răng|\bnha\b|răng hàm|hàm (trên|dưới|mặt)|ống tủy|tủy răng|mở tủy|buồng tủy|tiểu phẫu|tay khoan (chậm|nhanh)|\bmen\b|\bngà\b|mài kẽ|ipr|zekrya|lindemann|kim cương|carbide|tungsten|\bbur\b|\bfg\b|\bra\b|\bhp\b|tròn|\btrụ\b|ngọn lửa|chóp|endo.?z|mở tủy|nạo ngà|cổng|gate|răng khôn|ổ răng|\bmani\b|ss ?white|dentsply|maillefer|komet|jota|meisinger|kerr|horico|frank dental|edenta|\bnti\b|diatech|coltene|vdw|micro-?mega|sirona|răng hàm mặt,"Ngữ cảnh nha khoa (tên, cấu hình, hãng hoặc CĐT là BV Răng Hàm Mặt)"
+NK-COMPOSITE,ten,compo[sz]i[td]|nhựa trám|trám thẩm mỹ|flowable|bulk ?fill|vật liệu trám (răng )?(quang|thẩm mỹ|lỏng|đặc)|trám (răng )?quang trùng hợp,
+NK-COMPOSITE,loai_tru,lưới|mesh|nẹp|băng|xương|stent|ống thông|catheter|mắc cài|^máy|đèn|thoát vị|sợi|^cây|dụng cụ|khớp|đánh bóng|^đĩa|^đài|hàm khung|răng giả|^hàm,"Composite ngoài nha khoa, keo gắn mắc cài, dụng cụ, đèn"
+NK-KEO-DAN,ten,keo dán|chất dán|\bbond|adhesive|dán ngà|dán men|xử lý bề mặt,
+NK-KEO-DAN,ngu_canh,\bnha\b|răng|\bngà\b|\bmen\b|compo|trám|bond|adhesive|thế hệ|tự xói mòn|self.?etch|quang trùng hợp,
+NK-KEO-DAN,loai_tru,\blam\b|lamen|kính|\bda\b|\bmô\b|vết thương|mắc cài|chỉnh nha|dermabond|histoacryl|mạch|xương|phẫu thuật|ống|catheter|điện cực|^băng,"Keo dán lam kính, keo dán da/mô, keo dán mắc cài"
+NK-TAY-TRANG,ten,tẩy trắng|làm trắng|whitening|bleach|bảo vệ (nướu|lợi)|che (nướu|lợi)|tái khoáng|ê buốt|giảm nhạy cảm,
+NK-TAY-TRANG,ngu_canh,răng|\bnha\b|\bmen\b|nướu|\blợi\b|tại phòng|tại nhà|peroxide|carbamide|hydro,
+NK-TAY-TRANG,loai_tru,đồ vải|quần áo|giặt|bột giặt|\bda\b|tẩy rửa dụng cụ|^máng|^đèn|^máy,Hóa chất giặt / tẩy rửa
+NG-MANIPLER,ten,đính da|ghim (khâu )?da|kìm (bấm|khâu|đính) da|kẹp bấm da|bấm (ghim )?da|(stapler|máy|dụng cụ) (khâu|bấm|dập ghim|đóng) da|skin stapler|tháo ghim|gỡ ghim|staple remover|manipler|khâu da (bằng )?ghim|dập ghim da,
+NG-MANIPLER,loai_tru,kim khâu|miếng dán|\bchỉ\b|băng dán|nội soi|tiêu hóa|cắt nối|\btrĩ\b|khâu nối,

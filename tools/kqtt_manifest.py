@@ -148,7 +148,7 @@ Cột: STT · Tên thiết bị, vật tư y tế · Đơn vị tính · Khối 
 
 ## Lưu ý khi làm sạch
 - Đơn giá là chuỗi có dấu chấm ngăn nghìn (`8.800.000`); ngày dạng `dd/mm/yyyy`; năm sản xuất là chữ tự do.
-- Cùng một dòng hàng nằm trong nhiều file từ khóa: khử trùng theo Mã TBMT + tên hàng + nhà thầu + đơn giá.
+- Cùng một dòng hàng nằm trong nhiều file từ khóa: đã có quy trình khử trùng và phân loại theo chuyên khoa, xem `processed/KQTT/README.md` (`tools/kqtt_merge.py`).
 - **Từ khóa nhiều chữ bị khớp lẻ từng chữ**: "nội nhãn" ra cả "hệ thống nội soi", "nội nha" ra cả "hóa chất nội kiểm". Cần lọc lại theo cụm từ đầy đủ.
 - Không có dòng nào trước 31/01/2023 dù khoảng tra cứu bắt đầu 01/01/2022.
 - **`KQTT chỉ.xlsx` chạm trần 30.000 dòng**: chỉ có dữ liệu từ 25/04/2024; cần tải lại theo từng năm.

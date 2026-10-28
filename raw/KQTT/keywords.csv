@@ -1,0 +1,40 @@
+tu_khoa,chuyen_khoa,nhom_sp_mmh,muc_lien_quan,sp_mmh_co_the_gap,nhieu_chinh
+mũi khoan,Nha khoa,NK-MUI-KHOAN,Cao,"DIA-BURS, Carbide Burs, Surgical Burs 1559L, MI Stainless Burs","Mũi khoan xương (chấn thương chỉnh hình, thần kinh), mũi khoan implant"
+Carbide,Nha khoa,NK-MUI-KHOAN,Trung bình,"Carbide Burs, Surgical Burs 1559L","Stent mạch vành phủ silicon carbide, mũi khoan xương"
+Mài kẽ,Nha khoa,NK-MUI-KHOAN,Trung bình,IPR-01EF,"Dây, thanh, băng nhám mài kẽ (không phải mũi khoan)"
+Composite,Nha khoa,NK-COMPOSITE,Cao,ManiFill,
+Commposit,Nha khoa,NK-COMPOSITE,Cao,ManiFill,Biến thể viết thiếu chữ e (Composit); trùng phần lớn với file Composite
+Trám,Nha khoa,NK-COMPOSITE; NK-TRAM-BIT,Trung bình,"ManiFill; Lentulo, Spreaders, Pluggers","GIC, amalgam, trám tạm, vật liệu trám bít ống tủy (không phải hàng MMH)"
+Keo dán,Nha khoa,NK-KEO-DAN,Trung bình,ManiBond 7th Gen,"Keo dán lam kính (xét nghiệm), keo dán da và mô, keo dán mắc cài chỉnh nha"
+Tẩy trắng,Nha khoa,NK-TAY-TRANG,Cao,ManiShine,
+phục hồi,Nha khoa,NK-COMPOSITE; NK-KEO-DAN,Thấp,"ManiFill, ManiBond","Phục hồi chức năng (máy tập, giường tập), khung nẹp chấn thương"
+Phục hình,Nha khoa,NK-MUI-KHOAN; NK-COMPOSITE,Thấp,"DIA-BURS (mài cùi), ManiFill","Trụ implant (abutment), xi măng gắn, khung nẹp chấn thương, mẫu hàm"
+Trâm,Nha khoa,NK-TRAM-TAY; NK-TRAM-MAY,Cao,"K/H-Files, Reamers, trâm gai, JIZAI",
+Files,Nha khoa,NK-TRAM-TAY; NK-TRAM-MAY,Cao,"K/H-Files, Flare, RT Files, D Finders, JIZAI",
+Reamer,Nha khoa,NK-TRAM-TAY; NK-TRAM-MAY,Cao,"Reamers, Engine Reamers, Peeso Reamers",
+Lentulo,Nha khoa,NK-TRAM-BIT,Cao,Paste Carriers,
+Niti,Nha khoa,NK-TRAM-MAY,Thấp,JIZAI,Dây cung chỉnh nha NiTi (chiếm phần lớn)
+Ống tủy,Nha khoa,NK-TRAM-TAY; NK-TRAM-MAY; NK-TRAM-BIT,Trung bình,"Trâm tay, JIZAI, Lentulo, D Finders","Chất hàn và trám bít ống tủy, chất bôi trơn, dung dịch bơm rửa, côn gutta"
+nội nha,Nha khoa,NK-TRAM-TAY; NK-TRAM-MAY; NK-TRAM-BIT; NK-MUI-KHOAN,Trung bình,"Trâm, JIZAI, Lentulo, mũi mở tủy","Máy nội nha, hóa chất nội kiểm xét nghiệm (hệ thống khớp lẻ từng chữ)"
+Răng,Nha khoa,Mọi nhóm nha khoa,Thấp,Mọi dòng nha khoa,"Thiết bị, răng giả, chỉnh nha, vật liệu khác; rất rộng"
+nha khoa,Nha khoa,Mọi nhóm nha khoa,Thấp,Mọi dòng nha khoa,"Ghế, máy, X-quang, vật tư tiêu hao chung; rất rộng"
+dao,Nhãn khoa; Ngoại khoa,MK-DAO; NG-DAO,Thấp,"Dao nhãn khoa MANI, ENT Knife, Vessel Knife","Lưỡi dao mổ thường, dao điện, dao hàn mạch, dao cắt nội soi (chiếm đa số)"
+Phaco,Nhãn khoa,MK-DAO; MK-CHI,Trung bình,"Dao rạch MSL/MSS, dao 15° MST, dao lưỡi liềm MCU","Chất nhầy, máy và đầu phaco, thủy tinh thể nhân tạo"
+Thủy tinh thể,Nhãn khoa,MK-DAO; MK-CHI,Thấp,"Dao rạch, dao R MRS, chỉ 10-0","Thủy tinh thể nhân tạo (IOL) chiếm khoảng 3/4 số dòng, chất nhầy"
+Glocom,Nhãn khoa,MK-MOC-BE; MK-DAO; MK-CHI,Trung bình,"Trabeculotomy Hook, dao MST/MDP/MCU/MGL","Van, ống dẫn lưu thủy dịch"
+Glaucoma,Nhãn khoa,MK-MOC-BE; MK-DAO; MK-CHI,Trung bình,"Trabeculotomy Hook, dao MST/MDP/MCU/MGL","Van, ống dẫn lưu thủy dịch"
+Vùng bè,Nhãn khoa,MK-MOC-BE,Thấp,Trabeculotomy Hook,"Máy laser SLT, dù đóng thông liên thất (cơ bè), dụng cụ bấm bè"
+dịch kính,Nhãn khoa,MK-TROCAR; MK-KEP; MK-DAO; MK-CHI,Trung bình,"Trocar Kit, Micro Forceps, dao MVR/MPK, chỉ","Đầu cắt dịch kính, đèn nội nhãn, máy"
+Võng mạc,Nhãn khoa,MK-TROCAR; MK-KEP; MK-CHI,Trung bình,"Trocar Kit, Micro Forceps, chỉ","Máy OCT, đai silicon độn củng mạc, laser"
+bóc màng,Nhãn khoa,MK-KEP,Cao,Micro Forceps,Cây bóc tách màng xương (nha khoa và ngoại khoa)
+nội nhãn,Nhãn khoa,MK-KEP; MK-TROCAR,Thấp,"Micro Forceps, Trocar Kit","Hệ thống nội soi các loại (hệ thống khớp lẻ từng chữ), chất nhầy"
+Trocar,Nhãn khoa,MK-TROCAR,Thấp,Trocar Kit,Trocar nội soi ổ bụng và nội soi khớp (chiếm đa số)
+chỉ,Nhãn khoa; Nha khoa,MK-CHI; NK-CHI,Thấp,"Chỉ nhãn khoa, chỉ nha khoa",Chỉ phẫu thuật ngoại khoa chiếm đa số; file thiếu dữ liệu trước 25/04/2024 (chạm trần 30.000 dòng)
+Forcep,Nhãn khoa,MK-KEP,Thấp,Micro Forceps,"Forcep nội soi, lưỡng cực, kẹp mạch máu ngoại khoa"
+Panh,Nhãn khoa,MK-KEP,Thấp,Micro Forceps,"Panh phẫu thuật chung, trụ cắm panh"
+kẹp,Nhãn khoa; Ngoại khoa,MK-KEP,Thấp,"Micro Forceps, kẹp bóc màng","Kẹp rốn, kẹp phẫu tích, clip mạch máu; rất rộng"
+kìm,Ngoại khoa; Nhãn khoa,NG-MANIPLER; MK-KEP,Thấp,"Manipler (kìm đính da), Micro Forceps","Kìm sinh thiết nội soi, kìm mang kim, kìm gắp dị vật"
+Khâu da,Ngoại khoa,NG-MANIPLER; NG-KIM,Trung bình,"Manipler, ghim khâu da","Kim khâu da (kim rời), miếng dán khâu da"
+Stapler,Ngoại khoa,NG-MANIPLER,Thấp,Manipler,"Stapler cắt khâu nối nội soi, tiêu hóa, cắt trĩ (Covidien chiếm đa số)"
+Ghim,Ngoại khoa,NG-MANIPLER,Thấp,"Manipler, ghim da","Đinh nẹp vít chấn thương, băng ghim cắt khâu nối"
+Đính da,Ngoại khoa,NG-MANIPLER,Cao,Manipler,

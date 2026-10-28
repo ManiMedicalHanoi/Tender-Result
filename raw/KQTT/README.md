@@ -38,7 +38,7 @@ Tra cứu từ ngày 01/01/2022 đến 28/10/2026.
 | Nhãn khoa | bóc màng | `KQTT bóc màng.xlsx` | 55 | 2023-04-06 → 2026-07-22 |
 | Nhãn khoa | dịch kính | `KQTT dịch kính.xlsx` | 448 | 2023-03-24 → 2026-10-24 |
 | Nhãn khoa | Thủy tinh thể | `KQTT Thủy tinh thể.xlsx` | 2,610 | 2023-03-08 → 2026-10-26 |
-| Nhãn khoa / chung | chỉ | `KQTT chỉ.xlsx` | 30,000 | 2024-04-25 → 2026-10-28 | ⚠️ chạm trần 30.000 dòng
+| Nhãn khoa / chung | chỉ | `KQTT chỉ.xlsx` | 30,000 ⚠️ chạm trần | 2024-04-25 → 2026-10-28 |
 | Nhãn khoa / chung | dao | `KQTT dao.xlsx` | 9,240 | 2023-03-02 → 2026-10-28 |
 | Dụng cụ (kẹp/panh) | Forcep | `KQTT Forcep.xlsx` | 42 | 2023-09-21 → 2026-10-01 |
 | Dụng cụ (kẹp/panh) | kìm | `KQTT kìm.xlsx` | 2,320 | 2023-03-27 → 2026-10-28 |

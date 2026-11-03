@@ -1,9 +1,9 @@
-/* Bản đồ trúng thầu — service worker (cài app + mở được khi mất mạng).
+/* Tender Map — service worker (cài app + mở được khi mất mạng).
    Trang / script: lấy MẠNG trước (luôn bản mới), mất mạng ⇒ bản lưu. Ảnh biểu tượng: bản lưu trước rồi tải mới.
    Dữ liệu Apps Script (khác tên miền) KHÔNG qua đây — trang tự nhớ bản đọc gần nhất (localStorage).
    Đổi quy tắc lưu ⇒ tăng V. Gỡ khẩn cấp: thay toàn bộ file bằng
    self.addEventListener('install',()=>self.skipWaiting());self.addEventListener('activate',e=>e.waitUntil(self.registration.unregister())); */
-const V = 'tr-map-v1';
+const V = 'tr-map-v2';
 const CORE = ['./', './index.html', './vn-geo.js', './vn-dist.js', './products.js', './manifest.webmanifest', './app/icon-192.png'];
 self.addEventListener('install', e => {
   self.skipWaiting();

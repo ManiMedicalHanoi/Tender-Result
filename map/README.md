@@ -1,4 +1,4 @@
-# Bản đồ trúng thầu · NPP nhãn khoa (`map/`)
+# Tender Map — bản đồ trúng thầu NPP nhãn khoa (`map/`)
 
 Trang tĩnh (GitHub Pages): `https://manimedicalhanoi.github.io/Tender-Result/map/`
 

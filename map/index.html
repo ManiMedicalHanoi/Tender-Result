@@ -328,7 +328,8 @@ function buildPackages(){
       var won = r.result==="Win";
       var q = won ? (+r.wonQty||+r.qty||0) : (+r.qty||0);
       var pr= won ? (+r.wonPrice||+r.price||0) : (+r.price||0);
-      var val = q*pr || (r.total ? r.total*1000 : 0);
+      var tot = +r.total||0; if(tot && tot<1e5) tot*=1000;   // cột Total Amount: Sheet trả đồng, bản xuất Excel ghi nghìn đồng
+      var val = q*pr || tot;
       p.items.push({ code: (won && r.wonProduct) ? r.wonProduct : r.pcode, offer:r.pcode, qty:q, price:pr, value:val, unit:r.unit||"",
         result:r.result||"", cat:catOf(r.pcode), knife:knifeOf(r.pcode) });
       p.results[r.result||"(trống)"]=1;

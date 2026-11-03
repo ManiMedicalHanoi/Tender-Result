@@ -1,6 +1,6 @@
 {
-  "name": "Bản đồ trúng thầu · MMH",
-  "short_name": "Trúng thầu",
+  "name": "Tender Map · MMH",
+  "short_name": "Tender Map",
   "description": "Gói thầu trúng của NPP nhãn khoa Hùng Vĩ và iCare trên bản đồ Việt Nam — theo tỉnh, bệnh viện, nhóm sản phẩm, hiệu lực hợp đồng.",
   "lang": "vi",
   "start_url": "./",

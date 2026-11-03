@@ -1,6 +1,20 @@
 # Bản đồ trúng thầu · NPP nhãn khoa (`map/`)
 
-Trang tĩnh (GitHub Pages): `https://manimedicalhanoi.github.io/Tender-Result/map/`
+Trang tĩnh (GitHub Pages): `https://manimedicalhanoi.github.io/Tender-Result/map/` — **bản 3D** (`index.html`, deck.gl 9.3.11 từ unpkg / jsdelivr);
+máy không có WebGL hoặc không tải được thư viện ⇒ tự chuyển **bản 2D** (`2d.html`, SVG).
+
+## Bản 3D (`index.html`)
+
+- Tỉnh nổi khối (màu theo NPP, cao theo giá trị), mỗi bệnh viện là cụm cột 3D — mỗi cột 1 **nhóm sản phẩm** (Dao Slit / Stab / Crescent / khác ·
+  Chỉ Nylon / Polypropylene / PGA / Silk / Polyester), cao theo số lượng; thu nhỏ (< zoom 6,4) gộp theo tỉnh. Luồng phân phối chạy từ NPP (Hà Nội / TP.HCM) tới bệnh viện.
+- Bảng trái: lọc nhóm sản phẩm + **bệnh viện trúng nhiều nhất** theo giá trị hoặc số lượng từng loại (top 5 có vòng vàng nhấp nháy trên bản đồ).
+- Bảng phải: toàn quốc ▸ tỉnh (bệnh viện trúng, gói gần nhất, hiệu lực) ▸ bệnh viện (hợp đồng còn hiệu lực, gói trúng gần nhất, cơ cấu sản phẩm, **lịch sử trúng** mọi năm từ FY65).
+- Quay lại: nút **‹** trên bản đồ, breadcrumb, Esc, bấm ra biển, nút Back trình duyệt / điện thoại (mỗi bước là 1 mục lịch sử). Điện thoại: ngăn kéo dưới 3 tab (Chi tiết · Xếp hạng BV · Bộ lọc).
+- Nhóm chỉ khâu theo `products.js` (mã → chất liệu, cỡ) dựng từ "Bảng mã chỉ khâu nhãn khoa (catalogue VN 2025-08)" của MMH Library.
+- Vị trí bệnh viện: quận / huyện hoặc phường / thị trấn trong địa chỉ (`vn-dist.js`), không thấy ⇒ tên quận trong tên bệnh viện ⇒ tâm tỉnh cũ; nhiều bệnh viện cùng chỗ xếp hoa hướng dương.
+- Thử: Playwright + Chromium có cờ `--use-angle=swiftshader`, `page.route` trả deck.gl cục bộ (npm pack) và dữ liệu giả cho `script.google.com`; `window.WM3` (select / hosp / tab / ST).
+
+## Bản 2D (`2d.html`)
 
 - Bản đồ 34 tỉnh / thành (từ 01/07/2025), đường nét đứt = 63 tỉnh cũ. Màu: Hùng Vĩ (xanh dương) · iCare (xanh ngọc) · cả 2 (tím); đậm hơn = giá trị cao hơn; số trên tỉnh = số gói.
 - Bấm tỉnh ⇒ phóng to, bóng tròn theo tỉnh cũ, danh sách bệnh viện ▸ gói thầu (TBMT, ngày phê duyệt, thời hạn, hết hạn, thanh tiến độ hợp đồng, sản phẩm · SL · đơn giá · thành tiền). Esc / ⌂ = toàn quốc. Link `#<Tên tỉnh>` mở thẳng tỉnh.

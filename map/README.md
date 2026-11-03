@@ -1,24 +1,18 @@
 # Bản đồ trúng thầu · NPP nhãn khoa (`map/`)
 
-Trang tĩnh (GitHub Pages): `https://manimedicalhanoi.github.io/Tender-Result/map/` — **bản 3D** (`index.html`, deck.gl 9.3.11 từ unpkg / jsdelivr);
-máy không có WebGL hoặc không tải được thư viện ⇒ tự chuyển **bản 2D** (`2d.html`, SVG).
+Trang tĩnh (GitHub Pages): `https://manimedicalhanoi.github.io/Tender-Result/map/`
 
-## Bản 3D (`index.html`)
+## Trang (`index.html`, SVG, không cần thư viện ngoài)
 
-- Tỉnh nổi khối (màu theo NPP, cao theo giá trị), mỗi bệnh viện là cụm cột 3D — mỗi cột 1 **nhóm sản phẩm** (Dao Slit / Stab / Crescent / khác ·
-  Chỉ Nylon / Polypropylene / PGA / Silk / Polyester), cao theo số lượng; thu nhỏ (< zoom 6,4) gộp theo tỉnh. Luồng phân phối chạy từ NPP (Hà Nội / TP.HCM) tới bệnh viện.
-- Bảng trái: lọc nhóm sản phẩm + **bệnh viện trúng nhiều nhất** theo giá trị hoặc số lượng từng loại (top 5 có vòng vàng nhấp nháy trên bản đồ).
-- Bảng phải: toàn quốc ▸ tỉnh (bệnh viện trúng, gói gần nhất, hiệu lực) ▸ bệnh viện (hợp đồng còn hiệu lực, gói trúng gần nhất, cơ cấu sản phẩm, **lịch sử trúng** mọi năm từ FY65).
-- Quay lại: nút **‹** trên bản đồ, breadcrumb, Esc, bấm ra biển, nút Back trình duyệt / điện thoại (mỗi bước là 1 mục lịch sử). Điện thoại: ngăn kéo dưới 3 tab (Chi tiết · Xếp hạng BV · Bộ lọc).
-- Nhóm chỉ khâu theo `products.js` (mã → chất liệu, cỡ) dựng từ "Bảng mã chỉ khâu nhãn khoa (catalogue VN 2025-08)" của MMH Library.
-- Vị trí bệnh viện: quận / huyện hoặc phường / thị trấn trong địa chỉ (`vn-dist.js`), không thấy ⇒ tên quận trong tên bệnh viện ⇒ tâm tỉnh cũ; nhiều bệnh viện cùng chỗ xếp hoa hướng dương.
-- Thử: Playwright + Chromium có cờ `--use-angle=swiftshader`, `page.route` trả deck.gl cục bộ (npm pack) và dữ liệu giả cho `script.google.com`; `window.WM3` (select / hosp / tab / ST).
-
-## Bản 2D (`2d.html`)
-
-- Bản đồ 34 tỉnh / thành (từ 01/07/2025), đường nét đứt = 63 tỉnh cũ. Màu: Hùng Vĩ (xanh dương) · iCare (xanh ngọc) · cả 2 (tím); đậm hơn = giá trị cao hơn; số trên tỉnh = số gói.
-- Bấm tỉnh ⇒ phóng to, bóng tròn theo tỉnh cũ, danh sách bệnh viện ▸ gói thầu (TBMT, ngày phê duyệt, thời hạn, hết hạn, thanh tiến độ hợp đồng, sản phẩm · SL · đơn giá · thành tiền). Esc / ⌂ = toàn quốc. Link `#<Tên tỉnh>` mở thẳng tỉnh.
-- Lọc: FY (từ FY67) + quý, NPP, Dao / Chỉ khâu, Trúng thầu / mọi gói tham dự.
+- Bản đồ 34 tỉnh / thành (từ 01/07/2025), đường nét đứt = 63 tỉnh cũ, Hoàng Sa · Trường Sa. Màu: Hùng Vĩ (xanh dương) · iCare (xanh ngọc) · cả 2 (tím); đậm hơn = giá trị cao hơn; số trên tỉnh = số gói.
+- **Nhóm sản phẩm trúng**: Dao Slit / Stab / Crescent / khác · Chỉ Nylon / Polypropylene / PGA / Silk / Polyester (chỉ khâu theo `products.js` — bảng mã catalogue MANI trong MMH Library).
+  Lọc nhanh: Dao / Chỉ khâu ở thanh trên, bấm 1 nhóm trong "Sản phẩm trúng" để chỉ xem nhóm đó.
+- **Bệnh viện trúng nhiều nhất**: tab Giá trị · Dao · Slit · Stab · Crescent · Chỉ khâu · Nylon… (theo số lượng); rê chuột ⇒ tô viền tỉnh.
+- Bấm tỉnh ⇒ phóng to, bóng tròn theo tỉnh cũ, danh sách **bệnh viện trúng** (gói, ngày trúng gần nhất, hiệu lực, sản phẩm). Bấm bệnh viện ⇒ hiệu lực hợp đồng, **gói trúng gần nhất**
+  (thanh tiến độ, sản phẩm · SL · đơn giá), cơ cấu sản phẩm, **lịch sử trúng** mọi năm (từ FY65, bật xem cả gói trượt / chờ).
+- Quay lại: nút **‹** ở góc bản đồ / tiêu đề bảng, Esc, bấm ra biển, nút Back trình duyệt / điện thoại. Link `#<Tỉnh>` hoặc `#<Tỉnh>/<Bệnh viện>` mở thẳng.
+- Lọc: FY (từ FY67) + quý, NPP, Dao / Chỉ khâu, Trúng thầu / mọi gói tham dự. `2d.html` = chuyển hướng về `index.html` (link cũ).
+- Bản 3D (deck.gl) thử ngày 03/11/2026 đã bỏ theo yêu cầu người dùng (xem lịch sử git nếu cần).
 
 ## Quy ước
 
@@ -30,7 +24,7 @@ máy không có WebGL hoặc không tải được thư viện ⇒ tự chuyển
 
 ## Dữ liệu
 
-Đọc trực tiếp 2 web app Apps Script (`NPP` đầu script trong `index.html`) bằng `?action=winMap&from=202509`.
+Đọc trực tiếp 2 web app Apps Script (`NPP` đầu script trong `index.html`) bằng `?action=winMap&from=202209` (FY65 trở đi cho lịch sử; bản đồ / số liệu chỉ tính từ FY67).
 Code máy chủ ở kho riêng tư `ManiMedicalHanoi/mmh-backend` ▸ `backends/tender-icare|tender-hungvi/MMH_WinMap.gs`.
 Máy chủ chưa có `winMap` ⇒ trang tự dùng feed mặc định (chỉ dao) và báo trên màn hình. Lần mở sau hiện ngay bản lưu trên máy (localStorage) rồi đọc bản mới.
 

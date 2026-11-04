@@ -34,15 +34,25 @@ Trang tĩnh (GitHub Pages): `https://manimedicalhanoi.github.io/Tender-Result/ma
 - **Ô tìm** (thanh trên, Ctrl/⌘ + K): bỏ dấu, hiểu viết tắt (`bv mat nghe an`, `ttyt anh son`, `bvdk tinh`), khớp tên / tỉnh mới / tỉnh cũ / địa chỉ; nhãn NPP · KQTT · Theo dõi.
   Chọn ⇒ chi tiết cơ sở: **Thông tin cơ sở** (loại, tuyến, địa chỉ, tỉnh, quy mô, lượng trúng theo FY, Google Maps) + gói trúng gần nhất + hãng trúng + lịch sử dao & chỉ khâu (mọi nguồn).
   Cơ sở chưa có gói thầu vẫn mở được (chấm xám).
-- **Chế độ Theo dõi thầu** (nút *Trúng thầu | Theo dõi thầu*): **không cần đăng nhập** (người dùng yêu cầu 04/11/2026 — ai có link cũng xem / cập nhật được).
-  Người cập nhật = ô **Người cập nhật** trong hộp cập nhật (chọn trong danh sách tên nhân sự `people` do máy chủ trả, hoặc gõ), máy nhớ ở `localStorage.tm_fu_name`;
-  trình duyệt đã có phiên email Report Hub / CRM (`localStorage.mmh_tk`) ⇒ dùng tên trong phiên, không hỏi.
+- **Chế độ Theo dõi thầu** (nút *Kết quả thầu | Theo dõi thầu*): **chỉ tài khoản email công ty** @manimedicalhanoi.com / @mani.inc (người dùng chốt 04/11/2026)
+  — đăng nhập email + mã 6 số qua Training Hub, phiên `localStorage.mmh_tk` dùng chung Report Hub / CRM (đã đăng nhập ở 2 app đó thì vào thẳng). Người cập nhật = tên trong phiên.
+  Phần Kết quả thầu (NPP + KQTT) vẫn xem không cần đăng nhập.
   Ghi / đọc sheet ẨN **FOLLOW UP TENDER** của backend CRM Surgical VN (`crm-surgical/MMH_TenderFU.gs`: `fuList` / `fuSave`). Mỗi lần cập nhật = 1 dòng mới (giữ đủ lịch sử, không xoá):
   cơ sở · tên gói · TBMT · loại SP (Dao / Chỉ khâu) · mã + SL ước tính (`codes.js` từ MMH Library: 114 mã dao, 187 mã chỉ — `python3 -I tools/codes_build.py <mmh-library>`) ·
   **giai đoạn** 1 Giới thiệu → 2 Lên danh mục → 3 Chốt cấu hình → 4 Ra báo giá → 5 Ra HSMT → 6 Đang chấm thầu → 7 Đã trúng / 8 Đã trượt / 9 Huỷ · mốc dự kiến · giá trị ước tính · tình hình (chữ tự do).
   Bản đồ tô tỉnh theo số gói, chấm cơ sở theo giai đoạn; bảng bên: số gói, theo giai đoạn (bấm để lọc), tỉnh, mốc sắp tới, cập nhật gần đây; lọc Mọi PIC / Của tôi, Đang theo dõi / Đã trúng / Trượt – dừng.
   Ghi không chờ: hiện ngay, gửi nền theo hàng đợi `localStorage.tm_fu_outbox_v1` (cùng `rid`, mất mạng tự thử lại, lỗi ⇒ chip đỏ Thử lại / Bỏ).
 - **Kiểm thử**: `python3 -m http.server 8771` rồi `NODE_PATH=$(npm root -g) node tools/map_test.js [thư mục ảnh]` (backend giả lập `tools/map_mock.js`; `KQTT_JSON=<file>` để dùng dữ liệu kqttMap thật — không đưa vào repo).
+
+## Cập nhật 04/11/2026 (2) — giao diện gọn sau review
+
+- Thanh trên: ô tìm · *Kết quả thầu | Theo dõi thầu* · **Kỳ** (ô chọn: Từ FY67 / Mọi năm / FYxx / quý) · Giá trị | Số lượng · **Bộ lọc** (nguồn, hãng, loại SP, chỉ gói trúng / mọi gói, tô màu,
+  ranh giới tỉnh cũ). Bộ lọc đang bật hiện thành nhãn có × dưới thanh trên.
+- **Tô màu theo thị phần MANI** (Bộ lọc ▸ Tô màu): tỉnh màu cam (hãng khác nhiều) ⇄ xanh (MANI nhiều), số trên tỉnh = % MANI; bảng bên có “Thị phần MANI theo tỉnh”.
+- Chi tiết cơ sở tách **hợp đồng MANI** và **hãng khác đang có hợp đồng**, gói MANI / hãng khác trúng gần nhất, lịch sử gắn nhãn hãng. Không có gói trong kỳ ⇒ gợi ý gói gần nhất + “Xem Mọi năm”.
+- Trong tỉnh: chấm xám = cơ sở y tế công lập chưa có gói (bấm xem thông tin). Chú giải thu gọn được (tự thu khi vào tỉnh). Top bệnh viện có ▲▼ so với kỳ trước và nút **+ Theo dõi**.
+- Điện thoại: thanh trên gọn (logo · tìm · bộ lọc), bản đồ toàn màn hình, bảng chi tiết **trượt từ dưới lên** (kéo / bấm thanh để mở rộng).
+- Hướng dẫn từng bước lần đầu mở app; nút **?** để xem lại. Bỏ ghi chú kỹ thuật về gói KQTT trùng TBMT.
 
 ## Quy ước
 

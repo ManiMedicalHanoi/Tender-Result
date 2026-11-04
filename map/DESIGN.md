@@ -153,6 +153,7 @@ Phong cách MMH: nền sáng, chữ Aptos, navy `#003047`, xanh `#3A5CAA`, viề
 | 03/11/2026 | Nhóm SP, top bệnh viện, chi tiết bệnh viện (hiệu lực, gói gần nhất, lịch sử), nút quay lại / Back |
 | 04/11/2026 | PWA + biểu tượng, Giá trị / Số lượng + loại SP cho mọi thống kê, chấm bệnh viện trong tỉnh, bỏ ghi chú nguồn, đổi tên **Tender Map** |
 | 04/11/2026 | KQTT toàn quốc (bỏ trùng TBMT), danh mục cơ sở y tế + ô tìm, chế độ Theo dõi thầu; cùng ngày bỏ bắt đăng nhập (chọn tên người cập nhật) |
+| 04/11/2026 | Tab Thầu lại · Giá trúng · Hiệu quả NPP · Dự báo; Theo dõi thầu tự khớp kết quả KQTT / NPP; xuất Excel + ảnh bản đồ |
 | 04/11/2026 | Theo dõi thầu chỉ cho tài khoản email công ty (backend `MMH_TenderFU.gs` v1.2); giao diện gọn sau review: thanh lọc + nhãn ×, Kỳ dạng ô chọn, bảng trượt trên điện thoại, thị phần MANI, chấm cơ sở chưa có gói, ▲▼ + “+ Theo dõi”, MANI / hãng khác ở chi tiết, hướng dẫn lần đầu |
 
 ## 8b. Bổ sung 04/11/2026
@@ -165,7 +166,7 @@ Phong cách MMH: nền sáng, chữ Aptos, navy `#003047`, xanh `#3A5CAA`, viề
 | Danh mục cơ sở | `csyt.js` = `{cols, rows, types, spec}`; nối bệnh viện có gói thầu ⇒ toạ độ thật; `hospOf(f)` tạo "bệnh viện rỗng" cho cơ sở chưa có gói để dùng chung màn chi tiết |
 | Theo dõi thầu | `FU` (trong `index.html`): **chỉ phiên email công ty** (@manimedicalhanoi.com / @mani.inc, đăng nhập mã 6 số qua Training Hub, phiên `mmh_tk` dùng chung Report Hub / CRM; backend trả `code:'AUTH'` ⇒ xoá phiên, hiện ô đăng nhập), `fuList` (JSONP / fetch), hàng đợi `fuSave` (POST JSON text/plain, dự phòng JSONP), gói = các dòng cùng *Mã theo dõi*; chế độ xem `F.view = "win" | "fu"` (`localStorage.tm_view`) đổi thống kê bản đồ (`FU.stats`), chú giải, tooltip, bảng bên |
 | Tìm | `QS` — chỉ mục chữ không dấu theo từ, điểm: khớp tên, cụm liền, có lịch sử thầu / đang theo dõi, bệnh viện, chuyên khoa mắt |
-| PWA | `sw.js` `tr-map-v4` (thêm `csyt.js`, `codes.js`) |
+| PWA | `sw.js` `tr-map-v5` (thêm `csyt.js`, `codes.js`) |
 
 ## 8c. Giao diện sau review (04/11/2026)
 
@@ -181,6 +182,9 @@ Phong cách MMH: nền sáng, chữ Aptos, navy `#003047`, xanh `#3A5CAA`, viề
 | Top bệnh viện | ▲▼ (`cmpSpan` / `spanVals`): FY / quý ⇄ cùng kỳ năm trước (kỳ đang chạy: cùng số tháng); Từ FY67 / Mọi năm ⇒ 12 tháng gần nhất ⇄ 12 tháng trước; “mới” = kỳ trước không có. Nút **+ Theo dõi** mở hộp thêm gói theo dõi (cần đăng nhập) |
 | Hướng dẫn lần đầu | `TOUR` (vùng sáng + thẻ Tiếp / Trước / Bỏ qua, phím ← → Esc), tự mở 1 lần (`localStorage.tm_tour_v1`), nút `?` mở lại. Kiểm thử đặt sẵn khoá để hướng dẫn không che thao tác |
 | Màu chữ | `--t3` = `#5F6E84` (≥ 4,8:1 trên nền trắng / xanh nhạt) |
+| Tab phân tích | `TAB` = ov · re · px · npp · fc (`tabsHtml` / `panelHtml`, phạm vi `inScope`): `reList` / `rePre` (thầu lại, điền sẵn qua `FU.open({f, pre})`), `pxRows` / `agg` / `pxBrands` / `switchList` (giá), `nppPk` / `cnt` / `nppQuarters` (NPP), `fcData` (dự báo) — dùng chung cho Excel |
+| Khớp kết quả | `FU.matchRes(c)`: TBMT (`tbNorm`) trùng gói Win của cơ sở ⇒ chắc chắn; không có TBMT + giai đoạn 4–6 ⇒ gói Win phê duyệt ≥ ngày tạo gói theo dõi (“kiểm tra lại”). Nút `data-fu-res` mở hộp cập nhật với giai đoạn 7 (MANI trúng) / 8 |
+| Xuất | `XP.sheets()` (mảng 2 chiều) ⇒ SheetJS `aoa_to_sheet`; PNG = sao SVG + CSS rút gọn (`SVG_CSS`, thay `var(--land)`), vẽ lên canvas ×2 kèm tiêu đề / chú giải; tên file không dấu `TenderMap_<tỉnh>_<kỳ>_<yyyymmdd>` |
 
 ## 9. Việc có thể làm tiếp
 

@@ -2,7 +2,7 @@
    · NPP Hùng Vĩ / iCare: ?action=winMap ⇒ dòng giả (dao + chỉ khâu), vài số TBMT trùng KQTT để thử bỏ trùng
    · KQTT toàn quốc: ?action=kqttMap ⇒ dữ liệu giả, hoặc file JSON thật của kqttMap (opt.kqttJson / env KQTT_JSON — KHÔNG đưa vào repo)
    · CRM Surgical: fuList / fuSave (sheet FOLLOW UP TENDER, ghi nối tiếp, cần tk) · Training Hub: rhAuthStart / rhAuthVerify (mã đúng 123456)
-   opt: { kqttJson, failSave:n (n lần fuSave đầu lỗi mạng), lag:ms, noKqtt:true (máy chủ chưa có kqttMap) }  ⇒ trả { db } để kiểm tra. */
+   opt: { kqttJson, failSave:n (n lần fuSave đầu lỗi mạng), lag:ms, noKqtt:true (máy chủ chưa có kqttMap), xlsxJs (hoặc env XLSX_JS = xlsx.full.min.js cho nút Xuất Excel) }  ⇒ trả { db } để kiểm tra. */
 const fs = require('fs');
 const HV = 'AKfycbyL5FRVXl0Zr35ndE1PGJMGXzHOYzHjdsyQK7vHwIYhqe5owjSg3o1QtH-i8qGNBKJ-';
 const IC = 'AKfycbx8xuGaBOVgLxb8JtaH25t1pcisacigDecTMLKOVaBucuDWZ7hw2W_W4IngA1nSODg4';
@@ -67,6 +67,10 @@ async function install(page, opt = {}) {
     const go = () => route.fulfill({ status: 200, headers: { 'access-control-allow-origin': '*' }, contentType: cb ? 'application/javascript' : 'application/json', body: cb ? `${cb}(${body});` : body });
     return opt.lag ? new Promise(r => setTimeout(() => r(go()), opt.lag)) : go();
   };
+  // thư viện Excel (cdnjs bị chặn khi kiểm thử) ⇒ file cục bộ XLSX_JS nếu có
+  const xjs = opt.xlsxJs || process.env.XLSX_JS;
+  await page.route(/cdnjs\.cloudflare\.com\/ajax\/libs\/xlsx\//, route => xjs && fs.existsSync(xjs)
+    ? route.fulfill({ status: 200, contentType: 'application/javascript', body: fs.readFileSync(xjs, 'utf8') }) : route.abort('failed'));
   await page.route(/script\.google\.com/, async route => {
     const req = route.request(), url = new URL(req.url());
     if (req.resourceType && req.resourceType() === 'script' && opt.scriptFail) return route.fulfill({ status: 404, body: '' });

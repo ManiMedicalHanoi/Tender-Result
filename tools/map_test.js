@@ -259,6 +259,7 @@ async function boot(b, ctxOpt, mopt, urlTail) {
   const lc = db.locs.filter(x => x.lat).pop();
   ok(lc && +lc.lat > 7 && +lc.lat < 24 && +lc.lng > 102 && +lc.lng < 118 && await page.$eval('#sb', e => /đã ghim trên bản đồ/.test(e.textContent)), `ghim vị trí ⇒ ${lc && lc.lat}, ${lc && lc.lng}`);
   // cơ sở tư nhân ⇒ theo dõi mua sắm (giai đoạn riêng)
+  await page.waitForTimeout(800);                                   // chờ vẽ lại sau khi lưu vị trí (máy CI chậm hơn)
   await page.click('[data-act-fu]');
   await page.waitForSelector('#fm-pkg');
   const stg = await page.$$eval('.stg button', b => b.map(x => x.textContent));
@@ -269,9 +270,12 @@ async function boot(b, ctxOpt, mopt, urlTail) {
   await page.fill('[data-ln="qty"][data-i="0"]', '100');
   await page.click('.stg button[data-st="12"]');
   await page.click('[data-fm="save"]');
-  await page.waitForFunction(n => window.__db_n !== n, db.fu.length, { timeout: 100 }).catch(() => {});
-  await page.waitForTimeout(1500);
-  ok(db.fu.some(r => r[15] === 12 && /^C:S-004/.test(r[5])), 'lưu cơ hội mua sắm tư nhân: giai đoạn 12 (Demo), mã cơ sở C:S-004');
+  const pClosed = await page.waitForFunction(() => document.getElementById('fudlg').hidden, null, { timeout: 8000 }).then(() => true, () => false);
+  const pWhy = pClosed ? '' : await page.$eval('#fudlg', e => e.innerText.replace(/\s+/g, ' ').slice(0, 400));
+  for (let i = 0; i < 60 && !db.fu.some(r => r[15] === 12); i++) await page.waitForTimeout(250);
+  ok(db.fu.some(r => r[15] === 12 && /^C:S-004/.test(r[5])), 'lưu cơ hội mua sắm tư nhân: giai đoạn 12 (Demo), mã cơ sở C:S-004' +
+    (pClosed ? '' : ' — hộp chưa đóng: ' + pWhy) + (db.fu.some(r => r[15] === 12) ? '' : ' · fid đã lưu: ' + db.fu.map(r => r[5] + '/' + r[15]).join(', ')));
+  if (!pClosed) await page.click('[data-fm="cancel"]').catch(() => {});
   // khách công lập ⇒ có lịch sử thầu
   await page.evaluate(() => { WINMAP.view('act'); WINMAP.act.openCode('S-001'); });
   await page.waitForFunction(() => /Bệnh viện Mắt Nghệ An/.test(document.getElementById('sh-t').textContent), null, { timeout: 5000 });

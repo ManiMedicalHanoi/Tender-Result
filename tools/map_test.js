@@ -148,6 +148,19 @@ async function boot(b, ctxOpt, mopt, urlTail) {
   const badge = await page.$$eval('.bdg text', e => e.map(x => x.textContent));
   ok(badge.includes('1'), 'bản đồ theo dõi: huy hiệu số gói ở tỉnh');
   await page.screenshot({ path: path.join(OUT, 'd7_theodoi_toanquoc.png') });
+  // tô màu theo tiến độ + cảnh báo hợp đồng sắp hết hiệu lực chưa cập nhật theo dõi
+  const pg = await page.evaluate(() => { const s = WINMAP.stat(16); const P = document.querySelector('.prov[data-i="16"]'); return { stg: s.stg, fill: P.getAttribute('fill'), col: WINMAP.fu.pcol(s) }; });
+  ok(pg.stg === 3 && pg.fill !== 'var(--land)', 'bản đồ theo dõi: Nghệ An tô màu giai đoạn "Chốt cấu hình" (' + pg.fill + ')');
+  ok(await page.$eval('#legend', e => /Tô màu theo tiến độ/.test(e.textContent) && e.querySelectorAll('.stl span').length === 9), 'chú giải: 9 giai đoạn có màu riêng');
+  const wn = await page.evaluate(() => ({ n: WINMAP.fu.warnCount(), box: document.querySelectorAll('#sb .wbox .ri').length, badge: (document.querySelector('#f-view .wb') || {}).textContent || '' }));
+  ok(wn.n > 0 && wn.box > 0 && wn.badge === String(wn.n), `cảnh báo: ${wn.n} hợp đồng MANI sắp hết hiệu lực chưa cập nhật theo dõi — khối cảnh báo + số trên nút Theo dõi thầu`);
+  await page.screenshot({ path: path.join(OUT, 'd7b_canhbao.png') });
+  if (await page.$('#sb .wbox [data-fu-warn]')) {
+    await page.click('#sb .wbox [data-fu-warn]');
+    await page.waitForSelector('#fm-pkg');
+    ok(/^Thầu lại/.test(await page.$eval('#fm-pkg', e => e.value)), 'bấm "+ Theo dõi thầu lại" trong cảnh báo ⇒ hộp theo dõi điền sẵn');
+    await page.click('[data-fm="cancel"]');
+  }
   // khớp kết quả KQTT với gói đang theo dõi (cùng số TBMT) ⇒ gợi ý ghi kết quả
   const kq = await page.evaluate(() => { const p = WINMAP.pkgs().find(x => x.npp === 'KQTT' && x.h && x.h.f && x.tbmtRaw.length); if (!p) return null;
     WINMAP.fu.open({ f: p.h.f, pre: { pkg: 'Gói khớp KQTT', tbmt: p.tbmtRaw[0], lines: [{ code: 'MSL28SH', qty: '100', kind: 'dao' }] } }); return { tb: p.tbmtRaw[0], mani: p.items.some(i => /mani/i.test(i.mfr)) }; });

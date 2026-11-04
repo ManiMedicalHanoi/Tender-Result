@@ -152,6 +152,7 @@ Phong cách MMH: nền sáng, chữ Aptos, navy `#003047`, xanh `#3A5CAA`, viề
 | 03/11/2026 | Thử bản 3D (deck.gl) — người dùng không chọn, quay lại giao diện sáng |
 | 03/11/2026 | Nhóm SP, top bệnh viện, chi tiết bệnh viện (hiệu lực, gói gần nhất, lịch sử), nút quay lại / Back |
 | 04/11/2026 | PWA + biểu tượng, Giá trị / Số lượng + loại SP cho mọi thống kê, chấm bệnh viện trong tỉnh, bỏ ghi chú nguồn, đổi tên **Tender Map** |
+| 04/11/2026 | KQTT toàn quốc (bỏ trùng TBMT), danh mục cơ sở y tế + ô tìm, chế độ Theo dõi thầu; cùng ngày bỏ bắt đăng nhập (chọn tên người cập nhật) |
 
 ## 8b. Bổ sung 04/11/2026
 
@@ -161,7 +162,7 @@ Phong cách MMH: nền sáng, chữ Aptos, navy `#003047`, xanh `#3A5CAA`, viề
 | Bỏ trùng | TBMT (viết hoa, bỏ khoảng trắng, bỏ `-NN`) đã có ở file NPP ⇒ bỏ cả gói KQTT |
 | Gộp tên | Khoá `hkey` (bỏ dấu, mở viết tắt, bỏ "tỉnh / thành phố") ⇒ rồi `sameName` trong cùng tỉnh (cùng loại BV / TTYT, khác nhau không có từ chuyên khoa hoặc số) |
 | Danh mục cơ sở | `csyt.js` = `{cols, rows, types, spec}`; nối bệnh viện có gói thầu ⇒ toạ độ thật; `hospOf(f)` tạo "bệnh viện rỗng" cho cơ sở chưa có gói để dùng chung màn chi tiết |
-| Theo dõi thầu | `FU` (trong `index.html`): đăng nhập, `fuList` (JSONP / fetch), hàng đợi `fuSave` (POST JSON text/plain, dự phòng JSONP), gói = các dòng cùng *Mã theo dõi*; chế độ xem `F.view = "win" | "fu"` (`localStorage.tm_view`) đổi thống kê bản đồ (`FU.stats`), chú giải, tooltip, bảng bên |
+| Theo dõi thầu | `FU` (trong `index.html`): không đăng nhập — tên người cập nhật (`tm_fu_name`, hoặc tên trong phiên `mmh_tk` nếu có), `fuList` (JSONP / fetch, trả kèm `people`), hàng đợi `fuSave` (POST JSON text/plain, dự phòng JSONP), gói = các dòng cùng *Mã theo dõi*; chế độ xem `F.view = "win" | "fu"` (`localStorage.tm_view`) đổi thống kê bản đồ (`FU.stats`), chú giải, tooltip, bảng bên |
 | Tìm | `QS` — chỉ mục chữ không dấu theo từ, điểm: khớp tên, cụm liền, có lịch sử thầu / đang theo dõi, bệnh viện, chuyên khoa mắt |
 | PWA | `sw.js` `tr-map-v3` (thêm `csyt.js`, `codes.js`) |
 

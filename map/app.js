@@ -1440,6 +1440,12 @@ var FU=(function(){
   /* ── đăng nhập (Training Hub rhAuthStart / rhAuthVerify, như Report Hub / CRM) ── */
   function auth(){ try{ var o=JSON.parse(localStorage.getItem(LS_TK)||"null"); if(!o||!o.tk||!o.user||!o.user.pic) return null; if(o.exp && Date.now()>o.exp) return null; return o; }catch(_){ return null; } }
   function tk(){ var a=auth(); return a?a.tk:""; }
+  /* máy chủ từ chối phiên: CHỈ xoá phiên (dùng chung Report Hub / CRM trên trình duyệt này) khi phiên thật sự hết hạn / không hợp lệ / bị khoá;
+     lỗi khác ⇒ giữ phiên, hiện lý do (trước đây xoá ngay ⇒ quay lại ô nhập email, không rõ vì sao, và đăng xuất luôn Report Hub / CRM) */
+  function authFail(msg){
+    if(/hết hạn|không hợp lệ|đăng xuất|bị khoá|không có trong RH_Users/i.test(String(msg||""))){ try{ localStorage.removeItem(LS_TK); }catch(_){} lg.step="email"; lg.err=msg; }
+    user();
+  }
   function qs(o){ return Object.keys(o).map(function(k){ return encodeURIComponent(k)+"="+encodeURIComponent(o[k]==null?"":o[k]); }).join("&"); }
   /* đọc bằng fetch KHÔNG kèm cookie Google trước (getJSON): Chrome / điện thoại đăng nhập Gmail khác hoặc nhiều tài khoản thì thẻ <script>
      bị Google chuyển sang trang "chọn tài khoản" ⇒ "không tải được" (cùng lỗi Report Hub đã sửa ở v16.7) */
@@ -1504,7 +1510,7 @@ var FU=(function(){
       S.loading=false;
       if(d && d.ok){ if(Array.isArray(d.cols)) COLS=d.cols; S.rows=d.rows||[]; S.me=d.me||null; S.loaded=true; S.at=new Date().toLocaleString("vi-VN");
         try{ localStorage.setItem(LS_DATA, JSON.stringify({rows:S.rows, at:S.at, me:S.me})); }catch(_){} }
-      else if(d && d.code==="AUTH"){ try{ localStorage.removeItem(LS_TK); }catch(_){} S.err=d.error||"Phiên đăng nhập hết hạn — đăng nhập lại."; user(); }
+      else if(d && d.code==="AUTH"){ S.err=d.error||"Phiên đăng nhập hết hạn — đăng nhập lại."; authFail(S.err); }
       else S.err=(d&&d.error)||"Không đọc được dữ liệu theo dõi thầu.";
       inval(); if(F.view==="fu"||selH) refresh();
     },function(e){ S.loading=false; S.err="Không đọc được dữ liệu theo dõi thầu ("+e.message+")."; if(F.view==="fu") refresh(); });
@@ -1840,7 +1846,7 @@ var FU=(function(){
         try{ localStorage.setItem(LS_DATA, JSON.stringify({rows:S.rows, at:S.at, me:S.me})); }catch(_){}
         obSave(); inval(); refresh(); obRun(); return;
       }
-      if(d && d.code==="AUTH"){ try{ localStorage.removeItem(LS_TK); }catch(_){} o.err=d.error||"Phiên đăng nhập hết hạn."; user(); }
+      if(d && d.code==="AUTH"){ o.err=d.error||"Phiên đăng nhập hết hạn."; authFail(o.err); }
       else o.err=(d&&d.error)||"Máy chủ chưa nhận cập nhật.";
       obSave(); inval(); refresh();
     },function(e){

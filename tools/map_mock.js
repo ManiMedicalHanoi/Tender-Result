@@ -2,7 +2,7 @@
    · NPP Hùng Vĩ / iCare: ?action=winMap ⇒ dòng giả (dao + chỉ khâu), vài số TBMT trùng KQTT để thử bỏ trùng
    · KQTT toàn quốc: ?action=kqttMap ⇒ dữ liệu giả, hoặc file JSON thật của kqttMap (opt.kqttJson / env KQTT_JSON — KHÔNG đưa vào repo)
    · CRM Surgical: fuList / fuSave (sheet FOLLOW UP TENDER, ghi nối tiếp, cần tk) · fuCrm (địa bàn CRM của cơ sở) · Training Hub: rhAuthStart / rhAuthVerify (mã đúng 123456)
-   opt: { kqttJson, failSave:n (n lần fuSave đầu lỗi mạng), lag:ms, noKqtt:true (máy chủ chưa có kqttMap), xlsxJs (hoặc env XLSX_JS = xlsx.full.min.js cho nút Xuất Excel) }  ⇒ trả { db } để kiểm tra. */
+   opt: { kqttJson, failSave:n (n lần fuSave đầu lỗi mạng), lag:ms, noKqtt:true (máy chủ chưa có kqttMap), xlsxJs (hoặc env XLSX_JS = xlsx.full.min.js cho nút Xuất Excel), authErr (fu* luôn trả AUTH với câu này) }  ⇒ trả { db } để kiểm tra. */
 const fs = require('fs');
 const HV = 'AKfycbyL5FRVXl0Zr35ndE1PGJMGXzHOYzHjdsyQK7vHwIYhqe5owjSg3o1QtH-i8qGNBKJ-';
 const IC = 'AKfycbx8xuGaBOVgLxb8JtaH25t1pcisacigDecTMLKOVaBucuDWZ7hw2W_W4IngA1nSODg4';
@@ -90,6 +90,7 @@ async function install(page, opt = {}) {
     }
     if (url.pathname.includes(CRM)) {
       if (/^fu/.test(a) && p.tk !== db.tk) return reply(route, url, { ok: false, code: 'AUTH', error: 'Cần đăng nhập bằng email công ty.' });
+      if (/^fu/.test(a) && opt.authErr) return reply(route, url, { ok: false, code: 'AUTH', error: opt.authErr });
       if (a === 'fuCrm') return reply(route, url, /Mắt Nghệ An/.test(p.hosp || '') ? { ok: true, v: '1.3', alt: 0,
         acc: { code: 'S-NA-001', name: 'Bệnh viện Mắt Nghệ An', type: 'Hospital', province: 'Nghệ An', area: 'Miền Trung', pic: 'Viet Ha' },
         visits: { n12: 6, done12: 5, total: 14, last: [{ d: '2026-10-28', pic: 'Viet Ha', act: 'Visiting', st: 'Completed', res: 'Gặp trưởng khoa, giới thiệu MSL-SH', fb: 'Quan tâm giá' }] },

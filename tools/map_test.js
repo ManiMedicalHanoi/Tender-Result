@@ -266,6 +266,17 @@ async function boot(b, ctxOpt, mopt, urlTail) {
   ok(!errs.length, 'không lỗi JS (nhiều tài khoản)' + (errs.length ? ': ' + errs.join(' | ') : ''));
   await ctx.close();
 
+  /* ── máy chủ từ chối phiên: lỗi khác ⇒ giữ phiên (dùng chung Report Hub / CRM) + hiện lý do; phiên hết hạn ⇒ xoá + ô đăng nhập kèm lý do ── */
+  for (const [msg, dead] of [['Theo dõi thầu chỉ dành cho tài khoản email công ty', false], ['Phiên đăng nhập đã hết hạn — đăng nhập lại.', true]]) {
+    ({ ctx, page, errs, db } = await boot(b, { viewport: { width: 1280, height: 800 } }, { authErr: msg }));
+    await page.evaluate(tk => localStorage.setItem('mmh_tk', JSON.stringify({ tk, exp: Date.now() + 864e5, user: { pic: 'Giang', email: 'mmh.product@manimedicalhanoi.com' } })), db.tk);
+    await page.evaluate(() => WINMAP.view('fu'));
+    await page.waitForFunction(m => document.getElementById('sb').textContent.indexOf(m.slice(0, 20)) >= 0, msg, { timeout: 10000 });
+    const st = await page.evaluate(() => ({ tk: !!localStorage.getItem('mmh_tk'), login: !!document.getElementById('lg-email') }));
+    ok(dead ? (!st.tk && st.login) : (st.tk && !st.login), dead ? 'phiên hết hạn ⇒ xoá phiên, ô đăng nhập kèm lý do' : 'máy chủ từ chối vì lý do khác ⇒ GIỮ phiên (không đăng xuất Report Hub / CRM), hiện lý do');
+    await ctx.close();
+  }
+
   /* ── link từ thông báo "Nhắc tôi" / email: ?v=fu#<Tỉnh>/<Cơ sở> ── */
   ({ ctx, page, errs, db } = await boot(b, { viewport: { width: 1280, height: 800 } }, {}, '?v=fu#' + encodeURIComponent('Nghệ An') + '/' + encodeURIComponent('Bệnh viện Mắt Nghệ An')));
   await page.waitForFunction(() => /Mắt Nghệ An/.test(document.getElementById('sh-t').textContent), null, { timeout: 10000 });

@@ -252,6 +252,20 @@ async function boot(b, ctxOpt, mopt, urlTail) {
   await page.screenshot({ path: path.join(OUT, 'm4_form.png') });
   ok(!errs.length, 'không lỗi JS (điện thoại)' + (errs.length ? ': ' + errs.join(' | ') : ''));
   await ctx.close();
+  /* ── trình duyệt đăng nhập nhiều tài khoản Google: thẻ <script> tới Apps Script hỏng ⇒ vẫn đăng nhập được (fetch không cookie) ── */
+  ({ ctx, page, errs, db } = await boot(b, { viewport: { width: 1280, height: 800 } }, { scriptFail: true }));
+  await page.evaluate(() => WINMAP.view('fu'));
+  await page.waitForSelector('#lg-email');
+  await page.fill('#lg-email', 'mmh.product@manimedicalhanoi.com');
+  await page.click('[data-lg="send"]');
+  await page.waitForSelector('#lg-code', { timeout: 10000 });
+  await page.fill('#lg-code', '123456');
+  await page.click('[data-lg="verify"]');
+  await page.waitForFunction(() => document.getElementById('uchip').textContent.indexOf('Viet Ha') >= 0, null, { timeout: 10000 });
+  ok(true, 'nhiều tài khoản Google (thẻ <script> bị chặn) ⇒ vẫn gửi mã + đăng nhập được');
+  ok(!errs.length, 'không lỗi JS (nhiều tài khoản)' + (errs.length ? ': ' + errs.join(' | ') : ''));
+  await ctx.close();
+
   /* ── link từ thông báo "Nhắc tôi" / email: ?v=fu#<Tỉnh>/<Cơ sở> ── */
   ({ ctx, page, errs, db } = await boot(b, { viewport: { width: 1280, height: 800 } }, {}, '?v=fu#' + encodeURIComponent('Nghệ An') + '/' + encodeURIComponent('Bệnh viện Mắt Nghệ An')));
   await page.waitForFunction(() => /Mắt Nghệ An/.test(document.getElementById('sh-t').textContent), null, { timeout: 10000 });

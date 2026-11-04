@@ -54,6 +54,20 @@ Trang tĩnh (GitHub Pages): `https://manimedicalhanoi.github.io/Tender-Result/ma
 - Điện thoại: thanh trên gọn (logo · tìm · bộ lọc), bản đồ toàn màn hình, bảng chi tiết **trượt từ dưới lên** (kéo / bấm thanh để mở rộng).
 - Hướng dẫn từng bước lần đầu mở app; nút **?** để xem lại. Bỏ ghi chú kỹ thuật về gói KQTT trùng TBMT.
 
+## Cập nhật 04/11/2026 (3) — phân tích & xuất
+
+- Bảng bên có tab **Tổng quan · Thầu lại · Giá trúng · Hiệu quả NPP · Dự báo** (theo toàn quốc hoặc tỉnh đang xem, áp bộ lọc):
+  - **Thầu lại**: hợp đồng MANI / hãng khác hết hạn trong 12 tháng tới (+ vừa hết hạn ≤ 3 tháng), nhóm theo tháng, mời thầu dự kiến ≈ hết hạn − 3 tháng;
+    nút **+ Theo dõi thầu lại** mở hộp theo dõi điền sẵn tên gói, mã + SL (hợp đồng hãng khác: SL + ghi chú hãng / mã / đơn giá đang dùng), mốc, ghi chú. Chưa đăng nhập ⇒ đăng nhập xong tự mở tiếp.
+  - **Giá trúng** (dao): giá TB có trọng số MANI ⇄ hãng khác theo loại dao, theo hãng (thấp – cao), theo FY; danh sách cơ sở chuyển từ MANI sang hãng khác.
+  - **Hiệu quả NPP**: Hùng Vĩ / iCare — tham dự, trúng, trượt, chờ, tỉ lệ trúng, giá trị, thị phần MANI ở miền phụ trách; theo quý, theo tỉnh.
+  - **Dự báo**: hợp đồng MANI còn hiệu lực ⇒ SL ÷ số tháng thực hiện mỗi tháng (12 tháng tới), theo nguồn, theo nhóm SP — để đối chiếu file Dự trù NPP.
+- **Theo dõi thầu tự khớp kết quả**: gói theo dõi có số TBMT trùng gói trúng (KQTT / NPP) — hoặc chưa có TBMT, đang ở giai đoạn 4–6 và cơ sở có gói trúng phê duyệt sau ngày bắt đầu theo dõi —
+  hiện “Đã có kết quả: MANI trúng / <hãng> trúng” + nút **Ghi kết quả** (điền sẵn giai đoạn 7 / 8, hãng, mã, SL, đơn giá). Bảng bên Theo dõi có mục “Đã có kết quả thầu — cần cập nhật”.
+- Nút **Xuất** (thanh trên): **Excel** (SheetJS 0.18.5 từ cdnjs, tải khi bấm) — sheet Bộ lọc, Gói thầu (từng SP), Bệnh viện, Tỉnh, Thầu lại, Giá trúng dao, Chuyển sang hãng khác,
+  Hiệu quả NPP, Dự báo tiêu thụ; **ảnh bản đồ PNG** (đúng khung đang xem, tiêu đề + chú giải bộ lọc).
+  Kiểm thử Excel: `XLSX_JS=<đường dẫn xlsx.full.min.js> NODE_PATH=$(npm root -g) node tools/map_test.js` (cdnjs bị chặn trong môi trường kiểm thử; `npm pack xlsx@0.18.5`).
+
 ## Quy ước
 
 - FY67 = 09/2025 – 08/2026, FY68 = 09/2026 – 08/2027 (Q1 = T9–T11).

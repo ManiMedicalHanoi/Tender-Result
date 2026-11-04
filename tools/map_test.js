@@ -146,6 +146,61 @@ async function boot(b, ctxOpt, mopt) {
   const badge = await page.$$eval('.bdg text', e => e.map(x => x.textContent));
   ok(badge.includes('1'), 'bản đồ theo dõi: huy hiệu số gói ở tỉnh');
   await page.screenshot({ path: path.join(OUT, 'd7_theodoi_toanquoc.png') });
+  // khớp kết quả KQTT với gói đang theo dõi (cùng số TBMT) ⇒ gợi ý ghi kết quả
+  const kq = await page.evaluate(() => { const p = WINMAP.pkgs().find(x => x.npp === 'KQTT' && x.h && x.h.f && x.tbmtRaw.length); if (!p) return null;
+    WINMAP.fu.open({ f: p.h.f, pre: { pkg: 'Gói khớp KQTT', tbmt: p.tbmtRaw[0], lines: [{ code: 'MSL28SH', qty: '100', kind: 'dao' }] } }); return { tb: p.tbmtRaw[0], mani: p.items.some(i => /mani/i.test(i.mfr)) }; });
+  if (kq) {
+    ok(await page.$eval('#fm-tb', e => e.value) === kq.tb, 'hộp theo dõi nhận số TBMT điền sẵn');
+    await page.click('[data-fm="save"]');
+    await page.waitForSelector('.kqm', { timeout: 10000 });
+    ok(true, 'gói theo dõi có TBMT trùng KQTT ⇒ hiện "Đã có kết quả"');
+    await page.screenshot({ path: path.join(OUT, 'd8_khop_kqtt.png') });
+    await page.waitForFunction(() => !/đang lưu/.test(document.getElementById('sb').textContent), null, { timeout: 10000 });
+    await page.click('[data-fu-res]');
+    const st = await page.$eval('.stg button.on', e => +e.dataset.st);
+    ok(st === (kq.mani ? 7 : 8) && /Kết quả:/.test(await page.$eval('#fm-note', e => e.value)), 'Ghi kết quả ⇒ chọn sẵn giai đoạn ' + st + ' + ghi chú hãng / giá trúng');
+    await page.click('[data-fm="cancel"]');
+  }
+  // tab phân tích (Kết quả thầu)
+  await page.evaluate(() => { WINMAP.view('win'); WINMAP.setF({ period: 'every' }); WINMAP.select(-1); });
+  await page.waitForTimeout(300);
+  await page.click('.stabs [data-tab="re"]');
+  const re = await page.evaluate(() => ({ n: WINMAP.re().length, ri: document.querySelectorAll('#sb .ri').length, btn: document.querySelectorAll('#sb [data-re]').length }));
+  ok(re.n === re.ri && re.btn === re.ri, `Lịch thầu lại: ${re.n} hợp đồng hết hạn trong 12 tháng / vừa hết hạn`);
+  await page.screenshot({ path: path.join(OUT, 'd9_thaulai.png') });
+  if (re.btn) {
+    await page.click('#sb [data-re]');
+    await page.waitForSelector('#fm-pkg');
+    const pre = await page.evaluate(() => ({ pkg: document.getElementById('fm-pkg').value, due: document.getElementById('fm-due').value, q: document.querySelector('[data-ln="qty"]').value, note: document.getElementById('fm-note').value }));
+    ok(/^Thầu lại/.test(pre.pkg) && pre.due && +pre.q > 0 && /hết hạn/.test(pre.note), '+ Theo dõi thầu lại ⇒ điền sẵn tên gói, SL, mốc dự kiến, ghi chú hợp đồng');
+    await page.click('[data-fm="cancel"]');
+  }
+  await page.click('.stabs [data-tab="px"]');
+  const px = await page.$$eval('#sb .tb2', t => t.map(x => x.querySelectorAll('tbody tr').length));
+  ok(px.length >= 2 && px[0] > 0, `Giá trúng: bảng loại dao (${px[0]} dòng) + theo hãng + theo FY`);
+  await page.screenshot({ path: path.join(OUT, 'd10_gia.png') });
+  await page.click('#sb tr[data-pxk]');
+  ok(await page.$eval('#sb', e => /Theo hãng · Dao/.test(e.textContent)), 'bấm 1 loại dao ⇒ bảng hãng của loại đó');
+  await page.click('.stabs [data-tab="npp"]');
+  ok(await page.$$eval('#sb .ncard', e => e.length) === 2, 'Hiệu quả NPP: thẻ Hùng Vĩ + iCare (tỉ lệ trúng, trượt, chờ)');
+  await page.screenshot({ path: path.join(OUT, 'd11_npp.png') });
+  await page.click('.stabs [data-tab="fc"]');
+  ok(await page.$$eval('#sb .tb2', t => t[0] ? t[0].querySelectorAll('tbody tr').length : 0) === 12 || await page.$eval('#sb', e => /Không có hợp đồng MANI còn hiệu lực/.test(e.textContent)), 'Dự báo tiêu thụ: 12 tháng tới');
+  await page.screenshot({ path: path.join(OUT, 'd12_dubao.png') });
+  // xuất Excel / ảnh bản đồ
+  await page.click('.stabs [data-tab="ov"]');
+  if (process.env.XLSX_JS) {
+    await page.click('#xbtn');
+    const [dl] = await Promise.all([page.waitForEvent('download'), page.click('#xmenu [data-x="xlsx"]')]);
+    const fp = path.join(OUT, dl.suggestedFilename()); await dl.saveAs(fp);
+    ok(/^TenderMap_.*\.xlsx$/.test(dl.suggestedFilename()) && fs.statSync(fp).size > 4000, 'Xuất Excel: ' + dl.suggestedFilename() + ' (' + fs.statSync(fp).size + ' byte)');
+  } else console.log('… bỏ qua kiểm thử Excel (đặt XLSX_JS = đường dẫn xlsx.full.min.js để chạy)');
+  const sheets = await page.evaluate(() => WINMAP.xp.sheets().map(s => s[0] + ':' + s[1].length));
+  ok(sheets.length >= 8, 'Excel gồm: ' + sheets.join(', '));
+  await page.click('#xbtn');
+  const [dp] = await Promise.all([page.waitForEvent('download'), page.click('#xmenu [data-x="png"]')]);
+  const pp = path.join(OUT, dp.suggestedFilename()); await dp.saveAs(pp);
+  ok(/\.png$/.test(dp.suggestedFilename()) && fs.statSync(pp).size > 20000, 'Xuất ảnh bản đồ: ' + dp.suggestedFilename() + ' (' + Math.round(fs.statSync(pp).size / 1024) + ' KB)');
   ok(!errs.length, 'không lỗi JS (máy tính)' + (errs.length ? ': ' + errs.join(' | ') : ''));
   await ctx.close();
 

@@ -158,6 +158,7 @@ Phong cách MMH: nền sáng, chữ Aptos, navy `#003047`, xanh `#3A5CAA`, viề
 | 05/11/2026 | Sửa đăng nhập (fetch không cookie; backend v1.3.1), màu bản đồ theo tiến độ, cảnh báo hợp đồng MANI sắp hết hiệu lực chưa cập nhật theo dõi |
 | 04/11/2026 | Nhắc việc Theo dõi thầu (RH_Notify + email thứ Hai), khối CRM Surgical trong chi tiết cơ sở, tách `app.css` / `app.js`, CI kiểm thử |
 | 04/11/2026 | Tab Thầu lại · Giá trúng · Hiệu quả NPP · Dự báo; Theo dõi thầu tự khớp kết quả KQTT / NPP; xuất Excel + ảnh bản đồ |
+| 05/11/2026 | Đăng nhập ở màn hình đầu (`GATE`), địa bàn theo PIC (`TERR` / `SCOPE`), công lập / tư nhân (`csyt.js` cột own, `isPv`), ghi theo hãng (`brandTxt`), tóm tắt địa bàn (`psumHtml`) |
 | 05/11/2026 | Chế độ **Hoạt động** (visiting CRM Surgical: kỳ / tháng, PIC, tỉnh đậm nhạt theo lượt, khách gặp nhiều / lâu chưa gặp, lịch sử chăm sóc + thầu, ghim vị trí, tên chuẩn); cơ sở tư nhân + giai đoạn mua sắm; tự cập nhật ~5 phút; vòng cảnh báo đỏ hồng |
 | 04/11/2026 | Theo dõi thầu chỉ cho tài khoản email công ty (backend `MMH_TenderFU.gs` v1.2); giao diện gọn sau review: thanh lọc + nhãn ×, Kỳ dạng ô chọn, bảng trượt trên điện thoại, thị phần MANI, chấm cơ sở chưa có gói, ▲▼ + “+ Theo dõi”, MANI / hãng khác ở chi tiết, hướng dẫn lần đầu |
 
@@ -171,7 +172,7 @@ Phong cách MMH: nền sáng, chữ Aptos, navy `#003047`, xanh `#3A5CAA`, viề
 | Danh mục cơ sở | `csyt.js` = `{cols, rows, types, spec}`; nối bệnh viện có gói thầu ⇒ toạ độ thật; `hospOf(f)` tạo "bệnh viện rỗng" cho cơ sở chưa có gói để dùng chung màn chi tiết |
 | Theo dõi thầu | `FU` (trong `index.html`): **chỉ phiên email công ty** (@manimedicalhanoi.com / @mani.inc, đăng nhập mã 6 số qua Training Hub, phiên `mmh_tk` dùng chung Report Hub / CRM; backend trả `code:'AUTH'` ⇒ xoá phiên, hiện ô đăng nhập), `fuList` (JSONP / fetch), hàng đợi `fuSave` (POST JSON text/plain, dự phòng JSONP), gói = các dòng cùng *Mã theo dõi*; chế độ xem `F.view = "win" | "fu"` (`localStorage.tm_view`) đổi thống kê bản đồ (`FU.stats`), chú giải, tooltip, bảng bên |
 | Tìm | `QS` — chỉ mục chữ không dấu theo từ, điểm: khớp tên, cụm liền, có lịch sử thầu / đang theo dõi, bệnh viện, chuyên khoa mắt |
-| PWA | `sw.js` `tr-map-v10` (thêm `csyt.js`, `codes.js`) |
+| PWA | `sw.js` `tr-map-v11` (thêm `csyt.js`, `codes.js`) |
 
 ## 8c. Giao diện sau review (04/11/2026)
 
@@ -210,6 +211,17 @@ Phong cách MMH: nền sáng, chữ Aptos, navy `#003047`, xanh `#3A5CAA`, viề
 | Giai đoạn tư nhân | `FU.ST` 11–15 (+ 18, 19), `TEND` / `PRIV`; hộp cập nhật chọn dãy giai đoạn theo `isPriv(f)` hoặc gói đang ở 11+; tư nhân ẩn TBMT, “Nội dung mua sắm”; chú giải 2 nhóm; phễu bảng bên 2 dãy |
 | Tự cập nhật | `setInterval` 60 s: trang hiện + ≥ 4,5 phút từ lần đọc trước + không bận (ô nhập trong bảng bên đang focus, hộp thoại mở, đang ghim, hướng dẫn) ⇒ `load()` + `FU.load()` + `ACT.load()`; `visibilitychange` sau ≥ 2 phút. Vẽ lại giữ vị trí cuộn bảng bên khi cùng cơ sở (`SB._hk`) |
 | Xuất | sheet Excel **Hoạt động Sales** (`ACT.sheet()`, theo kỳ / PIC / tỉnh đang xem) |
+
+## 8e. Đăng nhập · địa bàn · công / tư (05/11/2026)
+
+| Phần | Cách làm |
+|---|---|
+| Màn hình đăng nhập | `GATE` (`#gate`, phủ toàn trang, `body.gated`): `art()` vẽ bản đồ minh hoạ từ đường tỉnh `PROV` (tô theo `TERR`, chấm bệnh viện mắt công / tư, 2 vòng cảnh báo, huy hiệu số) · `paint()` = `FU.loginHtml("gate")` (lớp `.lgbox.lgg`) · Enter gửi mã / đăng nhập (`FU.lgAct`). `check()` lúc khởi động; `FU.authFail` (phiên hết hạn) và đăng xuất ⇒ `show()`; `FU.onLogin` ⇒ `hide()` + `ACT.ensure()` + `SCOPE.apply()` + `TOUR.auto()`. Đang mở thì ô đăng nhập trong bảng bên không vẽ (trùng id) |
+| Địa bàn | `TERR` = [{Viet Ha, tỉnh 0…Đà Nẵng}, {Khang, Quảng Ngãi…Cà Mau}] (theo thứ tự `NEW`), màu PIC cố định. `SCOPE`: `pic()` = PIC khoá (người đăng nhập trùng tên PIC trong `TERR`) hoặc PIC chọn ở `#f-pic` (`localStorage.tm_scope`); `inProv(ni)`; `bbox()` ⇒ `homeBox` phóng vào địa bàn; `apply()` khi đổi. Lọc ở `pass` (Kết quả thầu), `inScope` (tab phân tích), `FU.pass` (+ gói chính Sales tạo ngoài địa bàn), `FU.warns`, `ACT.cp()` (lượt theo PIC), `QS.search`. Tỉnh ngoài địa bàn `.prov.out` |
+| Công / tư | `isPv(f)` = `f.t==="tn"` hoặc `f.pv` (cột `own` của `csyt.js`; `ACT.build` ghi đè theo `VM_STD`: `kind` tn ⇒ 1, cl ⇒ 0). `F.own` (`localStorage.tm_own`, Bộ lọc ▸ Cơ sở y tế, `ownOk`) áp cho `pass`, chấm `.fd`, `FU.pass`, `ACT.rowsF` / danh sách khách. Tư nhân: `facInfo` "Công / tư", "Hợp đồng mua sắm" (gói theo dõi giai đoạn 14–15), `.ribbon.pv`, `FU.hospHtml` "Theo dõi mua sắm"; giai đoạn 14 = "Ký hợp đồng mua sắm" |
+| Hãng | `brandMix(list)` / `brandTxt(list,n)`: SL trúng theo `brandOf` (MANI / Manufacturer KQTT), luôn nêu MANI + n hãng khác lớn nhất — tooltip, `rankHtml`, `hcard` |
+| Tóm tắt | `psumHtml()` đầu tab Tổng quan (tỉnh / toàn quốc / địa bàn): đếm `FAC` theo loại + công / tư; mọi gói Win có dao (mọi thời gian, mọi nguồn đã bỏ trùng) ⇒ số cơ sở, cơ sở nhiều gói nhất (`data-h`); SL dao trúng theo hãng trong `inPeriod` (bỏ qua bộ lọc nguồn / hãng); khoảng tháng = gói KQTT sớm nhất – muộn nhất |
+| Kiểm thử | `tools/map_test.js`: `boot` đăng nhập sẵn (Giang, `mopt.as` / `mopt.mail` để đổi người; `mopt.gate` = chưa đăng nhập); mock `rhAuthVerify` trả tên theo email (`picOf`) |
 
 ## 9. Việc có thể làm tiếp
 

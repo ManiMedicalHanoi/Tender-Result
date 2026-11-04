@@ -105,6 +105,20 @@ Trang tĩnh (GitHub Pages): `https://manimedicalhanoi.github.io/Tender-Result/ma
   Sales lưu việc trên CRM ⇒ bản đồ Hoạt động đổi ở lần đọc kế (backend đệm theo dấu của 2 tab CRM).
 - Vòng nhấp nháy cảnh báo hợp đồng sắp hết hiệu lực đổi sang **đỏ hồng `#FF1F5A`** (viền sáng) — màu nâu cũ trùng màu KQTT, khó nhận ra.
 
+## Cập nhật 05/11/2026 (3) — đăng nhập ở màn hình đầu · địa bàn theo PIC · công lập / tư nhân · hãng · tóm tắt tỉnh
+
+- **Đăng nhập ngay khi mở app** (màn hình đầu: bản đồ minh hoạ tô theo địa bàn 2 PIC, 3 tính năng, ô email + mã 6 số, phím Enter). Chỉ email công ty;
+  phiên dùng chung Report Hub / CRM nên đã đăng nhập ở đó thì vào thẳng. Phiên hết hạn / đăng xuất ⇒ về màn hình này.
+- **Địa bàn phụ trách**: Viet Ha = miền Bắc → hết Đà Nẵng, Khang = Quảng Ngãi → miền Nam. Đăng nhập là Viet Ha / Khang ⇒ **chỉ thấy địa bàn của mình**
+  (bản đồ phóng vào địa bàn, tỉnh ngoài địa bàn mờ, số liệu / tìm kiếm / theo dõi thầu / cảnh báo / Hoạt động chỉ trong địa bàn). Người khác (Giang, Nguyen Ha, Tuyen…)
+  xem tất cả và chọn **Cả nhóm · Viet Ha · Khang** ở thanh trên. Nhắc việc + email thứ Hai của Theo dõi thầu gửi PIC phụ trách địa bàn (backend `MMH_TenderFU.gs` v1.6).
+- **Công lập / tư nhân**: danh mục `csyt.js` có cột `own` (`tools/csyt_own.py`, 53 bệnh viện tư bị OSM ghi lẫn như Mắt Sài Gòn, Việt Nhật, Tâm Trí, Pháp Việt…);
+  khách CRM theo bảng tên chuẩn `VM_STD` (ưu tiên). Cơ sở tư nhân: nhãn **Tư nhân**, "mua sắm theo **hợp đồng mua sắm** (không qua đấu thầu công)", mục **Theo dõi mua sắm**
+  (giai đoạn … Ký hợp đồng mua sắm → Sử dụng hàng), chấm viền tím trên bản đồ. Bộ lọc ▸ **Cơ sở y tế**: Công lập + tư nhân · Công lập · Tư nhân (mọi chế độ).
+- **Ghi theo hãng** thay tên nguồn: tooltip, top bệnh viện, thẻ bệnh viện ghi "MANI x% · <hãng lớn nhất> y% · <hãng thứ 2> z%" (theo số lượng trúng).
+- **Tóm tắt địa bàn** đầu tab Tổng quan (tỉnh đang xem / toàn quốc / địa bàn PIC): số bệnh viện công lập, TTYT, PKĐK khu vực, cơ sở tư nhân (theo danh mục);
+  thầu dao từ tháng đầu đến tháng cuối có dữ liệu KQTT: số cơ sở trúng thầu dao, cơ sở nhiều gói nhất (số gói, số dao); hãng chiếm tỉ trọng lớn nhất theo số lượng dao trúng trong kỳ đang lọc.
+
 ## Quy ước
 
 - FY67 = 09/2025 – 08/2026, FY68 = 09/2026 – 08/2027 (Q1 = T9–T11).

@@ -79,6 +79,11 @@ function visitsFake() {
   return { ok: true, v: '1.0', from: '2025-09-01', to: '2027-02-04', today: '2026-11-04', accCols: ['code', 'name', 'type', 'province', 'area', 'pic', 'address', 'gps', 'loc', 'std', 'kind'], acc, pics, acts, sts, tasks,
     cols: ['d', 'pic', 'acc', 'act', 'st', 'lat', 'lng', 'photo', 'task'], rows };
 }
+/* tên người dùng theo email (như RH_Users): Sales Surgical Viet Ha / Khang bị giới hạn địa bàn; người khác xem tất cả */
+function picOf(email) {
+  const l = String(email || '').split('@')[0];
+  return { vietha: 'Viet Ha', 'mmh.saigon1': 'Khang', khang: 'Khang', 'mmh.product': 'Giang', 'tt.tuyen': 'Tuyen', 'nt.ha': 'Nguyen Ha' }[l] || 'Giang';
+}
 async function install(page, opt = {}) {
   seed = 7;
   const db = { fu: [], locs: [], vis: visitsFake(), saves: 0, failSave: opt.failSave || 0, hv: nppRows('HUNGVI'), ic: nppRows('ICARE'), tk: 'mock.tk.' + 'x'.repeat(20), calls: [] };
@@ -111,7 +116,7 @@ async function install(page, opt = {}) {
     }
     if (url.pathname.includes(HUB)) {
       if (a === 'rhAuthStart') return reply(route, url, /@(manimedicalhanoi\.com|mani\.inc)$/.test(p.email || '') ? { ok: true, gap: 45 } : { ok: false, error: 'Email không có trong danh sách.' });
-      if (a === 'rhAuthVerify') return reply(route, url, p.code === '123456' ? { ok: true, token: db.tk, exp: Date.now() + 30 * 864e5, user: { pic: 'Viet Ha', email: p.email, level: 'pic' } } : { ok: false, error: 'Mã chưa đúng.' });
+      if (a === 'rhAuthVerify') return reply(route, url, p.code === '123456' ? { ok: true, token: db.tk, exp: Date.now() + 30 * 864e5, user: { pic: picOf(p.email), email: p.email, level: 'pic' } } : { ok: false, error: 'Mã chưa đúng.' });
       return reply(route, url, { ok: true });
     }
     if (url.pathname.includes(CRM)) {
@@ -150,4 +155,4 @@ async function install(page, opt = {}) {
   });
   return { db };
 }
-module.exports = { install, COLS, ST };
+module.exports = { install, COLS, ST, picOf };

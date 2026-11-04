@@ -153,6 +153,7 @@ Phong cách MMH: nền sáng, chữ Aptos, navy `#003047`, xanh `#3A5CAA`, viề
 | 03/11/2026 | Nhóm SP, top bệnh viện, chi tiết bệnh viện (hiệu lực, gói gần nhất, lịch sử), nút quay lại / Back |
 | 04/11/2026 | PWA + biểu tượng, Giá trị / Số lượng + loại SP cho mọi thống kê, chấm bệnh viện trong tỉnh, bỏ ghi chú nguồn, đổi tên **Tender Map** |
 | 04/11/2026 | KQTT toàn quốc (bỏ trùng TBMT), danh mục cơ sở y tế + ô tìm, chế độ Theo dõi thầu; cùng ngày bỏ bắt đăng nhập (chọn tên người cập nhật) |
+| 04/11/2026 | Theo dõi thầu chỉ cho tài khoản email công ty (backend `MMH_TenderFU.gs` v1.2); giao diện gọn sau review: thanh lọc + nhãn ×, Kỳ dạng ô chọn, bảng trượt trên điện thoại, thị phần MANI, chấm cơ sở chưa có gói, ▲▼ + “+ Theo dõi”, MANI / hãng khác ở chi tiết, hướng dẫn lần đầu |
 
 ## 8b. Bổ sung 04/11/2026
 
@@ -162,9 +163,24 @@ Phong cách MMH: nền sáng, chữ Aptos, navy `#003047`, xanh `#3A5CAA`, viề
 | Bỏ trùng | TBMT (viết hoa, bỏ khoảng trắng, bỏ `-NN`) đã có ở file NPP ⇒ bỏ cả gói KQTT |
 | Gộp tên | Khoá `hkey` (bỏ dấu, mở viết tắt, bỏ "tỉnh / thành phố") ⇒ rồi `sameName` trong cùng tỉnh (cùng loại BV / TTYT, khác nhau không có từ chuyên khoa hoặc số) |
 | Danh mục cơ sở | `csyt.js` = `{cols, rows, types, spec}`; nối bệnh viện có gói thầu ⇒ toạ độ thật; `hospOf(f)` tạo "bệnh viện rỗng" cho cơ sở chưa có gói để dùng chung màn chi tiết |
-| Theo dõi thầu | `FU` (trong `index.html`): không đăng nhập — tên người cập nhật (`tm_fu_name`, hoặc tên trong phiên `mmh_tk` nếu có), `fuList` (JSONP / fetch, trả kèm `people`), hàng đợi `fuSave` (POST JSON text/plain, dự phòng JSONP), gói = các dòng cùng *Mã theo dõi*; chế độ xem `F.view = "win" | "fu"` (`localStorage.tm_view`) đổi thống kê bản đồ (`FU.stats`), chú giải, tooltip, bảng bên |
+| Theo dõi thầu | `FU` (trong `index.html`): **chỉ phiên email công ty** (@manimedicalhanoi.com / @mani.inc, đăng nhập mã 6 số qua Training Hub, phiên `mmh_tk` dùng chung Report Hub / CRM; backend trả `code:'AUTH'` ⇒ xoá phiên, hiện ô đăng nhập), `fuList` (JSONP / fetch), hàng đợi `fuSave` (POST JSON text/plain, dự phòng JSONP), gói = các dòng cùng *Mã theo dõi*; chế độ xem `F.view = "win" | "fu"` (`localStorage.tm_view`) đổi thống kê bản đồ (`FU.stats`), chú giải, tooltip, bảng bên |
 | Tìm | `QS` — chỉ mục chữ không dấu theo từ, điểm: khớp tên, cụm liền, có lịch sử thầu / đang theo dõi, bệnh viện, chuyên khoa mắt |
-| PWA | `sw.js` `tr-map-v3` (thêm `csyt.js`, `codes.js`) |
+| PWA | `sw.js` `tr-map-v4` (thêm `csyt.js`, `codes.js`) |
+
+## 8c. Giao diện sau review (04/11/2026)
+
+| Phần | Cách làm |
+|---|---|
+| Thanh trên (máy tính) | logo · ô tìm · **Kết quả thầu \| Theo dõi thầu** · **Kỳ** (`#f-period`: Từ FY67 / Mọi năm / FYxx / Qn FYxx) · Giá trị \| Số lượng · **Bộ lọc (n)** · tải lại · `?` · Cài app. Bộ lọc đang bật = nhãn có × (`#fchips`, `activeFilters` / `resetF`) |
+| Bộ lọc (`#fdrw`, `FD`) | Nguồn · Hãng · Loại SP · Gói (Chỉ gói trúng \| Mọi gói tham dự) · **Tô màu** (Theo nguồn \| Thị phần MANI, `localStorage.tm_color`) · ranh giới 63 tỉnh cũ. Máy tính: bảng thả xuống dưới nút; điện thoại: bảng trượt từ dưới |
+| Điện thoại (≤ 820px, `MQ`) | thanh trên = logo · tìm · Bộ lọc (+ dòng tóm tắt “Kết quả thầu · Từ FY67 · Giá trị ▾”); `placeCtl` chuyển `#hctl` + `#tools` vào bảng Bộ lọc. Bản đồ toàn màn hình, bảng chi tiết = **bảng trượt** `SHEET` (peek / half / full, kéo thanh `#grab` hoặc tiêu đề, bấm để đổi mức). `visArea` / `fitBox` / `homeBox` chỉ tính phần bản đồ không bị bảng che |
+| Thị phần MANI | `computeStats` cộng `STAT[i].sh {m,t}` + `HSH[bệnh viện]` từ gói Win **bỏ qua bộ lọc hãng** (`pass(p,false,{nb:1})`, `itOk0`); màu `shareCol` (cam = hãng khác ⇄ xanh = MANI), số trên tỉnh = %; bảng bên “Thị phần MANI theo tỉnh”; nguồn chỉ NPP ⇒ chú giải nhắc chọn Mọi nguồn |
+| Chi tiết cơ sở | `winSide(p)` tách dòng trúng MANI / hãng khác ⇒ 2 dải (`contractRibbon`): hợp đồng MANI (còn hiệu lực / sắp hết / hết) và **hãng khác đang có hợp đồng** (tên hãng, hạn); “Gói MANI trúng gần nhất” + “Gói hãng khác trúng gần nhất”; lịch sử gắn nhãn MANI / tên hãng. Không có gói trong kỳ ⇒ “Gói gần nhất: FYxx — Xem Mọi năm / Bỏ bộ lọc”. Quy mô chỉ hiện khi có số giường / hạng; địa chỉ qua `addrFmt` |
+| Bản đồ tỉnh | chấm xám `.fd` = mọi cơ sở công lập có toạ độ (csyt.js) chưa có gói trong bộ lọc, bấm ⇒ chi tiết; phóng bệnh viện vừa phải (`hospBox`: + ≤ 4 cơ sở gần, tối thiểu 1/16 khung toàn quốc) |
+| Chú giải | `LG`: thu gọn / mở bằng nút “Chú giải”, nhớ `localStorage.tm_legend`; vào tỉnh ⇒ tự thu gọn |
+| Top bệnh viện | ▲▼ (`cmpSpan` / `spanVals`): FY / quý ⇄ cùng kỳ năm trước (kỳ đang chạy: cùng số tháng); Từ FY67 / Mọi năm ⇒ 12 tháng gần nhất ⇄ 12 tháng trước; “mới” = kỳ trước không có. Nút **+ Theo dõi** mở hộp thêm gói theo dõi (cần đăng nhập) |
+| Hướng dẫn lần đầu | `TOUR` (vùng sáng + thẻ Tiếp / Trước / Bỏ qua, phím ← → Esc), tự mở 1 lần (`localStorage.tm_tour_v1`), nút `?` mở lại. Kiểm thử đặt sẵn khoá để hướng dẫn không che thao tác |
+| Màu chữ | `--t3` = `#5F6E84` (≥ 4,8:1 trên nền trắng / xanh nhạt) |
 
 ## 9. Việc có thể làm tiếp
 

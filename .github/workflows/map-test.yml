@@ -9,7 +9,9 @@ on:
     paths: ['map/**', 'tools/map_*.js']
   workflow_dispatch:
 permissions: { contents: read }
-concurrency: { group: map-test-${{ github.ref }}, cancel-in-progress: true }
+concurrency:
+  group: map-test-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   map:
     runs-on: ubuntu-latest
@@ -17,7 +19,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
-        with: { node-version: '20' }
+        with:
+          node-version: '22'
       - name: Cài Playwright + Chromium + SheetJS (chỉ để kiểm thử nút Xuất Excel)
         run: |
           mkdir -p /tmp/pw && cd /tmp/pw && npm init -y >/dev/null
@@ -31,4 +34,8 @@ jobs:
       - name: Ảnh chụp màn hình
         if: always()
         uses: actions/upload-artifact@v4
-        with: { name: map-shots, path: /tmp/shots, retention-days: 7, if-no-files-found: ignore }
+        with:
+          name: map-shots
+          path: /tmp/shots
+          retention-days: 7
+          if-no-files-found: ignore

@@ -53,9 +53,35 @@ function kqttFake() {
     cols: ['tbmt','buyer','pname','pcode','brand','mfr','country','unit','qty','price','method','pub','decNo','dec','bidders','loc','month','region','tier','prov','ktype','dur','exp','row'], rows, n: rows.length };
 }
 
+/* CRM Surgical ▸ fuVisits: khách hàng (công lập + tư nhân) + lượt việc khách hàng của Viet Ha / Khang */
+function visitsFake() {
+  const acc = [
+    ['S-001', 'Bệnh viện Mắt Nghệ An', 'Hospital', 'Nghệ An', 'Miền Trung', 'Viet Ha', 'Thành phố Vinh, Nghệ An', [18.6715, 105.6806, 4, 4], null, '', 'cl'],
+    ['S-002', 'BV Bạch Mai', 'Hospital', 'Hà Nội', 'Miền Bắc', 'Viet Ha', '78 Giải Phóng, Đống Đa, Hà Nội', null, null, '', 'cl'],
+    ['S-003', 'Bệnh viện Chợ Rẫy', 'Hospital', 'Hồ Chí Minh', 'Miền Nam', 'Khang', '201B Nguyễn Chí Thanh, Quận 5', null, null, '', 'cl'],
+    ['S-004', 'PK MẮT SÀI GÒN', '', 'Hồ Chí Minh', 'Miền Nam', 'Khang', 'Phường 7, Quận 3, Thành phố Hồ Chí Minh', null, null, '', 'tn'],
+    ['S-005', 'Phòng khám Nhãn khoa Thanh Hà', '', 'Hà Nội', 'Miền Bắc', 'Viet Ha', 'Cầu Giấy, Hà Nội', [21.0301, 105.8012, 3, 3], null, '', 'tn'],
+    ['S-006', 'Bệnh viện Mắt tỉnh Tiền Giang', 'Hospital', 'Tiền Giang', 'Miền Nam', 'Khang', 'Mỹ Tho, Tiền Giang', null, null, '', 'cl'],
+    ['S-007', 'BV Quốc tế Đồng Nai', 'Hospital', 'Đồng Nai', 'Miền Nam', 'Khang', 'Biên Hòa, Đồng Nai', null, null, '', 'tn'],
+    ['', 'BV Mới Toanh', 'Hospital', 'Đồng Nai', 'Miền Nam', 'Khang', '', null, null, '', '']];
+  const pics = ['Viet Ha', 'Khang'], acts = ['Visiting', 'Telephone', 'Presentation'], sts = ['Completed', 'Plan', 'Cancel'], tasks = ['Customer visit', 'Other'];
+  const rows = []; let r = 11;
+  const rnd2 = () => (r = (r * 16807) % 2147483647) / 2147483647;
+  for (let k = 0; k < 160; k++) {
+    const ai = [0, 0, 1, 1, 2, 3, 3, 4, 5, 7][Math.floor(rnd2() * 10)], a = acc[ai];
+    const y = 2025 + Math.floor(rnd2() * 2), m = 1 + Math.floor(rnd2() * 12), d = 1 + Math.floor(rnd2() * 27);
+    if (y * 100 + m < 202509 || y * 100 + m > 202611) continue;
+    const iso = `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`, fut = iso > '2026-11-04';
+    const act = rnd2() < 0.75 ? 0 : 1 + Math.floor(rnd2() * 2), st = fut ? 1 : (rnd2() < 0.9 ? 0 : 2), g = act === 0 && a[7];
+    rows.push([iso, pics.indexOf(a[5]), ai, act, st, g ? a[7][0] : '', g ? a[7][1] : '', act === 0 && st === 0 ? 1 : 0, 0]);
+  }
+  rows.sort((x, y) => x[0] < y[0] ? -1 : 1);
+  return { ok: true, v: '1.0', from: '2025-09-01', to: '2027-02-04', today: '2026-11-04', accCols: ['code', 'name', 'type', 'province', 'area', 'pic', 'address', 'gps', 'loc', 'std', 'kind'], acc, pics, acts, sts, tasks,
+    cols: ['d', 'pic', 'acc', 'act', 'st', 'lat', 'lng', 'photo', 'task'], rows };
+}
 async function install(page, opt = {}) {
   seed = 7;
-  const db = { fu: [], saves: 0, failSave: opt.failSave || 0, hv: nppRows('HUNGVI'), ic: nppRows('ICARE'), tk: 'mock.tk.' + 'x'.repeat(20), calls: [] };
+  const db = { fu: [], locs: [], vis: visitsFake(), saves: 0, failSave: opt.failSave || 0, hv: nppRows('HUNGVI'), ic: nppRows('ICARE'), tk: 'mock.tk.' + 'x'.repeat(20), calls: [] };
   const kpath = opt.kqttJson || process.env.KQTT_JSON;
   db.kqtt = kpath ? JSON.parse(fs.readFileSync(kpath, 'utf8')) : kqttFake();
   // vài gói NPP trùng số TBMT với KQTT ⇒ app phải bỏ gói KQTT tương ứng
@@ -96,6 +122,14 @@ async function install(page, opt = {}) {
         visits: { n12: 6, done12: 5, total: 14, last: [{ d: '2026-10-28', pic: 'Viet Ha', act: 'Visiting', st: 'Completed', res: 'Gặp trưởng khoa, giới thiệu MSL-SH', fb: 'Quan tâm giá' }] },
         cbc: [{ name: 'BS. Trần Văn A', title: 'Trưởng khoa', spec: 'Phaco', role: 'Decision maker', inf: 'High' }], orders: { n: 2, amount: 48000000, last: '2026-09-12', prods: [['Dao Slit', 200]] } }
         : { ok: true, v: '1.3', acc: null });
+      if (a === 'fuVisits') return reply(route, url, db.vis);
+      if (a === 'fuVisitLog') { const ai = db.vis.acc.findIndex(x => x[0] && x[0] === p.code), L = db.vis.rows.filter(rw => rw[2] === ai).reverse();
+        return reply(route, url, { ok: true, v: '1.0', acc: ai >= 0 ? { code: p.code, name: db.vis.acc[ai][1] } : null, rows: L.map(rw => ({ no: '1', d: rw[0], f: rw[0], pic: db.vis.pics[rw[1]], task: 'Customer visit', act: db.vis.acts[rw[3]], proc: 'Follow up',
+          prod: 'Dao Slit', plan: 'Giới thiệu MSL28SH', res: 'Gặp trưởng khoa, demo dao Slit 2.8 mm', st: db.vis.sts[rw[4]], fb: 'Hài lòng độ sắc', next: 'Gửi báo giá', stop: '', photo: rw[7] ? 'https://drive.google.com/file/d/x/view' : '', gps: rw[5] ? rw[5] + ',' + rw[6] : '', addr: '' })) }); }
+      if (a === 'fuLocSave') { db.locs.push(p); const ai = db.vis.acc.findIndex(x => x[0] === p.code);
+        const loc = p.op === 'clear' ? null : p.op === 'name' ? ['', '', '', '', '', 'Viet Ha', '', p.std] : [+p.lat || '', +p.lng || '', p.fid || '', p.fname || '', p.src || 'tay', 'Viet Ha', '2026-11-04 10:00', ''];
+        if (ai >= 0) { db.vis.acc[ai][8] = loc; if (p.op === 'name') db.vis.acc[ai][9] = p.std; }
+        return reply(route, url, { ok: true, code: p.code, loc }); }
       if (a === 'fuList') return reply(route, url, { ok: true, v: '1.0', me: { pic: 'Viet Ha', local: 'vietha', level: 'pic', admin: false }, stages: ST, cols: COLS, rows: db.fu });
       if (a === 'fuSave') {
         if (db.failSave > 0) { db.failSave--; return route.abort('failed'); }

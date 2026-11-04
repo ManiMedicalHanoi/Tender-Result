@@ -86,6 +86,25 @@ Trang tĩnh (GitHub Pages): `https://manimedicalhanoi.github.io/Tender-Result/ma
   cơ sở có viền đỏ nét đứt, số cảnh báo trên nút *Theo dõi thầu* (cả khi đang xem Kết quả thầu). Hợp đồng hãng khác sắp hết hạn chưa ai theo dõi = mục "cơ hội" thu gọn bên dưới.
   Tab Thầu lại gắn nhãn "Chưa theo dõi". Cần đăng nhập (dữ liệu theo dõi chỉ tài khoản công ty xem được).
 
+## Cập nhật 05/11/2026 (2) — Hoạt động Sales · cơ sở tư nhân · tự cập nhật
+
+- Chế độ thứ 3 **Hoạt động** (nút *Kết quả thầu | Theo dõi thầu | Hoạt động*, link `?v=act`; chỉ tài khoản email công ty — ai đăng nhập cũng xem toàn bộ dữ liệu của Viet Ha và Khang):
+  đọc CRM Surgical `fuVisits` (backend `crm-surgical/MMH_VisitMap.gs`): danh sách khách 1. CUSTOMER CODE + mọi lượt việc khách hàng 6. WEEKLY REPORT từ 01/09/2025.
+  - Chọn **kỳ** (FY · quý · từng tháng), **PIC** (Cả nhóm · Viet Ha · Khang), **loại** (Viếng thăm | Mọi việc), **trạng thái** (Đã làm | Cả kế hoạch).
+  - Tỉnh tô **đậm / nhạt theo số lượt viếng thăm**; chấm khách màu PIC, to theo số lượt, vòng vàng = top 10; chấm xám = khách chưa gặp trong kỳ.
+  - Bảng bên: số lượt, khách được gặp / tổng, tỉnh, % lượt có ảnh, **theo PIC**, lượt theo tháng, **khách gặp nhiều nhất**, **khách lâu chưa gặp** (≥ 90 ngày), lượt gần đây.
+  - Bấm chấm / tìm tên khách ⇒ **lịch sử chăm sóc** (mọi lượt: hoạt động, kết quả, phản hồi, bước tiếp theo, ảnh — `fuVisitLog`) + **lịch sử thầu** (cơ sở công lập đã nối với danh mục).
+  - **Định vị khách**: ghim tay (sheet ẩn *TENDER MAP · VỊ TRÍ ĐỊA BÀN*, `fuLocSave`) > cơ sở trong danh mục (toạ độ thật) > cụm GPS ảnh viếng thăm (trung vị, ≥ 50% điểm trong 1,5 km) > phường / quận trong địa chỉ > tâm tỉnh.
+    Nút **Ghim trên bản đồ** (bấm vào vị trí đúng), **Gắn cơ sở khác** (chọn cơ sở trong danh mục), **Sửa tên chuẩn**.
+- **Tên chuẩn** khách hàng: bảng `VM_STD` (backend `crm-surgical/MMH_AccNames.gs`, 292 khách của 2 PIC: tên đúng ngoài đời + loại công lập / tư nhân / NPP) > cột "Tên chuẩn" sửa trên app >
+  tự chuẩn hoá (viết hoa đầu từ, mở BV / BVĐK / PK / TTYT…). Tên gốc CRM vẫn tìm được.
+- **Cơ sở tư nhân** (theo `VM_STD`): khách chưa có trong danh mục cơ sở công lập được thêm vào danh mục (nhãn *Tư nhân · CRM*); khách khớp bệnh viện tư trong danh mục OSM (Mắt Sài Gòn, Cao Thắng…) ⇒ đánh dấu tư nhân.
+  Theo dõi thầu của cơ sở tư nhân dùng giai đoạn mua sắm riêng: **11 Giới thiệu → 12 Demo → 13 Đề xuất từ chuyên môn → 14 Ký hợp đồng → 15 Sử dụng hàng** (18 Không thành công · 19 Dừng),
+  không có ô TBMT; bản đồ / chú giải / bảng bên tách *thầu công lập* và *mua sắm tư nhân*. Nút **+ Thêm cơ hội mua sắm** trong chi tiết khách tư nhân.
+- **Tự cập nhật**: trang đang mở đọc lại 3 nguồn thầu (iCare, Hùng Vĩ, KQTT) + Theo dõi thầu + Hoạt động mỗi ~5 phút (và khi quay lại tab sau ≥ 2 phút); không đọc lại khi đang gõ / mở hộp thoại / đang ghim.
+  Sales lưu việc trên CRM ⇒ bản đồ Hoạt động đổi ở lần đọc kế (backend đệm theo dấu của 2 tab CRM).
+- Vòng nhấp nháy cảnh báo hợp đồng sắp hết hiệu lực đổi sang **đỏ hồng `#FF1F5A`** (viền sáng) — màu nâu cũ trùng màu KQTT, khó nhận ra.
+
 ## Quy ước
 
 - FY67 = 09/2025 – 08/2026, FY68 = 09/2026 – 08/2027 (Q1 = T9–T11).

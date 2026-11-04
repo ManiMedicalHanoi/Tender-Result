@@ -35,7 +35,7 @@ a{color:var(--blue)}
 .fbtn svg{width:15px;height:15px}
 .fbtn .n{min-width:18px;height:18px;border-radius:9px;background:var(--blue);color:#fff;font-size:11px;font-weight:700;display:inline-grid;place-items:center;padding:0 5px}
 .fbtn.on{border-color:var(--blue);color:var(--blue);background:var(--pale)}
-body.fu .fbtn,body.act .fbtn{display:none}
+body.fu .fsec.wo,body.act .fsec.wo{display:none}
 .fchips{flex-basis:100%;display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:-2px}
 .fchips[hidden]{display:none}
 .fc{display:inline-flex;align-items:center;gap:4px;border:1px solid var(--lb);background:var(--pale);color:var(--navy);border-radius:999px;padding:3px 4px 3px 10px;font-size:12.5px;white-space:nowrap}
@@ -344,6 +344,7 @@ table.pr td.r,table.pr th.r{text-align:right}
 .lgbox h4{margin:0 0 6px;color:var(--navy);font-size:15px}
 .lgbox p{margin:0 0 10px;color:var(--t2);font-size:13px;line-height:1.45}
 .lgbox .row{display:flex;gap:8px}
+.lgbox .row .btn{white-space:nowrap;flex:none}
 .inp{width:100%;border:1px solid #C3CDD8;border-radius:8px;padding:8px 10px;font-family:inherit;font-size:14px;background:#fff;color:var(--t1)}
 .inp:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(58,92,170,.15)}
 .lgerr{color:var(--bad);font-size:12.5px;margin-top:6px;min-height:16px}
@@ -421,7 +422,7 @@ table.pr td.r,table.pr th.r{text-align:right}
 .crmx .ppl span b{color:var(--navy);font-weight:600}
 /* Theo dõi thầu: màu giai đoạn · cảnh báo hợp đồng sắp hết hiệu lực chưa cập nhật theo dõi */
 .vsg .wb{display:inline-grid;place-items:center;min-width:18px;height:18px;border-radius:9px;background:var(--bad);color:#fff;font-size:11px;font-weight:700;padding:0 5px;margin-left:6px;vertical-align:1px}
-.pulse.wr{stroke:var(--bad)}
+.pulse.wr{stroke:#FF1F5A}
 .hm circle.wr{fill:none;stroke:var(--bad);stroke-width:2;stroke-dasharray:3 2}
 .wbox{border:1px solid #F3C1BC;background:#FEF6F5;border-radius:12px;padding:6px 12px 8px;margin:4px 0 12px}
 .wbox>h3{color:var(--bad);margin:6px 0 4px;display:flex;align-items:center;gap:6px}
@@ -517,4 +518,68 @@ table.pr td.r,table.pr th.r{text-align:right}
   .fm .two{grid-template-columns:1fr}
   .finfo{grid-template-columns:96px 1fr}
   .tip{display:none}
+}
+
+/* ── 05/11/2026: xem theo PIC / địa bàn · công lập / tư nhân · tóm tắt địa bàn · hãng ── */
+.psg .dot{width:8px;height:8px}
+.psg.lock{border-color:var(--lb);background:var(--pale)}
+.scl{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;color:var(--navy);font-weight:600;white-space:nowrap}
+.scl .dot{width:8px;height:8px}
+.prov.out{opacity:.38;cursor:default}
+.prov.out:hover{filter:none}
+.fd.pv circle{fill:#fff;stroke:#7C3AED;stroke-width:1.8}
+.fd.pv:hover circle{fill:#EDE9FE}
+.tg1.pv{color:#6D28D9;border-color:#DDD6FE;background:#F5F3FF}
+.tg1.cl{color:var(--navy);border-color:var(--lb);background:var(--pale)}
+.own{display:inline-block;font-size:11.5px;font-weight:700;border-radius:999px;padding:0 8px;margin-right:4px;border:1px solid}
+.own.pv{color:#6D28D9;border-color:#DDD6FE;background:#F5F3FF}
+.own.cl{color:var(--navy);border-color:var(--lb);background:var(--pale)}
+.ribbon.pv{border-color:#DDD6FE;background:#F8F6FF} .ribbon.pv b{color:#6D28D9}
+.psum{border:1px solid var(--lb);background:var(--pale);border-radius:12px;padding:10px 12px;margin:2px 0 12px;font-size:13px;line-height:1.55}
+.psum p{margin:0 0 6px} .psum p:last-child{margin:0}
+.psum b{color:var(--navy)}
+.psum .lnk{font-weight:600;padding:0;text-align:left}
+.bm{font-size:12px;color:var(--t2);margin:2px 0}
+.bm-m{color:var(--blue)} .bm-n{color:var(--t3)}
+.tip .bm{color:var(--t2)}
+.hcard .bm{margin:2px 0 4px}
+
+/* ── màn hình đăng nhập (mở app) ── */
+.gate{position:fixed;inset:0;z-index:90;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:24px;overflow:auto}
+.gate[hidden]{display:none}
+body.gated{overflow:hidden}
+.gbox{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);width:min(1040px,100%);min-height:min(620px,calc(100vh - 48px));background:var(--sf);border:1px solid var(--line);border-radius:18px;overflow:hidden}
+.gart{position:relative;background:var(--pale);border-right:1px solid var(--line);display:flex;align-items:center;justify-content:center;padding:28px 20px 56px}
+.gart svg{width:100%;height:100%;max-height:560px}
+.gart .gpl{animation:gpl 2.4s ease-out infinite;transform-box:fill-box;transform-origin:center}
+@keyframes gpl{0%{opacity:.9;transform:scale(.7)}100%{opacity:0;transform:scale(2)}}
+@media (prefers-reduced-motion:reduce){.gart .gpl{animation:none}}
+.gleg{position:absolute;left:20px;right:20px;bottom:16px;display:flex;gap:8px 16px;flex-wrap:wrap;font-size:12.5px;color:var(--t2)}
+.gleg span{display:inline-flex;align-items:center;gap:6px}
+.gleg i{width:11px;height:11px;border-radius:3px;display:inline-block}
+.gform{padding:36px 40px;display:flex;flex-direction:column;justify-content:center;min-width:0}
+.gbrand{display:flex;align-items:center;gap:10px;margin-bottom:22px}
+.gbrand img{width:40px;height:40px;border-radius:10px}
+.gbrand b{display:block;font-size:19px;color:var(--navy)}
+.gbrand span{font-size:12.5px;color:var(--t2)}
+.gform h1{font-size:22px;line-height:1.3;color:var(--navy);margin:0 0 14px;font-weight:700}
+.gfeat{list-style:none;margin:0 0 18px;padding:0;display:grid;gap:10px}
+.gfeat li{display:flex;gap:10px;align-items:flex-start}
+.gfeat b{display:block;color:var(--t1);font-size:14px}
+.gfeat span{display:block;color:var(--t2);font-size:12.5px;line-height:1.45}
+.gi{width:10px;height:10px;border-radius:3px;margin-top:5px;flex:none}
+.gi.a{background:var(--hv)} .gi.b{background:#7C3AED} .gi.c{background:#0E7490}
+.lgbox.lgg{margin:0 0 10px;background:var(--sf2);border-color:var(--line2)}
+.lgbox.lgg .row .inp{font-size:15px}
+.gnote{margin:0;color:var(--t3);font-size:12px;line-height:1.5}
+@media (max-width:820px){
+  .gate{padding:0;align-items:stretch}
+  .gbox{grid-template-columns:1fr;grid-template-rows:auto 1fr;align-content:start;border-radius:0;border:0;min-height:100%}
+  .gart{border-right:0;border-bottom:1px solid var(--line);padding:14px 10px 44px;height:34vh;min-height:220px}
+  .gleg{left:12px;right:12px;bottom:10px;font-size:11.5px}
+  .gform{padding:18px 18px calc(22px + env(safe-area-inset-bottom));justify-content:flex-start}
+  .gbrand{margin-bottom:12px}
+  .gform h1{font-size:18px;margin-bottom:10px}
+  .gfeat{gap:7px;margin-bottom:14px}
+  .psg{order:-1}
 }

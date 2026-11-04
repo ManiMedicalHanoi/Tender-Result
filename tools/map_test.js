@@ -17,6 +17,9 @@ async function boot(b, ctxOpt, mopt, urlTail) {
   page.on('pageerror', e => errs.push(e.message));
   page.on('console', m => { if (m.type() === 'error' && !/favicon|Failed to load resource/.test(m.text())) errs.push(m.text()); });
   const m = await mock.install(page, mopt);
+  /* đăng nhập sẵn (phiên email công ty dùng chung Report Hub / CRM) — trừ khi kiểm thử màn hình đăng nhập (mopt.gate) */
+  if (!(mopt && mopt.gate)) await page.addInitScript(o => { try { localStorage.setItem('mmh_tk', JSON.stringify({ tk: o.tk, exp: Date.now() + 864e5, user: { pic: o.pic, email: o.mail } })); } catch (e) {} },
+    { tk: m.db.tk, pic: (mopt && mopt.as) || 'Giang', mail: ((mopt && mopt.mail) || 'mmh.product') + '@manimedicalhanoi.com' });
   await page.goto(BASE + '/map/index.html' + (urlTail || ''));
   await page.waitForFunction(() => window.WINMAP && WINMAP.pkgs().length > 0 && document.getElementById('load').style.display === 'none', null, { timeout: 20000 });
   return { ctx, page, errs, db: m.db };
@@ -25,7 +28,18 @@ async function boot(b, ctxOpt, mopt, urlTail) {
 (async () => {
   const b = await chromium.launch();
   /* ── máy tính ── */
-  let { ctx, page, errs, db } = await boot(b, { viewport: { width: 1440, height: 900 } });
+  let { ctx, page, errs, db } = await boot(b, { viewport: { width: 1440, height: 900 } }, { gate: true });
+  await page.waitForSelector('#gate:not([hidden]) #lg-email');
+  await page.waitForTimeout(400);
+  const gt = await page.evaluate(() => ({ paths: document.querySelectorAll('#gate-map path').length, feat: document.querySelectorAll('.gfeat li').length, body: document.body.classList.contains('gated') }));
+  ok(gt.paths >= 30 && gt.feat === 3 && gt.body, `mở app chưa đăng nhập ⇒ màn hình đăng nhập: bản đồ minh hoạ (${gt.paths} tỉnh), 3 tính năng, ô email`);
+  await page.screenshot({ path: path.join(OUT, 'd0_dangnhap.png') });
+  await page.fill('#lg-email', 'mmh.product'); await page.keyboard.press('Enter');
+  await page.waitForSelector('#gate #lg-code'); await page.fill('#lg-code', '123456'); await page.keyboard.press('Enter');
+  await page.waitForSelector('#gate', { state: 'hidden', timeout: 10000 });
+  await page.waitForFunction(() => document.getElementById('uchip').textContent.indexOf('Giang') >= 0);
+  ok(await page.evaluate(() => !document.body.classList.contains('gated') && !WINMAP.scope.locked() && document.querySelectorAll('#f-pic button').length === 3),
+    'đăng nhập email + mã 6 số (Enter) ⇒ vào app; Giang xem tất cả, chọn PIC: Cả nhóm · Viet Ha · Khang');
   const info = await page.evaluate(dup => {
     const P = WINMAP.pkgs(), kq = P.filter(p => p.npp === 'KQTT');
     return { n: P.length, kq: kq.length, dup: kq.filter(p => dup.indexOf(p.tbmt) >= 0).length, fac: WINMAP.fac().length,
@@ -41,6 +55,7 @@ async function boot(b, ctxOpt, mopt, urlTail) {
   ok(!(await page.$eval('#sb', e => /trùng số TBMT/.test(e.textContent))), 'không còn ghi chú kỹ thuật bỏ trùng TBMT');
   const rk = await page.$$eval('.rank li', l => ({ n: l.length, fua: l.filter(x => x.querySelector('.fua')).length, cmp: !!document.querySelector('.cmpn') }));
   ok(rk.n > 0 && rk.fua === rk.n && rk.cmp, `top bệnh viện: ${rk.n} dòng, có ▲▼ so kỳ trước + nút "+ Theo dõi"`);
+  ok(await page.$$eval('.rank li .pv', l => l.every(x => /MANI/.test(x.textContent) && !/KQTT thị trường|Hùng Vĩ|iCare/.test(x.textContent))), 'top bệnh viện: dòng phụ ghi hãng (MANI x% · hãng khác), không ghi nguồn');
   await page.screenshot({ path: path.join(OUT, 'd1_toanquoc.png') });
   // bộ lọc: bảng thả xuống ⇒ nhãn có × ⇒ bỏ lọc
   await page.click('#f-more');
@@ -66,9 +81,15 @@ async function boot(b, ctxOpt, mopt, urlTail) {
   await page.waitForTimeout(800);
   const zi = await page.evaluate(() => ({ min: document.getElementById('legend').classList.contains('min'), fd: document.querySelectorAll('.fd').length, hm: document.querySelectorAll('.hm').length }));
   ok(zi.min && zi.fd > 0, `Nghệ An: chú giải thu gọn, ${zi.hm} bệnh viện có gói + ${zi.fd} chấm xám cơ sở công lập`);
+  const ps = await page.$eval('.psum', e => e.textContent);
+  ok(/Nghệ An có \d+ bệnh viện công lập, \d+ trung tâm y tế/.test(ps) && /Thầu dao phẫu thuật nhãn khoa: từ tháng \d+\/\d{4} đến tháng \d+\/\d{4}/.test(ps) && /cơ sở trúng thầu dao; nhiều nhất là .+ với \d+ gói/.test(ps) && /chiếm tỉ trọng lớn nhất/.test(ps),
+    'tóm tắt tỉnh: ' + ps.replace(/\s+/g, ' ').slice(0, 260) + '…');
+  const bm = await page.$$eval('.hcard .bm', e => e.map(x => x.textContent));
+  ok(bm.length > 0 && bm.every(t => /MANI/.test(t) && !/KQTT|Hùng Vĩ|iCare/.test(t)), 'thẻ bệnh viện ghi theo hãng (MANI + hãng lớn nhất), không ghi tên nguồn: ' + bm[0]);
   await page.screenshot({ path: path.join(OUT, 'd1d_tinh.png') });
   await page.click('#lg-t');
   ok(!(await page.$eval('#legend', e => e.classList.contains('min'))), 'bấm "Chú giải" ⇒ mở lại');
+  await page.click('#lg-t');                                         // thu gọn lại để không che chấm
   await page.click('.fd', { force: true });
   await page.waitForSelector('.finfo');
   ok(!(await page.$eval('#sb', e => /chưa có số giường/.test(e.textContent))), 'chấm xám ⇒ mở chi tiết cơ sở, không hiện "Quy mô" khi chưa có số liệu');
@@ -96,24 +117,46 @@ async function boot(b, ctxOpt, mopt, urlTail) {
   const rb = await page.$$eval('.ribbon', e => e.map(x => x.querySelector('b').textContent));
   ok(rb.length >= 1 && /MANI/.test(rb[0]), 'tách hợp đồng MANI / hãng khác: ' + rb.join(' | '));
   ok(await page.$eval('#sb', e => /Gói MANI trúng gần nhất|Gói trúng gần nhất · MANI/.test(e.textContent)), 'có mục "Gói MANI trúng gần nhất"');
-  ok(await page.$eval('#sb', e => /Gói theo dõi ở cơ sở này chỉ hiện với tài khoản email công ty/.test(e.textContent)), 'chưa đăng nhập ⇒ không thấy gói theo dõi, có nút Đăng nhập');
+  ok(await page.$eval('#sb', e => /Công \/ tưCông lập/.test(e.textContent) && /Theo dõi thầu/.test(e.textContent)), 'cơ sở công lập: nhãn "Công lập · đấu thầu", mục Theo dõi thầu');
   await page.screenshot({ path: path.join(OUT, 'd3_benhvien.png') });
   await page.fill('#qs', 'bach mai');
   await page.waitForSelector('#qsr .it');
   await page.keyboard.press('Enter');
   await page.waitForFunction(() => /Bạch Mai/.test(document.getElementById('sh-t').textContent));
   ok(true, 'mở được cơ sở trong danh mục: Bạch Mai');
+  // bệnh viện tư nhân (danh mục OSM có cả bệnh viện tư) ⇒ hợp đồng mua sắm, không phải hợp đồng thầu
+  await page.fill('#qs', 'benh vien mat sai gon');
+  await page.waitForSelector('#qsr .it');
+  const sg = await page.$$eval('#qsr .it', L => L.map(e => e.textContent));
+  const si = sg.findIndex(t => /^Bệnh Viện Mắt Sài Gòn/.test(t) && /Tư nhân/.test(t));
+  ok(si >= 0, 'tìm "benh vien mat sai gon" ⇒ Bệnh Viện Mắt Sài Gòn gắn nhãn Tư nhân');
+  await (await page.$$('#qsr .it'))[Math.max(si, 0)].click();
+  await page.waitForSelector('.finfo');
+  const pvx = await page.$eval('#sb', e => ({ rb: !!e.querySelector('.ribbon.pv'), own: /Công \/ tưTư nhân mua sắm theo hợp đồng mua sắm/.test(e.textContent), fu: /Theo dõi mua sắm · hợp đồng mua sắm/.test(e.textContent), btn: /\+ Thêm cơ hội mua sắm/.test(e.textContent), noTender: !/Chưa có gói trúng thầu/.test(e.textContent) }));
+  ok(pvx.rb && pvx.own && pvx.fu && pvx.btn && pvx.noTender, 'Bệnh Viện Mắt Sài Gòn = tư nhân: "mua sắm theo hợp đồng mua sắm", mục Theo dõi mua sắm, nút + Thêm cơ hội mua sắm ' + JSON.stringify(pvx));
+  await page.screenshot({ path: path.join(OUT, 'd3b_tunhan.png') });
+  await page.click('#sb [data-fu-new]');
+  await page.waitForSelector('#fm-pkg');
+  const pst = await page.$$eval('.stg button', b => b.map(x => x.textContent));
+  ok(/Giới thiệu/.test(pst[0]) && /Ký hợp đồng mua sắm/.test(pst.join('|')) && !(await page.$('#fm-tb')), 'thêm cơ hội ở bệnh viện tư ⇒ giai đoạn mua sắm (… Ký hợp đồng mua sắm → Sử dụng hàng), không có ô TBMT');
+  await page.click('[data-fm="cancel"]');
+  // xem theo PIC (người không phải Sales): chọn Khang ⇒ chỉ địa bàn Quảng Ngãi → miền Nam
+  await page.evaluate(() => WINMAP.select(-1));
+  await page.click('#f-pic button[data-v="Khang"]');
+  await page.waitForTimeout(900);
+  const kz = await page.evaluate(() => ({ pic: WINMAP.scope.pic(), out: document.querySelector('.prov[data-i="16"]').classList.contains('out'), na: WINMAP.stat(16).n, hcm: WINMAP.stat(28).n, crumb: document.getElementById('crumb').textContent }));
+  ok(kz.pic === 'Khang' && kz.out && kz.na === 0 && /Địa bàn Khang/.test(kz.crumb), 'chọn PIC Khang ⇒ tỉnh ngoài địa bàn mờ, không tính (Nghệ An = 0 gói), nhãn "Địa bàn Khang"');
+  await page.fill('#qs', 'bv mat nghe an');
+  await page.waitForTimeout(300);
+  ok(await page.$$eval('#qsr .it .sb', l => !l.some(x => /Nghệ An/.test(x.textContent))), 'chọn PIC Khang ⇒ ô tìm chỉ ra cơ sở trong địa bàn Khang');
+  await page.fill('#qs', ''); await page.keyboard.press('Escape');
+  await page.screenshot({ path: path.join(OUT, 'd3c_pic_khang.png') });
+  await page.click('#f-pic button[data-v=""]');
+  await page.waitForTimeout(300);
+  ok(await page.evaluate(() => WINMAP.scope.pic() === '' && !document.querySelector('.prov.out')), 'Cả nhóm ⇒ lại toàn quốc');
   // theo dõi thầu
   await page.click('#f-view button[data-v="fu"]');
-  await page.waitForSelector('#lg-email');
-  await page.screenshot({ path: path.join(OUT, 'd4_dangnhap.png') });
-  await page.fill('#lg-email', 'vietha');
-  await page.click('[data-lg="send"]');
-  await page.waitForSelector('#lg-code');
-  await page.fill('#lg-code', '123456');
-  await page.click('[data-lg="verify"]');
-  await page.waitForFunction(() => document.getElementById('uchip').textContent.indexOf('Viet Ha') >= 0);
-  ok(true, 'đăng nhập email + mã 6 số');
+  await page.waitForFunction(() => WINMAP.fu._S.loaded);
   await page.click('#fu-add');
   await page.waitForSelector('#fm-fq');
   await page.fill('#fm-fq', 'mat nghe an');
@@ -180,7 +223,7 @@ async function boot(b, ctxOpt, mopt, urlTail) {
   await page.evaluate(() => WINMAP.select(-1));
   await page.click('#f-view button[data-v="act"]');
   await page.waitForFunction(() => window.WINMAP && WINMAP.act._S.loaded && document.querySelector('#sb .kpis'), null, { timeout: 10000 });
-  const av = await page.evaluate(() => ({ per: document.querySelectorAll('#va-per option').length, pic: document.querySelectorAll('#va-pic button').length,
+  const av = await page.evaluate(() => ({ per: document.querySelectorAll('#va-per option').length, pic: document.querySelectorAll('#f-pic button').length,
     na: document.querySelector('.prov[data-i="16"]').getAttribute('fill'), leg: /Lượt viếng thăm theo tỉnh/.test(document.getElementById('legend').textContent) }));
   ok(av.per > 5 && av.pic === 3 && av.na !== 'var(--land)' && av.leg, `Hoạt động: chọn kỳ (${av.per} mục FY / quý / tháng), PIC (Cả nhóm · Viet Ha · Khang), tỉnh tô đậm nhạt theo lượt viếng thăm`);
   await page.selectOption('#va-per', 'fy67');
@@ -195,7 +238,7 @@ async function boot(b, ctxOpt, mopt, urlTail) {
   await page.fill('#qs', 'mat sai gon');
   await page.waitForSelector('#qsr .it');
   const qn = await page.$$eval('#qsr .it', L => L.map(e => e.textContent));
-  const qi = qn.findIndex(t => /Phòng khám Mắt Sài Gòn/.test(t) && /Tư nhân · CRM/.test(t));
+  const qi = qn.findIndex(t => /Phòng khám Mắt Sài Gòn/.test(t) && /Tư nhân/.test(t) && /CRM/.test(t));
   ok(qi >= 0, 'tìm "mat sai gon" ⇒ "Phòng khám Mắt Sài Gòn" (tên CRM "PK MẮT SÀI GÒN" đã chuẩn hoá), nhãn Tư nhân · CRM — ' + qn.length + ' kết quả');
   await (await page.$$('#qsr .it'))[Math.max(qi, 0)].click();
   await page.waitForSelector('#actlog .ev', { timeout: 10000 });
@@ -281,7 +324,6 @@ async function boot(b, ctxOpt, mopt, urlTail) {
 
   /* ── lỗi mạng khi lưu ⇒ hàng đợi thử lại ── */
   ({ ctx, page, errs, db } = await boot(b, { viewport: { width: 1280, height: 860 } }, { failSave: 2 }));   // lỗi cả fetch lẫn JSONP dự phòng ⇒ hàng đợi thử lại sau
-  await page.evaluate(tk => localStorage.setItem('mmh_tk', JSON.stringify({ tk, exp: Date.now() + 864e5, user: { pic: 'Viet Ha', email: 'vietha@manimedicalhanoi.com' } })), db.tk);
   await page.evaluate(() => { WINMAP.view('fu'); });
   await page.waitForFunction(() => window.WINMAP && WINMAP.fu._S.loaded);
   await page.evaluate(() => { const f = WINMAP.fac().find(x => /Bạch Mai/.test(x.name)); WINMAP.fu.open({ f }); });
@@ -317,7 +359,6 @@ async function boot(b, ctxOpt, mopt, urlTail) {
   await page.waitForTimeout(700);
   ok(await page.evaluate(() => WINMAP.sheet.state()) === 'half', 'chọn cơ sở ⇒ bảng chi tiết nửa dưới, bản đồ nửa trên');
   await page.screenshot({ path: path.join(OUT, 'm3_benhvien.png'), fullPage: false });
-  await page.evaluate(tk => localStorage.setItem('mmh_tk', JSON.stringify({ tk, exp: Date.now() + 864e5, user: { pic: 'Viet Ha', email: 'vietha@manimedicalhanoi.com' } })), db.tk);
   await page.evaluate(() => { WINMAP.view('fu'); const f = WINMAP.fac().find(x => /Mắt Nghệ An/.test(x.name)); WINMAP.fu.open({ f }); });
   await page.waitForSelector('#fm-pkg');
   const wide2 = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
@@ -338,16 +379,43 @@ async function boot(b, ctxOpt, mopt, urlTail) {
   await page.screenshot({ path: path.join(OUT, 'm6_lichsu.png') });
   ok(!errs.length, 'không lỗi JS (điện thoại)' + (errs.length ? ': ' + errs.join(' | ') : ''));
   await ctx.close();
+  ({ ctx, page, errs, db } = await boot(b, devices['Pixel 7'], { gate: true }));
+  await page.waitForSelector('#gate:not([hidden]) #lg-email');
+  await page.waitForTimeout(400);
+  ok(await page.evaluate(() => document.getElementById('gate').scrollWidth - document.getElementById('gate').clientWidth) <= 1, 'điện thoại: màn hình đăng nhập không tràn ngang');
+  await page.screenshot({ path: path.join(OUT, 'm0_dangnhap.png') });
+  await ctx.close();
+
+  /* ── Sales chỉ thấy địa bàn của mình: Viet Ha = Bắc → Đà Nẵng, Khang = Quảng Ngãi → Nam ── */
+  ({ ctx, page, errs, db } = await boot(b, { viewport: { width: 1440, height: 900 } }, { as: 'Viet Ha', mail: 'vietha' }));
+  await page.waitForTimeout(900);
+  const vh = await page.evaluate(() => ({ lock: WINMAP.scope.locked(), chip: document.getElementById('f-pic').textContent, btn: document.querySelectorAll('#f-pic button').length,
+    hcm: document.querySelector('.prov[data-i="28"]').classList.contains('out'), dn: document.querySelector('.prov[data-i="20"]').classList.contains('out'), n28: WINMAP.stat(28).n, t: document.getElementById('sh-t').textContent }));
+  ok(vh.lock && /Viet Ha · Miền Bắc → Đà Nẵng/.test(vh.chip) && !vh.btn && vh.hcm && !vh.dn && vh.n28 === 0 && /Địa bàn Viet Ha/.test(vh.t), 'Viet Ha đăng nhập ⇒ khoá địa bàn Bắc → Đà Nẵng (Đà Nẵng trong, TP.HCM ngoài), không chọn PIC khác');
+  await page.screenshot({ path: path.join(OUT, 's1_vietha.png') });
+  await page.evaluate(() => WINMAP.view('act'));
+  await page.waitForFunction(() => WINMAP.act._S.loaded && document.querySelector('#sb .tb2'), null, { timeout: 10000 });
+  const vr = await page.$$eval('#sb .tb2 tbody tr', l => l.map(x => x.textContent.trim().split(/\s+/)[0]));
+  ok(vr.length === 1 && /Viet/.test(vr[0]), 'Viet Ha ⇒ Hoạt động chỉ có lượt của Viet Ha');
+  await page.waitForTimeout(600);
+  await page.screenshot({ path: path.join(OUT, 's2_vietha_hoatdong.png') });
+  ok(!errs.length, 'không lỗi JS (Viet Ha)' + (errs.length ? ': ' + errs.join(' | ') : ''));
+  await ctx.close();
+  ({ ctx, page, errs, db } = await boot(b, { viewport: { width: 1280, height: 800 } }, { as: 'Khang', mail: 'mmh.saigon1' }));
+  await page.waitForTimeout(600);
+  ok(await page.evaluate(() => WINMAP.scope.pic() === 'Khang' && WINMAP.scope.locked() && document.querySelector('.prov[data-i="16"]').classList.contains('out') && !document.querySelector('.prov[data-i="21"]').classList.contains('out')),
+    'Khang đăng nhập ⇒ khoá địa bàn Quảng Ngãi → miền Nam (Nghệ An ngoài, Quảng Ngãi trong)');
+  ok(!errs.length, 'không lỗi JS (Khang)' + (errs.length ? ': ' + errs.join(' | ') : ''));
+  await ctx.close();
   /* ── trình duyệt đăng nhập nhiều tài khoản Google: thẻ <script> tới Apps Script hỏng ⇒ vẫn đăng nhập được (fetch không cookie) ── */
-  ({ ctx, page, errs, db } = await boot(b, { viewport: { width: 1280, height: 800 } }, { scriptFail: true }));
-  await page.evaluate(() => WINMAP.view('fu'));
-  await page.waitForSelector('#lg-email');
+  ({ ctx, page, errs, db } = await boot(b, { viewport: { width: 1280, height: 800 } }, { scriptFail: true, gate: true }));
+  await page.waitForSelector('#gate #lg-email');
   await page.fill('#lg-email', 'mmh.product@manimedicalhanoi.com');
   await page.click('[data-lg="send"]');
   await page.waitForSelector('#lg-code', { timeout: 10000 });
   await page.fill('#lg-code', '123456');
   await page.click('[data-lg="verify"]');
-  await page.waitForFunction(() => document.getElementById('uchip').textContent.indexOf('Viet Ha') >= 0, null, { timeout: 10000 });
+  await page.waitForFunction(() => document.getElementById('uchip').textContent.indexOf('Giang') >= 0, null, { timeout: 10000 });
   ok(true, 'nhiều tài khoản Google (thẻ <script> bị chặn) ⇒ vẫn gửi mã + đăng nhập được');
   ok(!errs.length, 'không lỗi JS (nhiều tài khoản)' + (errs.length ? ': ' + errs.join(' | ') : ''));
   await ctx.close();
@@ -355,18 +423,17 @@ async function boot(b, ctxOpt, mopt, urlTail) {
   /* ── máy chủ từ chối phiên: lỗi khác ⇒ giữ phiên (dùng chung Report Hub / CRM) + hiện lý do; phiên hết hạn ⇒ xoá + ô đăng nhập kèm lý do ── */
   for (const [msg, dead] of [['Theo dõi thầu chỉ dành cho tài khoản email công ty', false], ['Phiên đăng nhập đã hết hạn — đăng nhập lại.', true]]) {
     ({ ctx, page, errs, db } = await boot(b, { viewport: { width: 1280, height: 800 } }, { authErr: msg }));
-    await page.evaluate(tk => localStorage.setItem('mmh_tk', JSON.stringify({ tk, exp: Date.now() + 864e5, user: { pic: 'Giang', email: 'mmh.product@manimedicalhanoi.com' } })), db.tk);
     await page.evaluate(() => WINMAP.view('fu'));
-    await page.waitForFunction(m => document.getElementById('sb').textContent.indexOf(m.slice(0, 20)) >= 0, msg, { timeout: 10000 });
-    const st = await page.evaluate(() => ({ tk: !!localStorage.getItem('mmh_tk'), login: !!document.getElementById('lg-email') }));
-    ok(dead ? (!st.tk && st.login) : (st.tk && !st.login), dead ? 'phiên hết hạn ⇒ xoá phiên, ô đăng nhập kèm lý do' : 'máy chủ từ chối vì lý do khác ⇒ GIỮ phiên (không đăng xuất Report Hub / CRM), hiện lý do');
+    await page.waitForFunction(m => document.body.innerText.indexOf(m.slice(0, 20)) >= 0, msg, { timeout: 10000 });
+    const st = await page.evaluate(() => ({ tk: !!localStorage.getItem('mmh_tk'), gate: !document.getElementById('gate').hidden && !!document.querySelector('#gate #lg-email') }));
+    ok(dead ? (!st.tk && st.gate) : (st.tk && !st.gate), dead ? 'phiên hết hạn ⇒ xoá phiên, về màn hình đăng nhập kèm lý do' : 'máy chủ từ chối vì lý do khác ⇒ GIỮ phiên (không đăng xuất Report Hub / CRM), hiện lý do');
     await ctx.close();
   }
 
   /* ── link từ thông báo "Nhắc tôi" / email: ?v=fu#<Tỉnh>/<Cơ sở> ── */
   ({ ctx, page, errs, db } = await boot(b, { viewport: { width: 1280, height: 800 } }, {}, '?v=fu#' + encodeURIComponent('Nghệ An') + '/' + encodeURIComponent('Bệnh viện Mắt Nghệ An')));
   await page.waitForFunction(() => /Mắt Nghệ An/.test(document.getElementById('sh-t').textContent), null, { timeout: 10000 });
-  ok(await page.evaluate(() => WINMAP.F.view === 'fu') && !!(await page.$('#lg-email')), 'link ?v=fu#Tỉnh/Cơ sở ⇒ mở Theo dõi thầu đúng cơ sở (chưa đăng nhập ⇒ ô đăng nhập)');
+  ok(await page.evaluate(() => WINMAP.F.view === 'fu') && await page.$eval('#sb', e => /Theo dõi thầu/.test(e.textContent)), 'link ?v=fu#Tỉnh/Cơ sở ⇒ mở Theo dõi thầu đúng cơ sở');
   ok(!errs.length, 'không lỗi JS (link thông báo)' + (errs.length ? ': ' + errs.join(' | ') : ''));
   await ctx.close();
 

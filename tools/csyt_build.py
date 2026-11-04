@@ -287,6 +287,8 @@ def main():
           ". Toạ độ theo OSM; số giường / hạng chưa có nguồn mở (để trống). Không sửa tay — sửa tool rồi dựng lại. */\n" +
           "window.CSYT=" + json.dumps(dict(meta, rows=out), ensure_ascii=False, separators=(",", ":")) + ";\n")
     open(a.out, "w", encoding="utf-8").write(js)
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    import csyt_own; csyt_own.classify(a.out)        # cột own: công lập / tư nhân
     by = {}
     for o in out: by[o[2]] = by.get(o[2], 0) + 1
     print("Đã ghi", a.out, len(out), "cơ sở · theo loại", by, "· từ KQTT riêng", kq, "· bỏ", seen_drop, "· %.0f KB" % (len(js.encode()) / 1024), file=sys.stderr)

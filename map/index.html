@@ -13,7 +13,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Tender Map">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="app.css?v=10">
+<link rel="stylesheet" href="app.css?v=11">
 </head>
 <body>
 <header class="top" id="top">
@@ -21,13 +21,12 @@
   <div class="qs" role="search"><input id="qs" type="search" placeholder="Tìm bệnh viện, TTYT, tỉnh…" autocomplete="off" spellcheck="false" aria-label="Tìm cơ sở y tế" aria-controls="qsr"><div class="qsr" id="qsr" hidden role="listbox"></div></div>
   <div class="hctl" id="hctl">
     <div class="seg vsg" id="f-view" aria-label="Chế độ xem"></div>
+    <div class="seg psg" id="f-pic" aria-label="Xem theo PIC / địa bàn" hidden></div>
     <select class="sel" id="f-period" aria-label="Kỳ (năm tài chính / quý)"></select>
     <div class="seg" id="f-m" aria-label="Thống kê theo"></div>
-    <div class="seg" id="fu-who" aria-label="Người theo dõi" hidden></div>
     <div class="seg" id="fu-st" aria-label="Tình trạng gói theo dõi" hidden></div>
     <button class="btn pri" id="fu-add" type="button" hidden>+ Thêm gói theo dõi</button>
     <select class="sel" id="va-per" hidden aria-label="Kỳ / tháng (hoạt động)"></select>
-    <div class="seg" id="va-pic" hidden aria-label="PIC"></div>
     <div class="seg" id="va-type" hidden aria-label="Loại hoạt động"></div>
   </div>
   <button class="btn fbtn" id="f-more" type="button" aria-haspopup="dialog" aria-controls="fdrw" aria-expanded="false">Bộ lọc</button>
@@ -62,6 +61,25 @@
   </aside>
 </main>
 
+<div class="gate" id="gate" hidden role="dialog" aria-modal="true" aria-labelledby="gate-t">
+  <div class="gbox">
+    <div class="gart" aria-hidden="true">
+      <svg id="gate-map" preserveAspectRatio="xMidYMid meet"></svg>
+      <div class="gleg"><span><i style="background:#0E7490"></i>Viet Ha · Miền Bắc → Đà Nẵng</span><span><i style="background:#2F68B3"></i>Khang · Quảng Ngãi → miền Nam</span></div>
+    </div>
+    <div class="gform">
+      <div class="gbrand"><img src="app/icon-192.png" alt=""><div><b>Tender Map</b><span>Dao &amp; chỉ khâu nhãn khoa · MMH</span></div></div>
+      <h1 id="gate-t">Bản đồ thầu, mua sắm và hoạt động Sales</h1>
+      <ul class="gfeat">
+        <li><i class="gi a"></i><div><b>Kết quả thầu</b><span>Gói trúng dao / chỉ khâu của NPP Hùng Vĩ, iCare và KQTT toàn quốc</span></div></li>
+        <li><i class="gi b"></i><div><b>Theo dõi thầu &amp; mua sắm</b><span>Công lập theo giai đoạn thầu · tư nhân theo hợp đồng mua sắm</span></div></li>
+        <li><i class="gi c"></i><div><b>Hoạt động</b><span>Lịch sử chăm sóc khách hàng theo địa bàn phụ trách</span></div></li>
+      </ul>
+      <div id="gate-f"></div>
+      <p class="gnote">Dành cho nhân sự MMH — email @manimedicalhanoi.com hoặc @mani.inc. Đã đăng nhập Report Hub / CRM trên trình duyệt này thì vào thẳng.</p>
+    </div>
+  </div>
+</div>
 <div class="xmenu" id="xmenu" hidden role="menu">
   <button type="button" role="menuitem" data-x="xlsx">Excel — số liệu đang lọc<small>Gói thầu từng dòng SP, bệnh viện, tỉnh, thầu lại, giá trúng, NPP, dự báo</small></button>
   <button type="button" role="menuitem" data-x="png">Ảnh bản đồ (PNG)<small>Đúng khung đang xem, kèm tiêu đề bộ lọc</small></button>
@@ -69,11 +87,12 @@
 <div class="fdrw" id="fdrw" hidden><div class="fbox" role="dialog" aria-labelledby="fdrw-t">
   <div class="fhd"><b id="fdrw-t">Bộ lọc</b><button class="ibtn" id="fdrw-x" type="button" aria-label="Đóng">×</button></div>
   <div class="fslot" id="fslot"></div>
-  <div class="fsec w"><span class="lb">Nguồn dữ liệu</span><div class="seg" id="f-npp" aria-label="Nguồn dữ liệu"></div></div>
-  <div class="fsec w"><span class="lb">Hãng</span><div class="seg" id="f-brand" aria-label="Hãng"></div></div>
-  <div class="fsec w"><label for="f-type">Loại sản phẩm</label><select class="sel" id="f-type"></select></div>
-  <div class="fsec w"><span class="lb">Gói thầu</span><div class="seg" id="f-res" aria-label="Gói thầu"></div></div>
-  <div class="fsec w"><span class="lb">Tô màu bản đồ</span><div class="seg" id="f-color" aria-label="Tô màu bản đồ"></div><div class="hint" id="f-color-h"></div></div>
+  <div class="fsec w"><span class="lb">Cơ sở y tế</span><div class="seg" id="f-own" aria-label="Công lập / tư nhân"></div><div class="hint">Công lập mua qua đấu thầu · tư nhân mua theo hợp đồng mua sắm</div></div>
+  <div class="fsec w wo"><span class="lb">Nguồn dữ liệu</span><div class="seg" id="f-npp" aria-label="Nguồn dữ liệu"></div></div>
+  <div class="fsec w wo"><span class="lb">Hãng</span><div class="seg" id="f-brand" aria-label="Hãng"></div></div>
+  <div class="fsec w wo"><label for="f-type">Loại sản phẩm</label><select class="sel" id="f-type"></select></div>
+  <div class="fsec w wo"><span class="lb">Gói thầu</span><div class="seg" id="f-res" aria-label="Gói thầu"></div></div>
+  <div class="fsec w wo"><span class="lb">Tô màu bản đồ</span><div class="seg" id="f-color" aria-label="Tô màu bản đồ"></div><div class="hint" id="f-color-h"></div></div>
   <label class="fchk w"><input type="checkbox" id="oldtog"> Hiện ranh giới 63 tỉnh cũ (nét đứt)</label>
   <div class="fft"><button class="lnk" id="f-reset" type="button">Đặt lại bộ lọc</button><button class="btn pri" id="fdrw-ok" type="button">Xong</button></div>
 </div></div>
@@ -91,6 +110,6 @@
 <script src="vn-dist.js"></script>
 <script src="csyt.js"></script>
 <script src="codes.js"></script>
-<script src="app.js?v=10"></script>
+<script src="app.js?v=11"></script>
 </body>
 </html>

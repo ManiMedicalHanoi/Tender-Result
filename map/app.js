@@ -241,6 +241,11 @@ function buildPackages(){
 /* ═════════ DANH MỤC CƠ SỞ Y TẾ (csyt.js) — nối với bệnh viện có gói thầu ═════════ */
 var FAC=[], FBYP={}, FID={};
 var CT = (window.CSYT&&CSYT.types)||{bv:"Bệnh viện",ttyt:"Trung tâm Y tế",pkkv:"Phòng khám ĐK khu vực",dv:"Đơn vị mua sắm",khac:"Cơ sở khác"};
+/* CÔNG LẬP / TƯ NHÂN (người dùng 05/11/2026): danh mục csyt.js cột own (tools/csyt_own.py) + bảng tên chuẩn CRM (VM_STD ⇒ ACT.build).
+   Tư nhân mua sắm theo HỢP ĐỒNG MUA SẮM (không qua đấu thầu công) ⇒ theo dõi bằng giai đoạn mua sắm 11–19, không hiện "hợp đồng thầu". */
+var PVCOL="#7C3AED";
+function isPv(f){ return !!f && (f.t==="tn" || !!f.pv); }
+function ownOk(pv){ return F.own==="all" || (pv ? F.own==="tn" : F.own==="cl"); }
 var CSP = (window.CSYT&&CSYT.spec)||{};
 function facAdd(f){ FAC.push(f); FID[f.id]=f; (FBYP[f.ni]=FBYP[f.ni]||[]).push(f); return f; }
 function buildFac(){
@@ -252,7 +257,7 @@ function buildFac(){
       var ni=NEWIDX[nk(r[ix.p])]; if(ni==null) return;
       facAdd({ id:r[ix.id], name:r[ix.n], t:r[ix.t]||"khac", sp:r[ix.sp]||"", lv:r[ix.lv]||"", ni:ni, oi:r[ix.o]?nk(r[ix.o]):"", addr:r[ix.a]||"",
         ll:(r[ix.lat]!==""&&r[ix.lat]!=null)?[+r[ix.lng],+r[ix.lat]]:null, beds:r[ix.beds]||"", rank:r[ix.rank]||"", src:r[ix.src]||"",
-        alias:r[ix.alias]?String(r[ix.alias]).split("|"):[], h:null });
+        alias:r[ix.alias]?String(r[ix.alias]).split("|"):[], h:null, pv:r[ix.own]==="tn"?1:0 });
     });
   }
   HOSP.forEach(function(h){
@@ -303,8 +308,56 @@ function placeHosp(){
 }
 
 /* ═════════ BỘ LỌC ═════════ */
-var F = { fy:"all", q:0, npp:"all", cat:"all", res:"win", sub:null, m:"v", type:"all", brand:"all", view:"win", color:"src" };
-try{ var tv0=localStorage.getItem("tm_view"); if(tv0==="fu"||tv0==="act") F.view=tv0; if(localStorage.getItem("tm_color")==="mani") F.color="mani"; }catch(_){}
+var F = { fy:"all", q:0, npp:"all", cat:"all", res:"win", sub:null, m:"v", type:"all", brand:"all", view:"win", color:"src", own:"all" };
+try{ var tv0=localStorage.getItem("tm_view"); if(tv0==="fu"||tv0==="act") F.view=tv0; if(localStorage.getItem("tm_color")==="mani") F.color="mani";
+  var ow0=localStorage.getItem("tm_own"); if(ow0==="cl"||ow0==="tn") F.own=ow0; }catch(_){}
+
+/* ═════════ ĐỊA BÀN PHỤ TRÁCH (người dùng 05/11/2026) ═════════
+   Viet Ha: miền Bắc → hết Đà Nẵng · Khang: Quảng Ngãi → miền Nam (backend MMH_TenderFU v1.6 nhắc việc theo đúng địa bàn này).
+   Đăng nhập là Viet Ha / Khang ⇒ chỉ thấy địa bàn + hoạt động của mình (khoá); người khác (Giang, Nguyen Ha, Tuyen…) xem tất cả và chọn xem theo PIC (#f-pic).
+   Lọc ở app (pass / FU.pass / ACT.rowsF / tìm kiếm / khung bản đồ) — dữ liệu backend không đổi. */
+var TERR=(function(){
+  var dn=NEW.map(function(x){ return x[0]; }).indexOf("Đà Nẵng"), a={}, b={};
+  NEW.forEach(function(x,i){ (i<=dn?a:b)[i]=1; });
+  return [{ pic:"Viet Ha", lbl:"Miền Bắc → Đà Nẵng", ni:a, col:"#4F46E5" }, { pic:"Khang", lbl:"Quảng Ngãi → miền Nam", ni:b, col:"#D97706" }];
+})();
+var SCOPE=(function(){
+  var LS="tm_scope";
+  function me(){ var a=(typeof FU!=="undefined" && FU && FU.auth) ? FU.auth() : null; return a && a.user ? String(a.user.pic||"") : ""; }
+  function lockT(){ var k=nk(me()); if(!k) return null; for(var i=0;i<TERR.length;i++) if(nk(TERR[i].pic)===k) return TERR[i]; return null; }
+  function chosen(){ var v=""; try{ v=localStorage.getItem(LS)||""; }catch(_){} return TERR.some(function(t){ return t.pic===v; }) ? v : ""; }
+  function terr(){ var L=lockT(); if(L) return L; var v=chosen(); return v ? TERR.filter(function(t){ return t.pic===v; })[0] : null; }
+  function pic(){ var t=terr(); return t ? t.pic : ""; }
+  function inProv(ni){ var t=terr(); return !t || (ni!=null && ni>=0 && !!t.ni[ni]); }
+  function place(){ var t=terr(); return t ? t.lbl : "toàn quốc"; }
+  function bbox(){
+    var t=terr(); if(!t || !PROV || !PROV.length) return null; var b=null;
+    Object.keys(t.ni).forEach(function(i){ var P=PROV[i]; if(!P || !P.info || !P.info.bb) return; var q=P.info.bb;
+      b = b ? [Math.min(b[0],q[0]), Math.min(b[1],q[1]), Math.max(b[2],q[2]), Math.max(b[3],q[3])] : q.slice(); });
+    return b;
+  }
+  /* đổi phạm vi ⇒ về khung địa bàn mới (đang xem tỉnh ngoài địa bàn ⇒ về toàn địa bàn) */
+  function apply(){
+    if(!svg || !PROV.length){ renderFilters(); return; }
+    if(sel>=0 && !inProv(sel)) selectProv(-1);
+    else if(sel<0){ VB0=homeBox(); animateTo(VB0); }
+    crumbSet(); renderFilters(); refresh();
+  }
+  function set(v){ if(lockT()) return; try{ localStorage.setItem(LS, v||""); }catch(_){} apply(); }
+  function ui(){
+    var el=document.getElementById("f-pic"); if(!el) return;
+    var m=me(); el.hidden=!m; if(!m){ el.innerHTML=""; return; }
+    var L=lockT();
+    if(L){ el.classList.add("lock"); el.onclick=null;
+      el.innerHTML='<span class="scl" title="Địa bàn phụ trách của bạn — bản đồ, gói thầu, theo dõi và hoạt động chỉ trong địa bàn này"><i class="dot" style="background:'+L.col+'"></i>'+esc(L.pic)+' · '+esc(L.lbl)+'</span>'; return; }
+    el.classList.remove("lock");
+    var cur=pic();
+    el.innerHTML=[["","Cả nhóm","Toàn quốc — mọi PIC",""]].concat(TERR.map(function(t){ return [t.pic, t.pic, t.lbl, t.col]; })).map(function(o){
+      var on=cur===o[0]; return '<button type="button" data-v="'+esc(o[0])+'" class="'+(on?"on":"")+'" aria-pressed="'+on+'" title="'+esc(o[2])+'">'+(o[3]?'<i class="dot" style="background:'+o[3]+';margin-right:5px"></i>':'')+esc(o[1])+'</button>'; }).join("");
+    el.onclick=function(e){ var b=e.target.closest("button"); if(!b) return; set(b.dataset.v); };
+  }
+  return { terr:terr, pic:pic, inProv:inProv, place:place, bbox:bbox, set:set, ui:ui, apply:apply, me:me, locked:function(){ return !!lockT(); } };
+})();
 try{ var qv0=new URLSearchParams(location.search).get("v"); if(qv0==="fu"||qv0==="win"||qv0==="act") F.view=qv0; }catch(_){}   // link từ nút "Nhắc tôi" / email: ?v=fu#<Tỉnh>/<Cơ sở>
 function setType(t){ F.type=t; if(t==="all"){ F.cat="all"; F.sub=null; } else if(t==="dao"||t==="chi"){ F.cat=t; F.sub=null; } else { F.cat=GK[t].top; F.sub=t; } }
 function unitNow(){ return F.sub ? GK[F.sub].u : F.cat==="dao" ? "cái" : F.cat==="chi" ? "sợi" : "SP"; }
@@ -323,6 +376,8 @@ function inPeriod(p){
 /* o.np = bỏ qua kỳ · o.nb = bỏ qua hãng (thị phần) */
 function pass(p, ignoreRes, o){
   o=o||{};
+  if(!SCOPE.inProv(p.ni)) return false;                                   /* địa bàn PIC (Sales chỉ thấy địa bàn của mình) */
+  if(F.own!=="all" && !ownOk(isPv(p.h&&p.h.f))) return false;
   if(!o.np && !inPeriod(p)) return false;
   if(F.npp==="NPP" ? p.npp==="KQTT" : (F.npp!=="all" && p.npp!==F.npp)) return false;
   if(!ignoreRes && F.res==="win" && p.res!=="Win") return false;
@@ -370,6 +425,8 @@ function activeFilters(){
   if(F.color!=="src") a.push(["color","Tô màu","thị phần MANI"]);
   return a;
 }
+function ownChip(){ return F.own==="all" ? [] : [["own","Cơ sở",F.own==="tn"?"tư nhân":"công lập"]];
+}
 function resetF(k){
   var all=k==="*";
   if(all||k==="npp") F.npp="all";
@@ -377,13 +434,14 @@ function resetF(k){
   if(all||k==="type") setType("all");
   if(all||k==="res") F.res="win";
   if(all||k==="color"){ F.color="src"; try{ localStorage.setItem("tm_color","src"); }catch(_){} }
+  if(all||k==="own"){ F.own="all"; try{ localStorage.setItem("tm_own","all"); }catch(_){} }
 }
 var ICON_F='<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M2 3.5h12M4.5 8h7M7 12.5h2"/></svg>';
 function fchips(){
-  var box=document.getElementById("fchips"), fu=F.view==="fu", a=F.view!=="win"?[]:activeFilters(), b=document.getElementById("f-more");
+  var box=document.getElementById("fchips"), fu=F.view==="fu", a=(F.view!=="win"?[]:activeFilters()).concat(ownChip()), b=document.getElementById("f-more");
   b.innerHTML=ICON_F+'<span class="tx">Bộ lọc</span>'+(a.length?'<span class="n">'+a.length+'</span>':'');
   b.classList.toggle("on", !!a.length); b.title = a.length ? a.length+" bộ lọc đang bật" : "Nguồn, hãng, loại sản phẩm, tô màu";
-  var sum = fu ? ["Theo dõi thầu"].concat(FU.sum()) : F.view==="act" ? ["Hoạt động"].concat(ACT.sum()) : ["Kết quả thầu", periodLabel(), mLabel()];
+  var sum = (fu ? ["Theo dõi thầu"].concat(FU.sum()) : F.view==="act" ? ["Hoạt động"].concat(ACT.sum()) : ["Kết quả thầu", periodLabel(), mLabel()]).concat(SCOPE.pic()?[SCOPE.pic()]:[]);
   box.innerHTML='<button class="fc sum" type="button" data-fopen="1">'+esc(sum.join(" · "))+' ▾</button>'+
     a.map(function(x){ return '<span class="fc"><span>'+x[1]+': <b>'+esc(x[2])+'</b></span><button type="button" data-fx="'+x[0]+'" aria-label="Bỏ lọc '+x[1]+'" title="Bỏ lọc">×</button></span>'; }).join("")+
     (a.length>1?'<button class="lnk fcx" type="button" data-fx="*">Bỏ tất cả</button>':'');
@@ -397,8 +455,10 @@ function renderFilters(){
   var wn=FU.warnCount();
   seg("f-view", [["win","Kết quả thầu"],["fu","Theo dõi thầu"+(wn?'<span class="wb" title="'+wn+' hợp đồng MANI sắp hết hiệu lực chưa cập nhật theo dõi">'+wn+'</span>':'')],["act","Hoạt động"]], "view", function(){ try{ localStorage.setItem("tm_view",F.view); }catch(_){} if(F.view==="fu") FU.ensure(); if(F.view==="act") ACT.ensure(); });
   ["f-period","f-m"].forEach(function(id){ document.getElementById(id).hidden=!win; });
+  SCOPE.ui();
+  seg("f-own", [["all","Công lập + tư nhân"],["cl","Công lập"],["tn","Tư nhân"]], "own", function(){ try{ localStorage.setItem("tm_own",F.own); }catch(_){} });
   ACT.filters();
-  ["fu-who","fu-st","fu-add"].forEach(function(id){ document.getElementById(id).hidden=!fu; });
+  ["fu-st","fu-add"].forEach(function(id){ document.getElementById(id).hidden=!fu; });
   FU.filters();
   var ps=document.getElementById("f-period"), cur=periodVal();
   ps.innerHTML=periodList().map(function(o){ return '<option value="'+o[0]+'"'+(o[0]===cur?" selected":"")+'>'+o[1]+'</option>'; }).join("");
@@ -507,7 +567,8 @@ function buildMap(){
 /* phần bản đồ nhìn thấy: điện thoại trừ bảng chi tiết trượt từ dưới (khung đích, không phải lúc đang trượt) */
 function visArea(){ var r=svg.getBoundingClientRect(), W0=r.width||800, H0=r.height||700, vh=H0; if(MQ.matches && SHEET) vh=Math.max(150, H0-SHEET.target()); return {w:W0, h:vh, H:H0}; }
 function homeBox(){
-  var bb=[px(102.1), py(23.45), px(116.4), py(7.6)];
+  var bb=[px(102.1), py(23.45), px(116.4), py(7.6)], tb=SCOPE.bbox();
+  if(tb) bb=[tb[0]-(tb[2]-tb[0])*0.06, tb[1]-(tb[3]-tb[1])*0.04, tb[2]+(tb[2]-tb[0])*0.06, tb[3]+(tb[3]-tb[1])*0.04];
   var v=visArea(), ar=v.w/Math.max(1,v.h);
   var w=bb[2]-bb[0], h=bb[3]-bb[1]; w*=1.04; h*=1.04;
   if(w/h < ar) w=h*ar; else h=w/ar;
@@ -582,6 +643,7 @@ function paintMap(){
     P.el.setAttribute("fill", fill);
     P.el.classList.toggle("sel", i===sel);
     P.el.classList.toggle("dim", sel>=0 && i!==sel);
+    P.el.classList.toggle("out", !SCOPE.inProv(i));
   });
   // nhãn (huy hiệu số gói) + vòng nhắc hết hạn — cỡ tính theo điểm ảnh màn hình
   G.lbl.innerHTML=""; G.pulse.innerHTML="";
@@ -624,8 +686,8 @@ function paintBubbles(){
   /* chấm xám = cơ sở y tế công lập (danh mục csyt.js, có toạ độ) chưa có gói trong bộ lọc — bấm để xem thông tin */
   var have={}; xs.forEach(function(x){ have[x.h.key]=1; });
   if(F.view!=="act") (FBYP[sel]||[]).forEach(function(f){
-    if(!f.ll || (selOld && f.oi && f.oi!==selOld) || (f.h && have[f.h.key])) return;
-    var g=el("g",{"class":"fd","data-f":f.id},G.hm); el("circle",{cx:px(f.ll[0]).toFixed(2),cy:py(f.ll[1]).toFixed(2),r:((MQ.matches?4.2:3.4)*u).toFixed(2)},g);
+    if(!f.ll || (selOld && f.oi && f.oi!==selOld) || (f.h && have[f.h.key]) || !ownOk(isPv(f))) return;
+    var g=el("g",{"class":"fd"+(isPv(f)?" pv":""),"data-f":f.id},G.hm); el("circle",{cx:px(f.ll[0]).toFixed(2),cy:py(f.ll[1]).toFixed(2),r:((MQ.matches?4.2:3.4)*u).toFixed(2)},g);
   });
   if(!xs.length) return;
   var mx=Math.max.apply(null, xs.map(function(x){ return x.v; }).concat([1])), rk={};
@@ -668,7 +730,8 @@ function lgWrap(L, inner){
 }
 function paintLegend(){
   var L=document.getElementById("legend");
-  var dotRow = sel>=0 ? '<div class="row"><svg width="18" height="18" aria-hidden="true"><circle cx="9" cy="9" r="3.6" fill="#A3AFBF" stroke="#fff"/></svg> Cơ sở công lập chưa có gói (trong bộ lọc)</div>' : '';
+  var dotRow = sel>=0 ? (F.own!=="tn"?'<div class="row"><svg width="18" height="18" aria-hidden="true"><circle cx="9" cy="9" r="3.6" fill="#A3AFBF" stroke="#fff"/></svg> Cơ sở công lập chưa có gói (trong bộ lọc)</div>':'')+
+    (F.own!=="cl"?'<div class="row"><svg width="18" height="18" aria-hidden="true"><circle cx="9" cy="9" r="3.6" fill="#fff" stroke="'+PVCOL+'" stroke-width="1.8"/></svg> Cơ sở tư nhân · mua sắm theo hợp đồng</div>':'') : '';
   if(F.view==="fu") return lgWrap(L, FU.legend()+dotRow);
   if(F.view==="act") return lgWrap(L, ACT.legend());
   var ramp=function(c){ return '<span class="ramp">'+[0.3,0.48,0.66,0.84,0.95].map(function(t){ return '<i style="background:'+mix(c,t)+'"></i>'; }).join("")+'</span>'; };
@@ -744,13 +807,13 @@ function wireMap(){
     if(hmk && HOVER && !(drag&&moved)){ var x=HS[hmk.dataset.h], r0=card.getBoundingClientRect();
       if(x && F.view==="act" && x.h.acc){ tip.innerHTML=ACT.tipH(x); }
       else if(x && F.view==="fu"){ tip.innerHTML=FU.tipH(x); }
-      else if(x){ tip.innerHTML='<b>'+esc(x.h.name)+'</b><br><span class="m">'+esc(NEW[x.h.ni][0])+' · '+Object.keys(x.h.npps).map(function(n){ return NPP[n].name; }).join(", ")+'</span><br>'+x.n+' gói · '+vnd(x.val)+' · '+nfmt(x.qty)+' '+unitNow()+(x.last?'<br><span class="m">Trúng gần nhất '+lastD(x.last)+'</span>':'')+'<br><span class="m">Bấm để xem chi tiết</span>'; }
+      else if(x){ var btx=brandTxt(x.list&&x.list.length?x.list:x.h.pk); tip.innerHTML='<b>'+esc(x.h.name)+'</b><br><span class="m">'+esc(NEW[x.h.ni][0])+(isPv(x.h.f)?' · tư nhân':' · công lập')+'</span>'+(btx?'<br><span class="bm">'+btx+'</span>':'')+'<br>'+x.n+' gói · '+vnd(x.val)+' · '+nfmt(x.qty)+' '+unitNow()+(x.last?'<br><span class="m">Trúng gần nhất '+lastD(x.last)+'</span>':'')+'<br><span class="m">Bấm để xem chi tiết</span>'; }
       if(x){
         var tw=tip.offsetWidth||260, th=tip.offsetHeight||110, tx=e.clientX-r0.left+14, ty=e.clientY-r0.top+14;
         if(tx+tw>r0.width-6) tx=e.clientX-r0.left-tw-14; if(ty+th>r0.height-6) ty=e.clientY-r0.top-th-14; tip.style.left=Math.max(6,tx)+"px"; tip.style.top=Math.max(6,ty)+"px"; tip.style.opacity=1; return; } }
     var fdk=e.target.closest(".fd");
     if(fdk && HOVER && !(drag&&moved) && FID[fdk.dataset.f]){ var ff=FID[fdk.dataset.f], r1=card.getBoundingClientRect();
-      tip.innerHTML='<b>'+esc(ff.name)+'</b><br><span class="m">'+esc(CT[ff.t]||"Cơ sở y tế")+(ff.lv?' · '+esc(ff.lv):'')+'</span><br><span class="m">Chưa có gói trong bộ lọc — bấm để xem thông tin</span>';
+      tip.innerHTML='<b>'+esc(ff.name)+'</b><br><span class="m">'+esc(CT[ff.t]||"Cơ sở y tế")+(isPv(ff)?' · <b style="color:'+PVCOL+'">tư nhân</b>':(ff.lv?' · '+esc(ff.lv):'')+' · công lập')+'</span><br><span class="m">'+(isPv(ff)?'Mua sắm theo hợp đồng mua sắm (không đấu thầu) — bấm để xem':'Chưa có gói trong bộ lọc — bấm để xem thông tin')+'</span>';
       var tw1=tip.offsetWidth||260, th1=tip.offsetHeight||80, tx1=e.clientX-r1.left+14, ty1=e.clientY-r1.top+14;
       if(tx1+tw1>r1.width-6) tx1=e.clientX-r1.left-tw1-14; if(ty1+th1>r1.height-6) ty1=e.clientY-r1.top-th1-14; tip.style.left=Math.max(6,tx1)+"px"; tip.style.top=Math.max(6,ty1)+"px"; tip.style.opacity=1; return; }
     var t=e.target.closest(".prov"); if(!t || drag&&moved || !HOVER){ tip.style.opacity=0; return; }
@@ -785,9 +848,10 @@ function wireMap(){
 }
 function crumbSet(){
   var c=document.getElementById("crumb"), i=sel;
-  if(i<0){ c.innerHTML="<b>Toàn quốc</b>"; return; }
+  var home=SCOPE.pic() ? "Địa bàn "+SCOPE.pic() : "Toàn quốc";
+  if(i<0){ c.innerHTML="<b>"+esc(home)+"</b>"; return; }
   if(selH) c.innerHTML='<button class="bk" id="cr-up" type="button" title="Về '+esc(NEW[i][0])+' (Esc)">‹ '+esc(NEW[i][0])+'</button> <b>'+esc(selH.name.length>34?selH.name.slice(0,32)+"…":selH.name)+'</b>';
-  else c.innerHTML='<button class="bk" id="cr-up" type="button" title="Về toàn quốc (Esc)">‹ Toàn quốc</button> <b>'+esc(NEW[i][0])+'</b>';
+  else c.innerHTML='<button class="bk" id="cr-up" type="button" title="Về '+esc(home.toLowerCase())+' (Esc)">‹ '+esc(home)+'</button> <b>'+esc(NEW[i][0])+'</b>';
   document.getElementById("cr-up").onclick=goUp;
 }
 function goUp(){ if(selH) selectProv(sel); else if(sel>=0) selectProv(-1); }
@@ -931,7 +995,7 @@ function kpiBlock(list){
     (F.m==="q" ? '<div class="kpi"><b>'+nfmt(qn)+'</b><span>Số lượng ('+unitNow()+') · '+vnd(v)+'</span></div>'
                : '<div class="kpi"><b>'+vnd(v)+'</b><span>Giá trị · '+nfmt(qn)+' '+unitNow()+'</span></div>')+
     '<div class="kpi"><b>'+Object.keys(hosp).length+'</b><span>Bệnh viện / cơ sở</span></div>'+
-    (sel<0?'<div class="kpi"><b>'+Object.keys(prov).length+'<span style="font-size:13px;color:var(--t3)">/34</span></b><span>Tỉnh / thành</span></div>':'')+
+    (sel<0?'<div class="kpi"><b>'+Object.keys(prov).length+'<span style="font-size:13px;color:var(--t3)">/'+NEW.filter(function(x,i){ return SCOPE.inProv(i); }).length+'</span></b><span>Tỉnh / thành</span></div>':'')+
     '<div class="kpi"><b>'+ok+'</b><span>Hợp đồng đang chạy</span></div>'+
     '<div class="kpi warn"><b>'+soon+'</b><span>Còn ≤ '+SOON_MONTHS+' tháng</span></div>'+
   '</div>';
@@ -1000,30 +1064,43 @@ function rankHtml(){
     return '<span class="dl '+(d>0?"up":"dn")+'" title="'+tt+'">'+(d>0?"▲":"▼")+' '+Math.min(999,Math.round(Math.abs(d)*100))+'%</span>'; }
   return '<div class="cmpn">▲▼ '+esc(cs.lbl)+'</div><ol class="rank">'+rk.map(function(x,i){
       return '<li data-h="'+esc(x.h.key)+'" data-pv="'+x.h.ni+'" role="button" tabindex="0"><span class="no">'+(i+1)+'</span><span class="nm">'+esc(x.h.name)+'</span><span class="q">'+(F.m==="q"?nfmt(x.v):vnd(x.v))+'<small>'+(F.m==="q"?unitNow()+" · "+vnd(x.val):x.n+" gói · "+nfmt(x.qty)+" "+unitNow())+'</small></span>'+
-        '<span class="rb"><b style="width:'+(x.v/mx*100).toFixed(1)+'%;background:'+col+'"></b></span><span class="pv"><span>'+esc(NEW[x.h.ni][0])+' · '+Object.keys(x.h.npps).map(function(n){ return NPP[n].name; }).join(", ")+(x.last?' · trúng gần nhất '+lastD(x.last):'')+'</span>'+dl(x.h.key)+
+        '<span class="rb"><b style="width:'+(x.v/mx*100).toFixed(1)+'%;background:'+col+'"></b></span><span class="pv"><span>'+esc(NEW[x.h.ni][0])+' · '+brandTxt(x.list)+(x.last?' · trúng gần nhất '+lastD(x.last):'')+'</span>'+dl(x.h.key)+
         '<button class="fua" type="button" data-fu-new="'+esc(x.h.key)+'" title="Thêm gói theo dõi thầu ở cơ sở này">+ Theo dõi</button></span></li>'; }).join("")+'</ol>';
 }
 function lastD(p){ return p.approve ? d2(p.approve) : p.sk ? "T"+(p.sk%100)+"/"+Math.floor(p.sk/100) : "—"; }
+/* HÃNG trúng ở 1 cơ sở (người dùng 05/11/2026): theo SL trúng, mọi nguồn đã bỏ trùng TBMT — luôn nêu MANI + 1–2 hãng khác lớn nhất,
+   thay cho tên nguồn (Hùng Vĩ / iCare / KQTT thị trường) */
+function brandMix(list){ var by={}, t=0; list.forEach(function(p){ if(p.res!=="Win") return; p.items.forEach(function(it){ if(it.result!=="Win" || !itOk0(it)) return; var q=+it.qty||0; if(!q) return; var b=brandOf(it); by[b]=(by[b]||0)+q; t+=q; }); }); return { by:by, t:t }; }
+function brandTxt(list, n){
+  var m=brandMix(list||[]); if(!m.t) return "";
+  var pct=function(b){ var v=m.by[b]/m.t*100; return v<1 ? "<1%" : Math.round(v)+"%"; };
+  var o=Object.keys(m.by).filter(function(b){ return b!=="MANI"; }).sort(function(a,b){ return m.by[b]-m.by[a]; }).slice(0, n||2);
+  return (m.by.MANI ? ['<b class="bm-m">MANI '+pct("MANI")+'</b>'] : ['<span class="bm-n">MANI chưa trúng</span>']).concat(o.map(function(b){ return esc(b)+' '+pct(b); })).join(" · ");
+}
 function hcard(x, rk){
   var h=x.h, gs=GR.filter(function(g){ return x.q[g.k]; }), tq=gs.reduce(function(a,g){ return a+x.q[g.k]; },0)||1;
   return '<div class="hcard" data-h="'+esc(h.key)+'" role="button" tabindex="0"><div class="top1"><span class="nm">'+(rk?'<span class="gold">#'+rk+'</span> ':'')+esc(h.name)+'</span><span class="v">'+fm(x.v)+'</span></div>'+
+    (function(){ var b=brandTxt(x.list); return b?'<div class="bm">'+b+'</div>':''; })()+
     '<div class="meta"><span>'+x.n+' gói</span>'+(NEW[h.ni][2].length>1?'<span>'+esc(oldName(h.oi))+' (cũ)</span>':'')+(x.last?'<span>Trúng gần nhất <b>'+lastD(x.last)+'</b></span>'+statusTag(x.last):'')+'</div>'+
     '<div class="pchips">'+gs.map(function(g){ return '<span class="pc"><i style="background:'+g.c+'"></i>'+g.name.replace("Dao ","").replace("Chỉ ","")+' '+nfmt(x.q[g.k])+'</span>'; }).join("")+'</div>'+
     '<div class="minimix">'+gs.map(function(g){ return '<i style="width:'+(x.q[g.k]/tq*100)+'%;background:'+g.c+'"></i>'; }).join("")+'</div></div>';
 }
 var selH=null, showAllHist=false;
 function facInfo(h){
-  var f=h.f||{}, html='<h3>Thông tin cơ sở</h3><dl class="finfo">';
-  var typ=(CT[f.t]||"Cơ sở y tế")+(f.sp&&CSP[f.sp]?' · chuyên khoa '+esc(CSP[f.sp]):'');
+  var f=h.f||{}, pv=isPv(f), html='<h3>Thông tin cơ sở</h3><dl class="finfo">';
+  var typ=(f.t==="tn"?"Cơ sở y tế":(CT[f.t]||"Cơ sở y tế"))+(f.sp&&CSP[f.sp]?' · chuyên khoa '+esc(CSP[f.sp]):'');
   html+='<dt>Loại</dt><dd>'+typ+'</dd>';
-  html+='<dt>Tuyến</dt><dd>'+(f.lv?esc(f.lv):'<span class="na">chưa rõ</span>')+'</dd>';
+  html+='<dt>Công / tư</dt><dd>'+(pv?'<span class="own pv">Tư nhân</span> mua sắm theo <b>hợp đồng mua sắm</b> (không qua đấu thầu công)':'<span class="own cl">Công lập</span> mua sắm qua <b>đấu thầu</b> (KQTT)')+'</dd>';
+  if(!pv) html+='<dt>Tuyến</dt><dd>'+(f.lv?esc(f.lv):'<span class="na">chưa rõ</span>')+'</dd>';
   html+='<dt>Địa chỉ</dt><dd>'+(h.address?esc(addrFmt(h.address)):'<span class="na">chưa có</span>')+'</dd>';
   var olds=NEW[h.ni][2];
   html+='<dt>Tỉnh / thành</dt><dd>'+esc(NEW[h.ni][0])+(olds.length>1||olds[0]!==NEW[h.ni][0]?' <span class="na">(trước 07/2025: '+esc(oldName(h.oi))+')</span>':'')+' · '+REGION[NEW[h.ni][1]]+'</dd>';
   if(f.beds||f.rank) html+='<dt>Quy mô</dt><dd>'+[f.beds?esc(f.beds)+' giường':'', f.rank?'hạng '+esc(f.rank):''].filter(Boolean).join(' · ')+'</dd>';
   var by={}; h.pk.forEach(function(p){ if(p.res!=="Win") return; p.items.forEach(function(it){ if(it.result!=="Win") return; var c=it.cat; if(c!=="dao"&&c!=="chi") return; var o=by[p.fy]=by[p.fy]||{dao:0,chi:0}; o[c]+=+it.qty||0; }); });
   var fys=Object.keys(by).map(Number).filter(Boolean).sort(function(a,b){ return b-a; }).slice(0,3);
-  html+='<dt>Lượng trúng</dt><dd>'+(fys.length?fys.map(function(y){ var o=by[y]; return 'FY'+y+': '+[o.dao?nfmt(o.dao)+' dao':'', o.chi?nfmt(o.chi)+' chỉ khâu':''].filter(Boolean).join(' · '); }).join('<br>'):'<span class="na">chưa có gói trúng dao / chỉ khâu</span>')+'</dd>';
+  if(pv){ var pcs=FU.byFac(f), sg=pcs.filter(function(c){ return c.stage===14||c.stage===15; }).length, op=pcs.filter(function(c){ return c.stage>=11&&c.stage<=13; }).length;
+    html+='<dt>Hợp đồng mua sắm</dt><dd>'+(sg?sg+' đã ký':'<span class="na">chưa ký</span>')+(op?' · '+op+' cơ hội đang theo dõi':'')+'</dd>'; }
+  if(!pv || fys.length) html+='<dt>Lượng trúng</dt><dd>'+(fys.length?fys.map(function(y){ var o=by[y]; return 'FY'+y+': '+[o.dao?nfmt(o.dao)+' dao':'', o.chi?nfmt(o.chi)+' chỉ khâu':''].filter(Boolean).join(' · '); }).join('<br>'):'<span class="na">chưa có gói trúng dao / chỉ khâu</span>')+'</dd>';
   var q = f.ll ? f.ll[1]+","+f.ll[0] : h.name+" "+NEW[h.ni][0];
   html+='<dt>Bản đồ</dt><dd><a href="https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(q)+'" target="_blank" rel="noopener">Mở Google Maps</a>'+(f.ll?'':' <span class="na">(tìm theo tên)</span>')+'</dd>';
   return html+'</dl>';
@@ -1065,8 +1142,10 @@ function renderHosp(){
         (F.fy!=="every"?'<button class="lnk" type="button" data-every="1">Xem Mọi năm</button>':'')+(af?(F.fy!=="every"?' · ':'')+'<button class="lnk" type="button" data-fx-all="1">Bỏ bộ lọc</button>':'')+'</div>';
     }
   }
+  var pvF=isPv(h.f);
+  if(!fu && pvF && !h.pk.length) html+='<div class="ribbon pv"><b>Cơ sở tư nhân · mua sắm theo hợp đồng mua sắm</b><span>Không qua đấu thầu công nên không có trong dữ liệu thầu (2 NPP, KQTT). Theo dõi cơ hội và hợp đồng mua sắm ở mục "Theo dõi mua sắm" bên dưới.</span></div>';
   html+=facInfo(h)+'<div class="crmx" id="crmx"></div>';
-  if(!h.pk.length) html+='<div class="note">Chưa có gói trúng thầu dao / chỉ khâu của cơ sở này trong dữ liệu 2 NPP và KQTT toàn quốc.</div>';
+  if(!h.pk.length){ if(!pvF) html+='<div class="note">Chưa có gói trúng thầu dao / chỉ khâu của cơ sở này trong dữ liệu 2 NPP và KQTT toàn quốc.</div>'; }
   else {
     var m0=mw[0], o0=ow[0];
     if(m0 && m0===o0) html+='<h3>Gói trúng gần nhất · MANI + hãng khác</h3><div class="hosp">'+pkgHtml(m0, function(){ return true; })+'</div>';
@@ -1097,6 +1176,35 @@ function renderHosp(){
   var ht=document.getElementById("hist-t"); if(ht) ht.onclick=function(){ showAllHist=!showAllHist; renderHosp(); };
   if(SB._hk!==h.key){ SB.scrollTop=0; SB._hk=h.key; }
 }
+/* TÓM TẮT ĐỊA BÀN (người dùng 05/11/2026) — đầu bảng bên, tab Tổng quan, cho tỉnh đang xem (hoặc toàn quốc / địa bàn PIC):
+   ① số cơ sở theo danh mục (bệnh viện công lập, TTYT, PKĐK khu vực, tư nhân) ② thầu DAO mọi thời gian có dữ liệu (KQTT thị trường + 2 NPP, bỏ trùng TBMT):
+   số cơ sở có gói trúng dao, cơ sở nhiều gói nhất (số gói, số dao) ③ hãng chiếm tỉ trọng lớn nhất theo SỐ LƯỢNG dao trúng trong kỳ đang lọc (bỏ qua bộ lọc nguồn / hãng). */
+function monTxt(k){ return k ? "tháng "+(k%100)+"/"+Math.floor(k/100) : "—"; }
+function psumHtml(){
+  var inP=function(ni){ return ni!=null && ni>=0 && SCOPE.inProv(ni) && (sel<0 || (ni===sel)); };
+  var place = sel>=0 ? NEW[sel][0]+(selOld?" ("+oldName(selOld)+" cũ)":"") : SCOPE.pic() ? "Địa bàn "+SCOPE.pic()+" ("+SCOPE.place()+")" : "Cả nước";
+  var nb=0, nt=0, nk2=0, npv=0;
+  FAC.forEach(function(f){ if(!inP(f.ni) || (sel>=0 && selOld && f.oi && f.oi!==selOld)) return; if(isPv(f)) npv++; else if(f.t==="bv") nb++; else if(f.t==="ttyt") nt++; else if(f.t==="pkkv") nk2++; });
+  var a0=0, a1=0, fac={}, pk={}, q={}, by={}, tq=0;
+  PKGS.forEach(function(p){
+    if(p.npp==="KQTT" && p.sk){ if(!a0||p.sk<a0) a0=p.sk; if(p.sk>a1) a1=p.sk; }
+    if(p.res!=="Win" || !p.h || !inP(p.ni) || (sel>=0 && selOld && p.oi!==selOld)) return;
+    var kq=0, inK=inPeriod(p);
+    p.items.forEach(function(it){ if(it.result!=="Win" || it.cat!=="dao") return; var v=+it.qty||0; kq+=v; if(inK){ var b=brandOf(it); by[b]=(by[b]||0)+v; tq+=v; } });
+    if(!kq) return; var k=p.h.key; fac[k]=p.h; pk[k]=(pk[k]||0)+1; q[k]=(q[k]||0)+kq;
+  });
+  var keys=Object.keys(fac).sort(function(a,b){ return pk[b]-pk[a] || q[b]-q[a]; }), top=keys[0];
+  var html='<div class="psum"><p><b>'+esc(place)+'</b> có <b>'+nfmt(nb)+'</b> bệnh viện công lập, <b>'+nfmt(nt)+'</b> trung tâm y tế'+(nk2?', '+nfmt(nk2)+' phòng khám ĐK khu vực':'')+
+    (npv?' và <b>'+nfmt(npv)+'</b> cơ sở tư nhân đã biết':'')+' <span class="na">(theo danh mục)</span>.</p>';
+  html+='<p><b>Thầu dao phẫu thuật nhãn khoa</b>: từ '+monTxt(a0)+' đến '+monTxt(a1)+' <span class="na">(KQTT thị trường + 2 NPP)</span> '+
+    (keys.length ? 'có <b>'+keys.length+'</b> cơ sở trúng thầu dao; nhiều nhất là <button class="lnk" type="button" data-h="'+esc(top)+'">'+esc(fac[top].name)+'</button> với <b>'+pk[top]+'</b> gói, <b>'+nfmt(q[top])+'</b> dao trúng thầu.' : 'chưa có cơ sở nào có kết quả trúng thầu dao.')+'</p>';
+  var bs=Object.keys(by).sort(function(a,b){ return by[b]-by[a]; });
+  if(tq){ var pc=function(b){ var v=by[b]/tq*100; return v<1?"<1%":Math.round(v)+"%"; }, b0=bs[0];
+    html+='<p>Kỳ <b>'+esc(periodLabel())+'</b>: <b>'+esc(b0)+'</b> chiếm tỉ trọng lớn nhất — <b>'+pc(b0)+'</b> số dao trúng thầu ('+nfmt(by[b0])+' / '+nfmt(tq)+')'+
+      (b0!=="MANI" ? (by.MANI ? '; MANI '+pc("MANI") : '; MANI chưa trúng') : (bs[1] ? '; tiếp theo '+esc(bs[1])+' '+pc(bs[1]) : ''))+'.</p>';
+  } else html+='<p>Kỳ <b>'+esc(periodLabel())+'</b>: chưa có dao trúng thầu.</p>';
+  return html+'</div>';
+}
 function renderSide(){
   if(selH && (F.view==="act") !== !!selH.acc){ selH=null; crumbSet(); }        /* đổi chế độ: chi tiết khách CRM ⇄ cơ sở thầu */
   if(selH && sel===selH.ni) return renderHosp();
@@ -1106,7 +1214,7 @@ function renderSide(){
   var all=PKGS.filter(function(p){ return pass(p); });
   var period = F.fy==="all" ? "Từ FY67 (09/2025) đến nay" : F.fy==="every" ? "Mọi năm (từ FY"+FY_MIN+")" : ("FY"+F.fy+(F.q?" · Q"+F.q:"")+" ("+fyRange(+F.fy,F.q)+")");
   if(sel<0){
-    t.textContent="Toàn quốc";
+    t.textContent=SCOPE.pic() ? "Địa bàn "+SCOPE.pic() : "Toàn quốc";
     s.textContent=period+" · "+srcLabel()+(F.brand!=="all"?" · "+(F.brand==="mani"?"MANI":"hãng khác"):"");
     if(TAB!=="ov"){ SB.innerHTML=noteHtml()+tabsHtml()+panelHtml(); return; }
     var reg={B:{v:0,n:0,by:{}},T:{v:0,n:0,by:{}},N:{v:0,n:0,by:{}}};
@@ -1124,7 +1232,7 @@ function renderSide(){
       return '<div class="it" data-p="'+p.ni+'" role="button" tabindex="0"><span class="a">'+esc(p.hospital)+'</span><span class="st warn">'+d2(p.end)+'</span><span class="b">'+(p.ni>=0?esc(NEW[p.ni][0])+' · ':'')+NPP[p.npp].name+' · '+fm(mv(p))+'</span><span class="b">'+p.dur+' tháng</span></div>'; }).join("")+'</div>'
       : '<div class="empty">Không có hợp đồng nào hết hạn trong '+SOON_MONTHS+' tháng tới.</div>';
     var qall={}, gall={}; STAT.forEach(function(x){ for(var g in x.q) qall[g]=(qall[g]||0)+x.q[g]; for(var g2 in x.gv) gall[g2]=(gall[g2]||0)+x.gv[g2]; });
-    SB.innerHTML = noteHtml() + tabsHtml() + kpiBlock(all) + (cmOn() ? '<h3>Thị phần MANI theo tỉnh · '+mLabel().toLowerCase()+' trúng · '+esc(typeLabel())+'</h3>'+shareProvHtml() : '') +
+    SB.innerHTML = noteHtml() + tabsHtml() + psumHtml() + kpiBlock(all) + (cmOn() ? '<h3>Thị phần MANI theo tỉnh · '+mLabel().toLowerCase()+' trúng · '+esc(typeLabel())+'</h3>'+shareProvHtml() : '') +
       '<h3>Sản phẩm trúng · '+mLabel().toLowerCase()+(F.type!=="all"?' · <button class="lnk" data-sub="">bỏ lọc '+esc(typeLabel())+'</button>':'')+'</h3>'+mixHtml(qall,gall,true)+
       '<h3>Bệnh viện trúng nhiều nhất · '+mLabel().toLowerCase()+' · '+esc(typeLabel())+'</h3>'+rankHtml()+
       '<h3>'+mLabel()+' trúng theo tháng phê duyệt · '+esc(typeLabel())+'</h3>'+monthChart(all.filter(function(p){ return p.res==="Win"; }))+
@@ -1145,7 +1253,7 @@ function renderSide(){
       olds.map(function(o){ return '<button class="chip'+(selOld===o.k?" on":"")+'" data-o="'+o.k+'">'+esc(o.name)+'<em>'+o.n+'</em></button>'; }).join("")+'</div>' : '';
     if(selOld) list=list.filter(function(p){ return p.oi===selOld; });
     var sh=st.sh, shr=sh.t>0 ? sh.m/sh.t : null;
-    SB.innerHTML = tabsHtml() + kpiBlock(list) + (shr!=null && (cmOn() || F.npp==="all" || F.npp==="KQTT") ? '<h3>Thị phần MANI ở '+esc(NEW[sel][0])+' · '+mLabel().toLowerCase()+' trúng</h3><div class="shp"><span class="ms"><i style="width:'+(shr*100).toFixed(1)+'%"></i></span><b>'+Math.round(shr*100)+'%</b><span style="color:var(--t2)">/ '+fm(sh.t)+'</span></div>' : '') +
+    SB.innerHTML = tabsHtml() + psumHtml() + kpiBlock(list) + (shr!=null && (cmOn() || F.npp==="all" || F.npp==="KQTT") ? '<h3>Thị phần MANI ở '+esc(NEW[sel][0])+' · '+mLabel().toLowerCase()+' trúng</h3><div class="shp"><span class="ms"><i style="width:'+(shr*100).toFixed(1)+'%"></i></span><b>'+Math.round(shr*100)+'%</b><span style="color:var(--t2)">/ '+fm(sh.t)+'</span></div>' : '') +
       '<h3>Sản phẩm trúng</h3>'+mixHtml(st.q,st.gv,true) + '<h3>Bệnh viện trúng thầu</h3>' + chips +
       '<input class="search" id="q" type="search" placeholder="Tìm bệnh viện, mã sản phẩm, số TBMT…" value="'+esc(query)+'" aria-label="Tìm trong tỉnh">'+
       '<div id="hl">'+hospList(list)+'</div>'+
@@ -1159,7 +1267,7 @@ var TABS=[["ov","Tổng quan"],["re","Thầu lại"],["px","Giá trúng"],["npp"
 function tabsHtml(){ if(!TABS.some(function(t){ return t[0]===TAB; })) TAB="ov";
   return '<div class="tabs stabs" role="tablist">'+TABS.map(function(t){ return '<button class="tab'+(TAB===t[0]?" on":"")+'" type="button" role="tab" aria-selected="'+(TAB===t[0])+'" data-tab="'+t[0]+'">'+t[1]+'</button>'; }).join("")+'</div>'; }
 function panelHtml(){ return TAB==="re" ? reHtml() : TAB==="px" ? pxHtml() : TAB==="npp" ? nppHtml() : TAB==="fc" ? fcHtml() : ""; }
-function inScope(p){ return sel<0 || (p.ni===sel && (!selOld || p.oi===selOld)); }
+function inScope(p){ return SCOPE.inProv(p.ni) && (sel<0 || (p.ni===sel && (!selOld || p.oi===selOld))); }
 function provOfP(p){ return p.ni>=0 ? NEW[p.ni][0] : (p.city||"—"); }
 function monLbl(k){ return "T"+(k%100)+"/"+Math.floor(k/100); }
 function brandOf(it){ return isMani(it) ? "MANI" : (String(it.mfr||it.brand||"").trim()||"Hãng khác"); }
@@ -1377,6 +1485,7 @@ var QS=(function(){
     var t=nw(q).split(" ").filter(Boolean); if(!t.length) return [];
     var out=[];
     (pool||FAC).forEach(function(f){
+      if(!SCOPE.inProv(f.ni)) return;
       var w=idx(f); if(!t.every(function(x){ return w.indexOf(" "+x)>=0; })) return;
       var nm=" "+nw(f.name)+" ", sc=0;
       t.forEach(function(x){ if(nm.indexOf(" "+x)>=0) sc+=3; });
@@ -1395,7 +1504,8 @@ var QS=(function(){
   }
   function tags(f){
     var h=f.h, o=[];
-    if(f.acc || ACT.byFac(f).length) o.push('<span class="tg1 c">'+((f.t==="tn"||f.pv)?"Tư nhân · CRM":"CRM")+'</span>');
+    o.push(isPv(f) ? '<span class="tg1 pv">Tư nhân</span>' : '<span class="tg1 cl">Công lập</span>');
+    if(f.acc || ACT.byFac(f).length) o.push('<span class="tg1 c">CRM</span>');
     if(h && h.pk && h.pk.length){ if(h.npps.HUNGVI||h.npps.ICARE) o.push('<span class="tg1 n">NPP</span>'); if(h.npps.KQTT) o.push('<span class="tg1 k">KQTT</span>'); }
     if(FU.byFac(f).length) o.push('<span class="tg1 f">Theo dõi</span>');
     return o.join("");
@@ -1445,15 +1555,15 @@ var QS=(function(){
 var FU=(function(){
   /* 1–9: thầu công lập · 11–19: mua sắm cơ sở TƯ NHÂN (Giới thiệu → Demo → Đề xuất từ chuyên môn → Ký hợp đồng → Sử dụng hàng) — backend MMH_TenderFU v1.5 */
   var ST=["","Giới thiệu sản phẩm","Lên danh mục","Chốt cấu hình","Ra báo giá","Ra HSMT","Đang chấm thầu","Đã trúng thầu","Đã trượt thầu","Huỷ / dừng theo dõi",
-          "","Giới thiệu","Demo","Đề xuất từ chuyên môn","Ký hợp đồng","Sử dụng hàng","","","Không thành công","Dừng theo dõi"];
+          "","Giới thiệu","Demo","Đề xuất từ chuyên môn","Ký hợp đồng mua sắm","Sử dụng hàng","","","Không thành công","Dừng theo dõi"];
   var SH=["","Giới thiệu","Lên danh mục","Chốt cấu hình","Báo giá","Ra HSMT","Chấm thầu","Đã trúng","Đã trượt","Dừng",
-          "","Giới thiệu","Demo","Đề xuất chuyên môn","Ký hợp đồng","Sử dụng hàng","","","Không thành công","Dừng"];
+          "","Giới thiệu","Demo","Đề xuất chuyên môn","Ký HĐ mua sắm","Sử dụng hàng","","","Không thành công","Dừng"];
   var SC=["","#8DB3E2","#6B9BD6","#4A82C8","#2F68B3","#C77700","#B45309","#2E7D32","#B42318","#98A2B3",
           "","#C4B5FD","#A78BFA","#8B5CF6","#6D28D9","#2E7D32","","","#B42318","#98A2B3"];
   var TEND=[1,2,3,4,5,6,7,8,9], PRIV=[11,12,13,14,15,18,19];
   function isOpen(st){ return (st>=1&&st<=6) || (st>=11&&st<=14); }
   function isWon(st){ return st===7 || st===15; }
-  function isPriv(f){ return !!f && (f.t==="tn" || !!f.pv); }
+  function isPriv(f){ return isPv(f); }
   var FUCOL="#2F68B3";
   var COLS=["at","id","rev","pic","mail","fid","hosp","prov","addr","pkg","tbmt","ptype","itemsTxt","qty","value","stage","stageName","due","note","items","rid","src","ll"];
   var LS_TK="mmh_tk", LS_MAIL="mmh_last_email", LS_DATA="tm_fu_v1", LS_OB="tm_fu_outbox_v1";
@@ -1468,32 +1578,33 @@ var FU=(function(){
   /* máy chủ từ chối phiên: CHỈ xoá phiên (dùng chung Report Hub / CRM trên trình duyệt này) khi phiên thật sự hết hạn / không hợp lệ / bị khoá;
      lỗi khác ⇒ giữ phiên, hiện lý do (trước đây xoá ngay ⇒ quay lại ô nhập email, không rõ vì sao, và đăng xuất luôn Report Hub / CRM) */
   function authFail(msg){
-    if(/hết hạn|không hợp lệ|đăng xuất|bị khoá|không có trong RH_Users/i.test(String(msg||""))){ try{ localStorage.removeItem(LS_TK); }catch(_){} lg.step="email"; lg.err=msg; }
+    if(/hết hạn|không hợp lệ|đăng xuất|bị khoá|không có trong RH_Users/i.test(String(msg||""))){ try{ localStorage.removeItem(LS_TK); }catch(_){} lg.step="email"; lg.err=msg; if((typeof GATE!=="undefined"&&GATE)) GATE.show(); }
     user();
   }
   function qs(o){ return Object.keys(o).map(function(k){ return encodeURIComponent(k)+"="+encodeURIComponent(o[k]==null?"":o[k]); }).join("&"); }
   /* đọc bằng fetch KHÔNG kèm cookie Google trước (getJSON): Chrome / điện thoại đăng nhập Gmail khác hoặc nhiều tài khoản thì thẻ <script>
      bị Google chuyển sang trang "chọn tài khoản" ⇒ "không tải được" (cùng lỗi Report Hub đã sửa ở v16.7) */
   function hub(action, params){ return getJSON(TRAINING_HUB+"?"+qs(Object.assign({action:action}, params||{}))); }
+  function lgUi(){ side(); if((typeof GATE!=="undefined"&&GATE)) GATE.paint(); }
   function lgSend(again){
     if(lg.busy) return;
     var i=document.getElementById("lg-email"); if(i) lg.email=String(i.value||"").trim().toLowerCase().replace(/\s+/g,"");
     if(lg.email && lg.email.indexOf("@")<0) lg.email+="@manimedicalhanoi.com";
-    if(!/^[a-z0-9._%+\-]+@(mani\.inc|manimedicalhanoi\.com)$/.test(lg.email)){ lg.err="Nhập email công ty: …@manimedicalhanoi.com hoặc …@mani.inc"; side(); return; }
+    if(!/^[a-z0-9._%+\-]+@(mani\.inc|manimedicalhanoi\.com)$/.test(lg.email)){ lg.err="Nhập email công ty: …@manimedicalhanoi.com hoặc …@mani.inc"; lgUi(); return; }
     try{ localStorage.setItem(LS_MAIL, lg.email); }catch(_){}
-    lg.busy=true; lg.err=""; side();
+    lg.busy=true; lg.err=""; lgUi();
     hub("rhAuthStart",{email:lg.email}).then(function(d){
       lg.busy=false;
       if(d && (d.ok || d.code==="WAIT")){ lg.step="code"; lg.err=d.ok?(again?"Đã gửi mã mới.":""):(d.error||""); }
       else lg.err=(d&&d.error)||"Chưa gửi được mã.";
-      side(); var c=document.getElementById("lg-code"); if(c) c.focus();
-    },function(e){ lg.busy=false; lg.err="Không kết nối được máy chủ đăng nhập ("+e.message+"). Kiểm tra mạng rồi bấm Gửi mã lại."; side(); });
+      lgUi(); var c=document.getElementById("lg-code"); if(c) c.focus();
+    },function(e){ lg.busy=false; lg.err="Không kết nối được máy chủ đăng nhập ("+e.message+"). Kiểm tra mạng rồi bấm Gửi mã lại."; lgUi(); });
   }
   function lgVerify(){
     if(lg.busy) return;
     var c=document.getElementById("lg-code"), code=c?String(c.value||"").replace(/\D/g,""):"";
-    if(code.length!==6){ lg.err="Nhập đủ 6 số trong email."; side(); return; }
-    lg.busy=true; lg.err=""; side();
+    if(code.length!==6){ lg.err="Nhập đủ 6 số trong email."; lgUi(); return; }
+    lg.busy=true; lg.err=""; lgUi();
     hub("rhAuthVerify",{email:lg.email, code:code}).then(function(d){
       lg.busy=false;
       if(d && d.ok && d.token && d.user){
@@ -1503,12 +1614,14 @@ var FU=(function(){
         ONL.forEach(function(fn){ try{ fn(); }catch(_){} });
         return;
       }
-      lg.err=(d&&d.error)||"Mã chưa đúng."; side();
-    },function(e){ lg.busy=false; lg.err=e.message; side(); });
+      lg.err=(d&&d.error)||"Mã chưa đúng."; lgUi();
+    },function(e){ lg.busy=false; lg.err=e.message; lgUi(); });
   }
   function loginHtml(compact){
+    var gate=compact==="gate";
+    if(!gate && (typeof GATE!=="undefined"&&GATE) && GATE.on()) return '<div class="note">Đăng nhập bằng email công ty ở màn hình đầu để xem.</div>';
     var em=lg.email; if(!em){ try{ em=localStorage.getItem(LS_MAIL)||""; }catch(_){} }
-    return '<div class="lgbox"><h4>Đăng nhập để '+(compact?'xem / cập nhật theo dõi thầu':'dùng Theo dõi thầu')+'</h4>'+
+    return '<div class="lgbox'+(gate?' lgg':'')+'"><h4>'+(gate?'Đăng nhập bằng email công ty':'Đăng nhập để '+(compact?'xem / cập nhật theo dõi thầu':'dùng Theo dõi thầu'))+'</h4>'+
       (compact?'':'<p>Dành cho nhân sự MMH. Dùng email công ty như Report Hub / CRM — đã đăng nhập ở 2 app đó trên trình duyệt này thì vào thẳng.</p>')+
       (lg.step==="email"
         ? '<div class="row"><input class="inp" id="lg-email" type="email" inputmode="email" autocomplete="email" placeholder="ten@manimedicalhanoi.com" value="'+esc(em)+'"><button class="btn pri" data-lg="send" type="button"'+(lg.busy?" disabled":"")+'>'+(lg.busy?"Đang gửi…":"Gửi mã")+'</button></div>'
@@ -1522,7 +1635,7 @@ var FU=(function(){
     var n=a.user.pic||"", ini=n.split(/\s+/).map(function(w){ return w[0]; }).join("").slice(-2).toUpperCase();
     u.innerHTML='<button class="uchip" type="button" id="uc-b" title="'+esc((a.user.email||"")+" — bấm để đăng xuất khỏi Tender Map")+'"><i>'+esc(ini)+'</i>'+esc(n)+'</button>';
     document.getElementById("uc-b").onclick=function(){
-      if(window.confirm("Đăng xuất "+n+"? (Report Hub / CRM mở trên trình duyệt này cũng phải đăng nhập lại)")){ try{ localStorage.removeItem(LS_TK); }catch(_){} S.me=null; user(); refresh(); }
+      if(window.confirm("Đăng xuất "+n+"? (Report Hub / CRM mở trên trình duyệt này cũng phải đăng nhập lại)")){ try{ localStorage.removeItem(LS_TK); }catch(_){} S.me=null; user(); renderFilters(); refresh(); if((typeof GATE!=="undefined"&&GATE)) GATE.show(); }
     };
   }
 
@@ -1575,7 +1688,8 @@ var FU=(function(){
   function byFac(f){ cases(); return (BYF && BYF[f.id]) || []; }
   function mine(c){ var a=auth(); return !!a && String(c.pic).toLowerCase()===String(a.user.pic).toLowerCase(); }
   function pass(c, noStage){
-    if(S.who==="me" && !mine(c)) return false;
+    if(c.f && !SCOPE.inProv(c.f.ni) && !(SCOPE.locked() && mine(c))) return false;   /* địa bàn PIC (+ gói chính Sales đó tạo ngoài địa bàn) */
+    if(c.f && F.own!=="all" && !ownOk(isPv(c.f))) return false;
     var s=c.stage;
     if(S.stf==="open" && !isOpen(s)) return false;
     if(S.stf==="won" && !isWon(s)) return false;
@@ -1592,7 +1706,6 @@ var FU=(function(){
     el.onclick=function(e){ var b=e.target.closest("button"); if(!b) return; cb(b.dataset.v); renderFilters(); refresh(); };
   }
   function filters(){
-    segH("fu-who", [["all","Mọi PIC"],["me","Của tôi"]], S.who, function(v){ S.who=v; });
     segH("fu-st", [["open","Đang theo dõi"],["won","Thành công"],["lost","Trượt / dừng"],["all","Tất cả"]], S.stf, function(v){ S.stf=v; S.stage=0; });
     document.getElementById("fu-add").onclick=function(){ open({}); };
     user(); obChip();
@@ -1628,10 +1741,10 @@ var FU=(function(){
   function ageD(c){ var d=Date.parse(String(c.at||"").replace(" ","T")+"+07:00"); return isNaN(d) ? 999 : Math.floor((Date.now()-d)/864e5); }
   function warns(){
     if(!auth() || !S.loaded) return [];
-    var key=S.ver+"|"+PKGS.length; if(WC && WC.k===key) return WC.v;
+    var key=S.ver+"|"+PKGS.length+"|"+SCOPE.pic(); if(WC && WC.k===key) return WC.v;
     var lo=addMonths(NOW,-3), hi=addMonths(NOW,WARN_M), out=[];
     PKGS.forEach(function(p){
-      if(p.res!=="Win" || !p.end || p.end<lo || p.end>hi || p.ni<0 || !p.h || !p.h.f) return;
+      if(p.res!=="Win" || !p.end || p.end<lo || p.end>hi || p.ni<0 || !p.h || !p.h.f || !SCOPE.inProv(p.ni)) return;
       var ws=winSide(p), cs=byFac(p.h.f).filter(function(c){ return c.stage>=1 && c.stage<=6; });
       if(cs.some(function(c){ return ageD(c)<STALE_D; })) return;                       /* đang được cập nhật ⇒ ổn */
       cs.sort(function(a,b){ return String(b.at).localeCompare(String(a.at)); });
@@ -1666,7 +1779,7 @@ var FU=(function(){
       o.slice(0,10).map(function(w){ WL.push(w); return warnItem(w, WL.length-1); }).join("")+(o.length>10?'<div class="cap" style="margin-top:6px">Xem đủ ở Kết quả thầu ▸ tab Thầu lại.</div>':'')+'</details>';
     return html;
   }
-  function sum(){ return [S.who==="me"?"Của tôi":"Mọi PIC", {open:"Đang theo dõi",won:"Đã trúng",lost:"Trượt / dừng",all:"Tất cả"}[S.stf]]; }
+  function sum(){ return [{open:"Đang theo dõi",won:"Đã trúng",lost:"Trượt / dừng",all:"Tất cả"}[S.stf]]; }
   function legend(){
     var stl=TEND.map(function(k){ return '<span><i style="background:'+mix(SC[k],.8)+'"></i>'+k+'. '+SH[k]+'</span>'; }).join("");
     var stp=PRIV.map(function(k){ return '<span><i style="background:'+mix(SC[k],.8)+'"></i>'+(k-10)+'. '+SH[k]+'</span>'; }).join("");
@@ -1730,20 +1843,20 @@ var FU=(function(){
   }
   function hospHtml(h){
     var a=auth(), f=h.f||{id:""};
-    var cs=a ? byFac(f) : [];
-    var html='<h3>Theo dõi thầu'+(cs.length?' · '+cs.length+' gói':'')+(a?' · <button class="lnk" type="button" data-fu-new="'+esc(h.key)+'">+ Thêm gói theo dõi</button>':'')+'</h3>';
-    if(a){ var wf=warns().filter(function(w){ return w.p.h===h; }); if(wf.length){ WL=wf.slice(); html+='<div class="wbox"><h3>'+ICW+'Cần chú ý</h3>'+wf.map(function(w,i){ return warnItem(w,i); }).join("")+'</div>'; } }
+    var cs=a ? byFac(f) : [], pv=isPriv(f);
+    var html='<h3>'+(pv?'Theo dõi mua sắm · hợp đồng mua sắm':'Theo dõi thầu')+(cs.length?' · '+cs.length+(pv?' cơ hội':' gói'):'')+(a?' · <button class="lnk" type="button" data-fu-new="'+esc(h.key)+'">'+(pv?'+ Thêm cơ hội mua sắm':'+ Thêm gói theo dõi')+'</button>':'')+'</h3>';
+    if(a && !pv){ var wf=warns().filter(function(w){ return w.p.h===h; }); if(wf.length){ WL=wf.slice(); html+='<div class="wbox"><h3>'+ICW+'Cần chú ý</h3>'+wf.map(function(w,i){ return warnItem(w,i); }).join("")+'</div>'; } }
     if(!a) return html+((lg.open || F.view==="fu") ? loginHtml(true) : '<div class="note">Gói theo dõi ở cơ sở này chỉ hiện với tài khoản email công ty (@manimedicalhanoi.com, @mani.inc). <button class="lnk" type="button" data-lg="open">Đăng nhập</button></div>');
     if(S.loading && !S.loaded) html+='<div class="empty">Đang đọc dữ liệu theo dõi thầu…</div>';
     if(S.err) html+='<div class="note err">'+esc(S.err)+'</div>';
-    if(!cs.length) return html+'<div class="empty">Chưa có gói nào đang theo dõi ở cơ sở này.</div>';
+    if(!cs.length) return html+'<div class="empty">'+(pv?'Chưa có cơ hội mua sắm nào đang theo dõi ở cơ sở tư nhân này (Giới thiệu → Demo → Đề xuất từ chuyên môn → Ký hợp đồng mua sắm → Sử dụng hàng).':'Chưa có gói nào đang theo dõi ở cơ sở này.')+'</div>';
     return html+cs.slice().sort(function(x,y){ return (x.stage>=7)-(y.stage>=7) || String(y.at).localeCompare(String(x.at)); }).map(function(c){ return caseHtml(c,true); }).join("");
   }
   function side(){
     if(F.view!=="fu") { if(selH) renderHosp(); else if(F.view==="act") ACT.side(); return; }
     if(selH && sel===selH.ni) return renderHosp();
     var t=document.getElementById("sh-t"), sub=document.getElementById("sh-s"), a=auth();
-    t.textContent = sel<0 ? "Theo dõi thầu · toàn quốc" : "Theo dõi thầu · "+NEW[sel][0];
+    t.textContent = "Theo dõi thầu · "+(sel>=0 ? NEW[sel][0] : SCOPE.place());
     sub.textContent = "Gói thầu dao / chỉ khâu đang theo dõi theo địa bàn"+(S.at?" · đọc lúc "+S.at:"");
     if(!a){ SB.innerHTML=loginHtml(false)+'<div class="note">Mỗi lần cập nhật được lưu thành 1 dòng mới (giữ đủ lịch sử từng giai đoạn) trong sheet ẩn "FOLLOW UP TENDER" của file CRM Surgical.</div>'; return; }
     var all=cases(), inProv=function(c){ return sel<0 || c.f.ni===sel; };
@@ -1751,13 +1864,13 @@ var FU=(function(){
     var html=(S.err?'<div class="note err">'+esc(S.err)+'</div>':'')+(S.loading&&!S.loaded?'<div class="note">Đang đọc dữ liệu theo dõi thầu…</div>':'');
     var fac={}, dao=0, chi=0, wk=0, t7=Date.now()-7*864e5;
     list.forEach(function(c){ fac[c.f.id]=1; dao+=qtyOf(c,"dao"); chi+=qtyOf(c,"chi"); });
-    all.forEach(function(c){ if(!inProv(c)) return; c.revs.forEach(function(r){ var d=Date.parse(String(r.at).replace(" ","T")); if(d>t7 && (S.who!=="me"||String(r.pic).toLowerCase()===String(a.user.pic).toLowerCase())) wk++; }); });
+    all.forEach(function(c){ if(!inProv(c) || !pass(c,true)) return; c.revs.forEach(function(r){ var d=Date.parse(String(r.at).replace(" ","T")); if(d>t7) wk++; }); });
     html+=warnHtml(sel);
     html+='<div class="kpis"><div class="kpi"><b>'+list.length+'</b><span>Gói '+({open:"đang theo dõi",won:"đã trúng",lost:"trượt / dừng",all:"(mọi trạng thái)"}[S.stf])+'</span></div>'+
       '<div class="kpi"><b>'+Object.keys(fac).length+'</b><span>Cơ sở y tế</span></div><div class="kpi"><b>'+wk+'</b><span>Lần cập nhật 7 ngày qua</span></div>'+
       '<div class="kpi"><b>'+nfmt(dao)+'</b><span>Dao ước tính (cái)</span></div><div class="kpi"><b>'+nfmt(chi)+'</b><span>Chỉ khâu ước tính (sợi)</span></div>'+
       '<div class="kpi"><button class="btn pri sm" type="button" data-fu-new="'+(sel>=0?"P|"+sel:"")+'" style="width:100%">+ Thêm gói</button></div></div>';
-    var withRes=all.filter(function(c){ return inProv(c) && (S.who!=="me"||mine(c)) && matchRes(c); });
+    var withRes=all.filter(function(c){ return inProv(c) && pass(c,true) && matchRes(c); });
     if(withRes.length) html+='<h3>Đã có kết quả thầu — cần cập nhật · '+withRes.length+'</h3><div class="exp">'+withRes.slice(0,10).map(function(c){ var r=matchRes(c);
       return '<div class="it" data-fh="'+esc(hospOf(c.f).key)+'" role="button" tabindex="0"><span class="a">'+esc(c.f.name)+'</span><span class="st '+(r.mani?"ok":"bad")+'">'+(r.mani?"MANI trúng":"Hãng khác trúng")+'</span><span class="b">'+esc(c.last.pkg||c.id)+' · '+esc(c.pic)+'</span><span class="b">'+esc(resTxt(r))+'</span></div>'; }).join("")+'</div>';
     var cnt={}; base.forEach(function(c){ cnt[c.stage]=(cnt[c.stage]||0)+1; });
@@ -1970,7 +2083,8 @@ var FU=(function(){
   setTimeout(obRun, 1500);
   setInterval(function(){ if(F.view==="fu" && auth() && !S.loading && document.visibilityState==="visible") load(); }, 5*60000);
   function ensure(){ if(auth() && !S.loaded && !S.loading) load(); }
-  return { ST:ST, SC:SC, sum:sum, tk:tk, loginHtml:loginHtml, onLogin:function(fn){ ONL.push(fn); }, isPriv:isPriv, pcol:pcol, warns:warns, warnCount:warnCount, ensure:ensure, load:load, filters:filters, stats:stats, col:col, legend:legend, tipP:tipP, tipH:tipH, side:side, hospHtml:hospHtml,
+  function lgAct(k){ if(k==="send") lgSend(); else if(k==="resend") lgSend(true); else if(k==="verify") lgVerify(); else if(k==="back"){ lg.step="email"; lg.err=""; lgUi(); } }
+  return { ST:ST, SC:SC, sum:sum, tk:tk, loginHtml:loginHtml, lgAct:lgAct, lgStep:function(){ return lg.step; }, onLogin:function(fn){ ONL.push(fn); }, isPriv:isPriv, mine:mine, pcol:pcol, warns:warns, warnCount:warnCount, ensure:ensure, load:load, filters:filters, stats:stats, col:col, legend:legend, tipP:tipP, tipH:tipH, side:side, hospHtml:hospHtml,
            byFac:byFac, open:open, inval:inval, cases:cases, auth:auth, color:FUCOL, _S:S, _OB:function(){ return OB; } };
 })();
 
@@ -2065,7 +2179,7 @@ var ACT=(function(){
   var SRC={ ghim:"đã ghim trên bản đồ", danhmuc:"cơ sở trong danh mục (toạ độ OpenStreetMap)", gps:"GPS ảnh viếng thăm", diachi:"phường / quận trong địa chỉ", tinh:"tâm tỉnh (chưa rõ vị trí)" };
   var S={ loaded:false, loading:false, err:"", d:null, pic:"all", per:"", type:"visit", st:"done", q:"", logs:{}, logBusy:{}, pick:null, at:"", open:"" };
   var A=[], R=[], BYF={};
-  try{ S.per=localStorage.getItem("tm_act_per")||""; S.pic=localStorage.getItem("tm_act_pic")||"all"; S.type=localStorage.getItem("tm_act_type")||"visit"; S.st=localStorage.getItem("tm_act_st")||"done"; }catch(_){}
+  try{ S.per=localStorage.getItem("tm_act_per")||""; S.type=localStorage.getItem("tm_act_type")||"visit"; S.st=localStorage.getItem("tm_act_st")||"done"; }catch(_){}
   function lsSet(k,v){ try{ localStorage.setItem(k,v); }catch(_){} }
   function auth(){ return FU.auth(); }
   function load(){
@@ -2080,7 +2194,7 @@ var ACT=(function(){
     },function(e){ S.loading=false; S.err="Không kết nối được CRM Surgical ("+e.message+")."; if(F.view==="act") refresh(); });
   }
   function ensure(){ if(auth() && !S.loaded && !S.loading) load(); }
-  function picCol(n){ var i=(S.d?S.d.pics:[]).indexOf(n); return PCOL[(i<0?0:i)%PCOL.length]; }
+  function picCol(n){ for(var t=0;t<TERR.length;t++) if(TERR[t].pic===n) return TERR[t].col; var i=(S.d?S.d.pics:[]).indexOf(n); return PCOL[(i<0?0:i)%PCOL.length]; }
   function isVisit(act){ return /^visit/i.test(act||""); }
   /* tên chuẩn: người dùng sửa (sheet) / bảng VM_STD ⇒ chuẩn hoá tự động (mở viết tắt, viết hoa đầu từ) */
   var ABBR=[[/^bvđk\s*/i,"Bệnh viện Đa khoa "],[/^bvdk\s*/i,"Bệnh viện Đa khoa "],[/^bvm\s+/i,"Bệnh viện Mắt "],[/^bv\.?\s*/i,"Bệnh viện "],[/^pkđk\s*/i,"Phòng khám Đa khoa "],[/^pkdk\s*/i,"Phòng khám Đa khoa "],
@@ -2131,9 +2245,9 @@ var ACT=(function(){
       a.disp=nameOf(a); locate(a); A.push(a);
       /* cơ sở tư nhân từ CRM (chưa có trong danh mục công lập) ⇒ thêm vào danh mục: tìm được ở ô tìm, theo dõi mua sắm (Giới thiệu → Demo → Đề xuất → Ký HĐ → Sử dụng hàng) */
       /* công lập / tư nhân: theo bảng tên chuẩn của backend (VM_STD: cl · tn · npp); khách mới chưa có trong bảng ⇒ đoán theo danh mục / tên */
-      a.pub = a.kind ? a.kind==="cl" : (!!(a.f && a.f.src!=="crm") || PUB.test(a.disp));
-      /* danh mục cơ sở (OSM) có cả bệnh viện tư (Mắt Sài Gòn, Cao Thắng…) ⇒ khách tư nhân khớp cơ sở danh mục thì đánh dấu cơ sở đó là tư nhân */
-      if(a.f && a.f.src!=="crm" && a.kind==="tn") a.f.pv=1;
+      a.pub = a.kind ? a.kind==="cl" : (a.f && a.f.src!=="crm") ? !a.f.pv : PUB.test(a.disp);
+      /* bảng tên chuẩn CRM (VM_STD, đã soát tay) ưu tiên hơn cột own của danh mục: khách tư nhân ⇒ cơ sở khớp là tư nhân, khách công lập ⇒ công lập */
+      if(a.f && a.f.src!=="crm" && (a.kind==="tn" || a.kind==="cl")) a.f.pv = a.kind==="tn" ? 1 : 0;
       if(a.code && a.ni!=null && !a.f && a.kind!=="npp" && !NOTFAC.test(a.type+" "+a.disp)){
         a.f=facAdd({ id:"C:"+a.code, name:a.disp, t:a.pub?"bv":"tn", sp:"", lv:a.pub?"":"Tư nhân", ni:a.ni, oi:a.oi, addr:a.addr, ll:a.ll, src:"crm", alias:a.disp!==a.name?[a.name]:[], h:null, acc:a });
       }
@@ -2169,31 +2283,28 @@ var ACT=(function(){
     var c=fyStartK(FY_NOW); return [c, addK(c,11)];
   }
   function perLabel(){ var o=perList().filter(function(x){ return x[0]===S.per; })[0]; return o ? o[1].replace(/^\s+/,"") : "FY"+FY_NOW; }
-  function picLabel(){ return S.pic==="all" ? "cả nhóm" : S.pic; }
+  function cp(){ return SCOPE.pic()||"all"; }
+  function picLabel(){ return cp()==="all" ? "cả nhóm" : cp(); }
   function typeLabel(){ return S.type==="visit" ? "viếng thăm" : "mọi việc khách hàng"; }
   function rowsF(noPer){
     var rg=range();
     return R.filter(function(r){
       if(!noPer && (r.k<rg[0] || r.k>rg[1])) return false;
-      if(S.pic!=="all" && r.pic!==S.pic) return false;
+      if(cp()!=="all" && r.pic!==cp()) return false;
       if(S.type==="visit" && !r.visit) return false;
       if(S.st==="done" && !r.done) return false;
-      return !!r.a;
+      return !!r.a && (F.own==="all" || ownOk(!r.a.pub));
     });
   }
 
   /* ── thanh trên (chỉ hiện ở chế độ Hoạt động) ── */
   function filters(){
     var on=F.view==="act";
-    ["va-per","va-pic","va-type"].forEach(function(id){ var e=document.getElementById(id); if(e) e.hidden=!on; });
+    ["va-per","va-type"].forEach(function(id){ var e=document.getElementById(id); if(e) e.hidden=!on; });
     if(!on) return;
     var ps=document.getElementById("va-per"); if(!S.per) S.per="fy"+FY_NOW;
     ps.innerHTML=perList().map(function(o){ return '<option value="'+o[0]+'"'+(o[0]===S.per?" selected":"")+'>'+o[1]+'</option>'; }).join("");
     ps.onchange=function(){ S.per=ps.value; lsSet("tm_act_per",S.per); renderFilters(); refresh(); };
-    var pics=["all"].concat(S.d?S.d.pics.filter(function(p){ return p && p!=="—"; }):[]);
-    var pe=document.getElementById("va-pic");
-    pe.innerHTML=pics.map(function(p){ var on2=S.pic===p; return '<button type="button" data-v="'+esc(p)+'" class="'+(on2?"on":"")+'" aria-pressed="'+on2+'">'+(p==="all"?"Cả nhóm":'<i class="dot" style="background:'+picCol(p)+';margin-right:5px"></i>'+esc(p))+'</button>'; }).join("");
-    pe.onclick=function(e){ var b=e.target.closest("button"); if(!b) return; S.pic=b.dataset.v; lsSet("tm_act_pic",S.pic); renderFilters(); refresh(); };
     var te=document.getElementById("va-type");
     te.innerHTML=[["visit","Viếng thăm"],["all","Mọi việc"]].map(function(x){ return '<button type="button" data-t="'+x[0]+'" class="'+(S.type===x[0]?"on":"")+'">'+x[1]+'</button>'; }).join("")+
       [["done","Đã làm"],["all","Cả kế hoạch"]].map(function(x,i){ return '<button type="button" data-s="'+x[0]+'" class="'+(S.st===x[0]?"on":"")+'"'+(i===0?' style="border-left:2px solid var(--line2)"':'')+'>'+x[1]+'</button>'; }).join("");
@@ -2209,13 +2320,13 @@ var ACT=(function(){
     if(!S.loaded || !auth()) return;
     rowsF().forEach(function(r){ var a=r.a; if(a.ni==null || !a.h) return; var s=STAT[a.ni], x=hs(a);
       s.n++; s.v++; s.hosp[a.h.key]=1; s.pc[r.pic]=(s.pc[r.pic]||0)+1; x.n++; x.v++; x.pc[r.pic]=(x.pc[r.pic]||0)+1; if(r.d>x.lastD) x.lastD=r.d; });
-    A.forEach(function(a){ if(!a.code || a.ni==null || !a.h || (S.pic!=="all" && a.pic!==S.pic)) return; STAT[a.ni].acc++; hs(a); });   /* khách chưa gặp ⇒ chấm xám */
+    A.forEach(function(a){ if(!a.code || a.ni==null || !a.h || (cp()!=="all" && a.pic!==cp()) || !ownOk(!a.pub)) return; STAT[a.ni].acc++; hs(a); });   /* khách chưa gặp ⇒ chấm xám */
   }
   function domPic(pc){ var b="", n=-1; for(var k in pc) if(pc[k]>n){ n=pc[k]; b=k; } return b; }
   function col(x){ return x.v ? picCol(domPic(x.pc)) : GREY; }
   function legend(){
     var ramp='<span class="ramp">'+[0.3,0.48,0.66,0.84,0.95].map(function(t){ return '<i style="background:'+mix(ACOL,t)+'"></i>'; }).join("")+'</span>';
-    var pics=(S.d?S.d.pics:[]).filter(function(p){ return p && p!=="—"; });
+    var pics=(S.d?S.d.pics:[]).filter(function(p){ return p && p!=="—" && (cp()==="all" || p===cp()); });
     return '<div class="row">'+ramp+' Lượt '+typeLabel()+' theo tỉnh</div><div class="row" style="color:var(--t3)">Đậm hơn = nhiều lượt hơn · số = số lượt</div>'+
       '<div class="row stl">'+pics.map(function(p){ return '<span><i style="background:'+picCol(p)+';border-radius:50%"></i>'+esc(p)+'</span>'; }).join("")+'</div>'+
       '<div class="row"><svg width="18" height="18" aria-hidden="true"><circle cx="9" cy="9" r="4" fill="'+GREY+'" stroke="#fff"/></svg> Khách trong danh sách chưa gặp trong kỳ</div>'+
@@ -2249,23 +2360,23 @@ var ACT=(function(){
   function days(a,b){ return Math.round((new Date(b+"T00:00:00")-new Date(a+"T00:00:00"))/864e5); }
   function side(){
     var t=document.getElementById("sh-t"), sub=document.getElementById("sh-s");
-    t.textContent = sel<0 ? "Hoạt động Sales · toàn quốc" : "Hoạt động Sales · "+NEW[sel][0];
+    t.textContent = "Hoạt động Sales · "+(sel>=0 ? NEW[sel][0] : SCOPE.place());
     sub.textContent = perLabel()+" · "+picLabel()+" · lượt "+typeLabel()+(S.st==="done"?" đã thực hiện":" (cả kế hoạch)")+" · CRM Surgical"+(S.at?" · đọc lúc "+S.at:"");
     if(!auth()){ SB.innerHTML=FU.loginHtml(false)+'<div class="note">Bản đồ hoạt động đọc thẳng CRM Surgical (Customer visiting của Viet Ha, Khang…) — chỉ tài khoản email công ty xem được.</div>'; return; }
     if(!S.loaded){ ensure(); SB.innerHTML=S.err?'<div class="note err">'+esc(S.err)+' <button class="lnk" type="button" data-act-reload="1">Thử lại</button></div>':'<div class="empty">Đang đọc dữ liệu hoạt động từ CRM Surgical…</div>'; return; }
     var rg=range(), L=rowsF().filter(function(r){ return sel<0 || r.a.ni===sel; }), html=S.err?'<div class="note err">'+esc(S.err)+'</div>':'';
-    var accs=A.filter(function(a){ return a.code && a.ni!=null && (S.pic==="all"||a.pic===S.pic) && (sel<0||a.ni===sel); });
+    var accs=A.filter(function(a){ return a.code && a.ni!=null && (cp()==="all"||a.pic===cp()) && ownOk(!a.pub) && (sel<0||a.ni===sel); });
     var met={}, prov={}, ph=0, vis=0; L.forEach(function(r){ met[r.a.h?r.a.h.key:r.a.i]=1; prov[r.a.ni]=1; if(r.visit){ vis++; if(r.photo) ph++; } });
     var nMet=accs.filter(function(a){ return met[a.h.key]; }).length;
     html+='<div class="kpis"><div class="kpi"><b>'+L.length+'</b><span>Lượt '+typeLabel()+'</span></div>'+
       '<div class="kpi"><b>'+nMet+'<span style="font-size:13px;color:var(--t3)">/'+accs.length+'</span></b><span>Khách trong danh sách được gặp ('+(accs.length?Math.round(nMet/accs.length*100):0)+'%)</span></div>'+
       (sel<0?'<div class="kpi"><b>'+Object.keys(prov).length+'</b><span>Tỉnh / thành có hoạt động</span></div>':'<div class="kpi"><b>'+Object.keys(met).length+'</b><span>Khách được gặp (cả ngoài danh sách)</span></div>')+
       '<div class="kpi"><b>'+(vis?Math.round(ph/vis*100):0)+'%</b><span>Lượt viếng thăm có ảnh</span></div></div>';
-    var pics=(S.d.pics||[]).filter(function(p){ return p && p!=="—"; });
+    var pics=(S.d.pics||[]).filter(function(p){ return p && p!=="—" && (cp()==="all" || p===cp()); });
     html+='<h3>Theo PIC</h3><table class="tb2"><thead><tr><th>PIC</th><th class="r">Lượt</th><th class="r">Khách</th><th class="r">Tỉnh</th><th class="r">Có ảnh</th></tr></thead><tbody>'+pics.map(function(p){
-      var Lp=L.filter(function(r){ return r.pic===p; }); if(!Lp.length && S.pic!=="all") return "";
+      var Lp=L.filter(function(r){ return r.pic===p; }); if(!Lp.length && cp()!=="all") return "";
       var mk={}, pv={}, v2=0, p2=0; Lp.forEach(function(r){ mk[r.a.i]=1; pv[r.a.ni]=1; if(r.visit){ v2++; if(r.photo) p2++; } });
-      return '<tr class="click'+(S.pic===p?" m":"")+'" data-act-pic="'+esc(p)+'"><td><i class="dot" style="background:'+picCol(p)+'"></i> '+esc(p)+'</td><td class="r">'+Lp.length+'</td><td class="r">'+Object.keys(mk).length+'</td><td class="r">'+Object.keys(pv).length+'</td><td class="r">'+(v2?Math.round(p2/v2*100)+'%':'—')+'</td></tr>'; }).join("")+'</tbody></table>';
+      return '<tr class="'+(SCOPE.locked()?"":"click")+(cp()===p?" m":"")+'" data-act-pic="'+esc(p)+'"><td><i class="dot" style="background:'+picCol(p)+'"></i> '+esc(p)+'</td><td class="r">'+Lp.length+'</td><td class="r">'+Object.keys(mk).length+'</td><td class="r">'+Object.keys(pv).length+'</td><td class="r">'+(v2?Math.round(p2/v2*100)+'%':'—')+'</td></tr>'; }).join("")+'</tbody></table>';
     html+='<h3>Lượt theo '+(rg[0]===rg[1]?"tuần":"tháng")+'</h3>'+chart(L, rg)+'<div style="display:flex;gap:14px;flex-wrap:wrap">'+pics.map(function(p){ return '<span class="npp"><i class="dot" style="background:'+picCol(p)+'"></i>'+esc(p)+'</span>'; }).join("")+'</div>';
     if(sel>=0){
       html+='<h3>Khách hàng ở '+esc(NEW[sel][0])+' · '+accs.length+'</h3><input class="search" id="act-q" type="search" placeholder="Lọc theo tên khách, PIC…" value="'+esc(S.q)+'" aria-label="Lọc khách hàng"><div id="act-list">'+accList(accs, met)+'</div>';
@@ -2281,7 +2392,7 @@ var ACT=(function(){
     var rec=L.filter(function(r){ return r.d<=NOW; }).slice(-15).reverse();
     html+='<h3>Gần đây</h3>'+(rec.length?'<div class="feed">'+rec.map(function(r){
       return '<div class="it" data-h="'+esc(r.a.h?r.a.h.key:"")+'" role="button" tabindex="0"><span class="a">'+esc(r.a.name)+'</span><span><span class="st '+(r.done?"ok":"mute")+'">'+esc(r.st||"—")+'</span></span><span class="b"><i class="dot" style="background:'+picCol(r.pic)+'"></i> '+d2(r.d)+' · '+esc(r.pic)+' · '+esc(r.act)+(r.a.ni!=null?' · '+esc(NEW[r.a.ni][0]):'')+(r.photo?' · có ảnh':'')+'</span></div>'; }).join("")+'</div>':'<div class="empty">Chưa có lượt nào.</div>');
-    var unl=A.filter(function(a){ return a.ni==null && (S.pic==="all"||a.pic===S.pic); }).length;
+    var unl=A.filter(function(a){ return a.ni==null && (cp()==="all"||a.pic===cp()); }).length;
     if(unl && sel<0) html+='<div class="note">'+unl+' khách chưa xác định được tỉnh (cột Province trống / lạ trong 1. CUSTOMER CODE) — chưa hiện trên bản đồ.</div>';
     SB.innerHTML=html;
     var q=document.getElementById("act-q"); if(q) q.oninput=function(){ S.q=q.value; document.getElementById("act-list").innerHTML=accList(accs, met); };
@@ -2380,7 +2491,7 @@ var ACT=(function(){
     var b=e.target.closest("[data-act-pick],[data-act-unpin],[data-act-tender],[data-act-pic],[data-act-reload],[data-act-std],[data-act-stdo],[data-act-fu]"); if(!b) return;
     var a=selH && selH.acc;
     if(b.dataset.actReload){ S.err=""; load(); side(); return; }
-    if(b.dataset.actPic){ S.pic = S.pic===b.dataset.actPic ? "all" : b.dataset.actPic; lsSet("tm_act_pic",S.pic); renderFilters(); refresh(); return; }
+    if(b.dataset.actPic){ if(!SCOPE.locked()) SCOPE.set(cp()===b.dataset.actPic ? "" : b.dataset.actPic); return; }
     if(!a) return;
     if(b.dataset.actPick){ S.pick = b.dataset.actPick==="1" ? a : null; document.getElementById("map").classList.toggle("pickm", !!S.pick); if(S.pick && MQ.matches) SHEET.to("peek"); accHtml(selH); return; }
     if(b.dataset.actUnpin){ saveLoc(a, null, { op:"clear" }); return; }
@@ -2548,7 +2659,8 @@ var TOUR=(function(){
       mob ? null : {el:"#f-period", t:"Kỳ và chỉ số", x:"Chọn FY / quý và thống kê theo Giá trị hoặc Số lượng — áp cho mọi số liệu trên trang."},
       {el:"#f-more", t:"Bộ lọc", x: mob ? "Chế độ xem (Kết quả thầu / Theo dõi thầu), kỳ FY / quý, Giá trị / Số lượng, nguồn, hãng, loại sản phẩm và tô màu theo thị phần MANI đều ở đây."
         : "Nguồn (Hùng Vĩ · iCare · KQTT thị trường), hãng, loại sản phẩm, gói trúng / mọi gói, tô màu theo thị phần MANI. Bộ lọc đang bật hiện thành nhãn dưới thanh này — bấm × để bỏ."},
-      mob ? null : {el:"#f-view", t:"Theo dõi thầu", x:"Ghi tiến độ gói đang chạy: giới thiệu → lên danh mục → báo giá → HSMT → kết quả. Chỉ tài khoản email công ty (@manimedicalhanoi.com, @mani.inc) mới xem được."},
+      mob ? null : {el:"#f-view", t:"3 chế độ xem", x:"Kết quả thầu (gói trúng của NPP + KQTT) · Theo dõi thầu (công lập theo giai đoạn thầu, tư nhân theo hợp đồng mua sắm) · Hoạt động (lịch sử chăm sóc khách hàng từ CRM Surgical)."},
+      mob ? null : {el:"#f-pic", t:"Địa bàn", x: SCOPE.locked() ? "Bạn đang xem địa bàn phụ trách của mình ("+SCOPE.place()+"): bản đồ, gói thầu, theo dõi và hoạt động chỉ trong địa bàn này." : "Cả nhóm · Viet Ha (miền Bắc → Đà Nẵng) · Khang (Quảng Ngãi → miền Nam): chọn 1 PIC để chỉ xem địa bàn và hoạt động của PIC đó."},
       {el:".side", t:"Bảng chi tiết", x: mob ? "Kéo thanh trên cùng của bảng lên / xuống (hoặc bấm vào) để xem thêm: sản phẩm trúng, bệnh viện dẫn đầu, hợp đồng sắp hết hạn."
         : "Số liệu theo bộ lọc: sản phẩm trúng, bệnh viện dẫn đầu (▲▼ so với kỳ trước, + Theo dõi), hãng trúng, hợp đồng sắp hết hạn."},
       {el:".stabs", t:"Phân tích", x:"Thầu lại: hợp đồng MANI / hãng khác sắp hết hạn, mời thầu dự kiến, tạo gói theo dõi điền sẵn. Giá trúng: MANI so với hãng khác, cơ sở chuyển hãng. Hiệu quả NPP: tỉ lệ trúng theo quý, tỉnh. Dự báo: lượng dao / chỉ khâu mỗi tháng từ hợp đồng còn hiệu lực."},
@@ -2581,7 +2693,7 @@ var TOUR=(function(){
   }
   function start(){ FD.close(); L=steps(); if(!L.length) return; i=0; build(); show(); }
   function end(silent){ if(root){ root.remove(); root=null; } if(!silent){ try{ localStorage.setItem(K,"1"); }catch(_){} } }
-  function auto(){ var seen=null; try{ seen=localStorage.getItem(K); }catch(_){} if(!seen) setTimeout(function(){ if(!root && document.getElementById("fudlg").hidden) start(); }, 900); }
+  function auto(){ var seen=null; try{ seen=localStorage.getItem(K); }catch(_){} if(!seen) setTimeout(function(){ if(!root && document.getElementById("fudlg").hidden && !((typeof GATE!=="undefined"&&GATE) && GATE.on())) start(); }, 900); }
   window.addEventListener("resize",function(){ if(root) show(); });
   window.addEventListener("keydown",function(e){ if(!root) return; if(e.key==="Escape"){ end(); e.stopImmediatePropagation(); } else if(e.key==="ArrowRight"){ if(i<L.length-1){ i++; show(); } } else if(e.key==="ArrowLeft"){ if(i>0){ i--; show(); } } }, true);
   return { start:start, auto:auto, end:end, on:function(){ return !!root; } };
@@ -2598,6 +2710,44 @@ try{
   if(c && c.RAW){ RAW.HUNGVI=c.RAW.HUNGVI||null; RAW.ICARE=c.RAW.ICARE||null; RAW.KQTT=c.RAW.KQTT||null; META.HUNGVI=c.META.HUNGVI; META.ICARE=c.META.ICARE; META.KQTT=c.META.KQTT||null; META.cached=c.at; document.getElementById("load").style.display="none"; }
 }catch(_){}
 rebuild();
+/* ═════════ MÀN HÌNH ĐĂNG NHẬP (người dùng 05/11/2026: đăng nhập ngay khi mở app) ═════════
+   Chưa có phiên email công ty ⇒ phủ toàn trang: ảnh bản đồ minh hoạ (tô theo địa bàn 2 PIC, chấm bệnh viện công / tư, vòng cảnh báo)
+   + 3 tính năng + ô email / mã 6 số (FU.loginHtml("gate"), Training Hub rhAuthStart / rhAuthVerify).
+   Phiên dùng chung Report Hub / CRM (localStorage.mmh_tk) ⇒ đã đăng nhập ở đó thì vào thẳng. Phiên hết hạn / đăng xuất ⇒ hiện lại. */
+var GATE=(function(){
+  var el=document.getElementById("gate"), on=false;
+  function art(){
+    var g=document.getElementById("gate-map"); if(!g || g.dataset.done==="1" || !PROV.length) return;
+    var x0=px(102.05), x1=px(109.8), y0=py(23.45), y1=py(8.35), h='';
+    g.setAttribute("viewBox", x0.toFixed(1)+" "+y0.toFixed(1)+" "+(x1-x0).toFixed(1)+" "+(y1-y0).toFixed(1));
+    PROV.forEach(function(P,i){ if(!P) return; var t=TERR[0].ni[i]?TERR[0]:TERR[1], k=[0.2,0.32,0.44,0.27,0.38][(i*7)%5];
+      h+='<path d="'+P.el.getAttribute("d")+'" fill="'+mix(t===TERR[0]?"#0E7490":"#2F68B3",k)+'" stroke="#fff" stroke-width="0.7" vector-effect="non-scaling-stroke"/>'; });
+    var u=(x1-x0)/420, eye=FAC.filter(function(f){ return f.ll && f.sp==="mat"; });
+    eye.forEach(function(f,i){ if(i%2) return; var cx=px(f.ll[0]), cy=py(f.ll[1]), pv=isPv(f);
+      h+='<circle cx="'+cx.toFixed(1)+'" cy="'+cy.toFixed(1)+'" r="'+(5*u).toFixed(2)+'" fill="#fff" stroke="'+(pv?PVCOL:"#003047")+'" stroke-width="'+(1.8*u).toFixed(2)+'"/>'; });
+    [["Hà Nội",14],["Nghệ An",6],["Đà Nẵng",5],["Hồ Chí Minh",18],["Cần Thơ",7]].forEach(function(o,j){
+      var i=NEWIDX[nk(o[0])], P=PROV[i]; if(!P || !P.info.c) return; var c=P.info.c, r=13*u;
+      if(j===1||j===4) h+='<circle class="gpl" cx="'+c[0].toFixed(1)+'" cy="'+c[1].toFixed(1)+'" r="'+(r*1.15).toFixed(2)+'" fill="none" stroke="#FF1F5A" stroke-width="'+(2.6*u).toFixed(2)+'"/>';
+      h+='<circle cx="'+c[0].toFixed(1)+'" cy="'+c[1].toFixed(1)+'" r="'+r.toFixed(2)+'" fill="#fff" stroke="#003047" stroke-width="'+(2*u).toFixed(2)+'"/>'+
+         '<text x="'+c[0].toFixed(1)+'" y="'+(c[1]+4.2*u).toFixed(1)+'" text-anchor="middle" font-size="'+(12*u).toFixed(2)+'" font-weight="700" fill="#003047">'+o[1]+'</text>'; });
+    g.innerHTML=h; g.dataset.done="1";
+  }
+  function paint(){
+    if(!on) return;
+    var f=document.getElementById("gate-f"); if(!f) return;
+    var ae=document.activeElement, keep=ae && f.contains(ae) ? ae.id : "";
+    f.innerHTML=FU.loginHtml("gate");
+    var nx=document.getElementById(FU.lgStep()==="email" ? "lg-email" : "lg-code");
+    if(nx && (keep || !ae || ae===document.body)) nx.focus();
+  }
+  function show(){ on=true; el.hidden=false; document.body.classList.add("gated"); art(); paint(); }
+  function hide(){ if(!on) return; on=false; el.hidden=true; document.body.classList.remove("gated"); }
+  function check(){ if(FU.auth()) hide(); else show(); }
+  el.addEventListener("click",function(e){ var b=e.target.closest("[data-lg]"); if(!b) return; e.preventDefault(); FU.lgAct(b.dataset.lg); });
+  el.addEventListener("keydown",function(e){ if(e.key!=="Enter") return; var t=e.target; if(t.id==="lg-email"){ e.preventDefault(); FU.lgAct("send"); } else if(t.id==="lg-code"){ e.preventDefault(); FU.lgAct("verify"); } });
+  FU.onLogin(function(){ hide(); ACT.ensure(); SCOPE.apply(); TOUR.auto(); });
+  return { show:show, hide:hide, check:check, paint:paint, art:art, on:function(){ return on; } };
+})();
 /* ô tìm cơ sở y tế (Ctrl/⌘ + K) */
 (function(){
   var qi=document.getElementById("qs");
@@ -2605,6 +2755,8 @@ rebuild();
   window.addEventListener("keydown",function(e){ if((e.ctrlKey||e.metaKey) && (e.key==="k"||e.key==="K")){ e.preventDefault(); qi.focus(); qi.select(); } });
 })();
 FU.filters();
+GATE.check();
+if(FU.auth() && SCOPE.terr()){ VB0=homeBox(); setVB(VB0); crumbSet(); renderFilters(); refresh(); }   /* đã có phiên: mở thẳng khung địa bàn */
 if(F.view==="fu" || FU.auth()) FU.ensure();
 if(F.view==="act" || FU.auth()) ACT.ensure();
 load().then(function(){
@@ -2652,6 +2804,6 @@ document.getElementById("reload").onclick=function(){ load(true); if(FU.auth()) 
   setInterval(function(){ tick(false); }, 60000);
   document.addEventListener("visibilitychange",function(){ if(document.visibilityState==="visible" && Date.now()-last>2*60000) tick(true); });
 })();
-window.WINMAP={ act:ACT, tour:TOUR, sheet:SHEET, filters:FD, xp:XP, re:function(){ return reList(); }, fc:function(){ return fcData(); }, sw:function(){ return switchList(); }, setF:function(o){ for(var k in o){ if(k==="type") setType(o[k]); else if(k==="period") setPeriod(o[k]); else F[k]=o[k]; } renderFilters(); refresh(); }, stat:function(i){ return STAT[i]; },
+window.WINMAP={ act:ACT, tour:TOUR, scope:SCOPE, gate:GATE, sheet:SHEET, filters:FD, xp:XP, re:function(){ return reList(); }, fc:function(){ return fcData(); }, sw:function(){ return switchList(); }, setF:function(o){ for(var k in o){ if(k==="type") setType(o[k]); else if(k==="period") setPeriod(o[k]); else F[k]=o[k]; } renderFilters(); refresh(); }, stat:function(i){ return STAT[i]; },
   pkgs:function(){ return PKGS; }, fac:function(){ return FAC; }, fu:FU, qs:QS, hospOf:hospOf, view:function(v){ F.view=v; renderFilters(); if(v==="fu") FU.ensure(); refresh(); }, select:selectProv, hosp:function(n){ var h=HOSP.filter(function(x){ return nk(x.name).indexOf(nk(n))>=0; })[0]; selectHosp(h); return !!h; }, tab:function(t){ TAB=t; renderSide(); }, F:F, refresh:refresh };
 })();

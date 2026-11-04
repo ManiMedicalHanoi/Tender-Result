@@ -130,7 +130,9 @@ Phong cách MMH: nền sáng, chữ Aptos, navy `#003047`, xanh `#3A5CAA`, viề
 
 | Tệp | Vai trò |
 |---|---|
-| `index.html` | Toàn bộ giao diện + logic (CSS + JS trong 1 file, không thư viện ngoài) |
+| `index.html` | Khung HTML (thanh trên, bản đồ, bảng bên, hộp thoại) |
+| `app.css` · `app.js` | Giao diện · toàn bộ logic (không thư viện ngoài; SheetJS chỉ tải khi bấm Xuất Excel) |
+| `csyt.js` · `codes.js` | Danh mục cơ sở y tế công lập · mã dao / chỉ khâu MANI (MMH Library) |
 | `vn-geo.js` | Ranh giới 34 / 63 tỉnh (≈ 85 KB) |
 | `vn-dist.js` | Tâm quận / huyện + phường / thị trấn (≈ 79 KB) |
 | `products.js` | Mã chỉ khâu MANI ⇒ chất liệu, cỡ |
@@ -153,6 +155,7 @@ Phong cách MMH: nền sáng, chữ Aptos, navy `#003047`, xanh `#3A5CAA`, viề
 | 03/11/2026 | Nhóm SP, top bệnh viện, chi tiết bệnh viện (hiệu lực, gói gần nhất, lịch sử), nút quay lại / Back |
 | 04/11/2026 | PWA + biểu tượng, Giá trị / Số lượng + loại SP cho mọi thống kê, chấm bệnh viện trong tỉnh, bỏ ghi chú nguồn, đổi tên **Tender Map** |
 | 04/11/2026 | KQTT toàn quốc (bỏ trùng TBMT), danh mục cơ sở y tế + ô tìm, chế độ Theo dõi thầu; cùng ngày bỏ bắt đăng nhập (chọn tên người cập nhật) |
+| 04/11/2026 | Nhắc việc Theo dõi thầu (RH_Notify + email thứ Hai), khối CRM Surgical trong chi tiết cơ sở, tách `app.css` / `app.js`, CI kiểm thử |
 | 04/11/2026 | Tab Thầu lại · Giá trúng · Hiệu quả NPP · Dự báo; Theo dõi thầu tự khớp kết quả KQTT / NPP; xuất Excel + ảnh bản đồ |
 | 04/11/2026 | Theo dõi thầu chỉ cho tài khoản email công ty (backend `MMH_TenderFU.gs` v1.2); giao diện gọn sau review: thanh lọc + nhãn ×, Kỳ dạng ô chọn, bảng trượt trên điện thoại, thị phần MANI, chấm cơ sở chưa có gói, ▲▼ + “+ Theo dõi”, MANI / hãng khác ở chi tiết, hướng dẫn lần đầu |
 
@@ -166,7 +169,7 @@ Phong cách MMH: nền sáng, chữ Aptos, navy `#003047`, xanh `#3A5CAA`, viề
 | Danh mục cơ sở | `csyt.js` = `{cols, rows, types, spec}`; nối bệnh viện có gói thầu ⇒ toạ độ thật; `hospOf(f)` tạo "bệnh viện rỗng" cho cơ sở chưa có gói để dùng chung màn chi tiết |
 | Theo dõi thầu | `FU` (trong `index.html`): **chỉ phiên email công ty** (@manimedicalhanoi.com / @mani.inc, đăng nhập mã 6 số qua Training Hub, phiên `mmh_tk` dùng chung Report Hub / CRM; backend trả `code:'AUTH'` ⇒ xoá phiên, hiện ô đăng nhập), `fuList` (JSONP / fetch), hàng đợi `fuSave` (POST JSON text/plain, dự phòng JSONP), gói = các dòng cùng *Mã theo dõi*; chế độ xem `F.view = "win" | "fu"` (`localStorage.tm_view`) đổi thống kê bản đồ (`FU.stats`), chú giải, tooltip, bảng bên |
 | Tìm | `QS` — chỉ mục chữ không dấu theo từ, điểm: khớp tên, cụm liền, có lịch sử thầu / đang theo dõi, bệnh viện, chuyên khoa mắt |
-| PWA | `sw.js` `tr-map-v5` (thêm `csyt.js`, `codes.js`) |
+| PWA | `sw.js` `tr-map-v6` (thêm `csyt.js`, `codes.js`) |
 
 ## 8c. Giao diện sau review (04/11/2026)
 
@@ -185,6 +188,9 @@ Phong cách MMH: nền sáng, chữ Aptos, navy `#003047`, xanh `#3A5CAA`, viề
 | Tab phân tích | `TAB` = ov · re · px · npp · fc (`tabsHtml` / `panelHtml`, phạm vi `inScope`): `reList` / `rePre` (thầu lại, điền sẵn qua `FU.open({f, pre})`), `pxRows` / `agg` / `pxBrands` / `switchList` (giá), `nppPk` / `cnt` / `nppQuarters` (NPP), `fcData` (dự báo) — dùng chung cho Excel |
 | Khớp kết quả | `FU.matchRes(c)`: TBMT (`tbNorm`) trùng gói Win của cơ sở ⇒ chắc chắn; không có TBMT + giai đoạn 4–6 ⇒ gói Win phê duyệt ≥ ngày tạo gói theo dõi (“kiểm tra lại”). Nút `data-fu-res` mở hộp cập nhật với giai đoạn 7 (MANI trúng) / 8 |
 | Xuất | `XP.sheets()` (mảng 2 chiều) ⇒ SheetJS `aoa_to_sheet`; PNG = sao SVG + CSS rút gọn (`SVG_CSS`, thay `var(--land)`), vẽ lên canvas ×2 kèm tiêu đề / chú giải; tên file không dấu `TenderMap_<tỉnh>_<kỳ>_<yyyymmdd>` |
+| CRM Surgical | `CRMX.fill(h)`: chỗ `#crmx` trong chi tiết cơ sở, đọc `fuCrm` (CRM Surgical, phiên công ty) 1 lần / cơ sở / phiên, chỉ thay khối đó (không vẽ lại cả bảng) |
+| Link thông báo | `?v=fu` (hoặc `?v=win`) chọn chế độ khi mở; `#<Tỉnh>/<Cơ sở>` mở thẳng cơ sở — dùng cho RH_Notify / email nhắc việc của `MMH_TenderFU.gs` v1.3 |
+| Tệp | `index.html` (khung HTML) · `app.css` · `app.js` (đổi ⇒ tăng `?v=` ở index.html + `CORE` trong `sw.js`) · CI `.github/workflows/map-test.yml` |
 
 ## 9. Việc có thể làm tiếp
 

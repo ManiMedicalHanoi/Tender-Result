@@ -1,0 +1,34 @@
+# Kiểm thử Tender Map (map/) mỗi PR / khi main đổi: Playwright + Chromium, backend giả lập tools/map_mock.js (không gọi Apps Script thật).
+# Lỗi ⇒ tải ảnh chụp màn hình trong mục Artifacts của lượt chạy.
+name: Kiểm thử Tender Map
+on:
+  pull_request:
+    paths: ['map/**', 'tools/map_*.js', '.github/workflows/map-test.yml']
+  push:
+    branches: [main]
+    paths: ['map/**', 'tools/map_*.js']
+  workflow_dispatch:
+permissions: { contents: read }
+concurrency: { group: map-test-${{ github.ref }}, cancel-in-progress: true }
+jobs:
+  map:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '20' }
+      - name: Cài Playwright + Chromium + SheetJS (chỉ để kiểm thử nút Xuất Excel)
+        run: |
+          mkdir -p /tmp/pw && cd /tmp/pw && npm init -y >/dev/null
+          npm i --no-audit --no-fund playwright@1.48.2 xlsx@0.18.5 >/dev/null
+          npx playwright install --with-deps chromium
+      - name: Kiểm thử (máy tính, điện thoại, hàng đợi lỗi mạng, hướng dẫn, xuất)
+        run: |
+          python3 -m http.server 8771 >/dev/null 2>&1 &
+          sleep 1
+          NODE_PATH=/tmp/pw/node_modules XLSX_JS=/tmp/pw/node_modules/xlsx/dist/xlsx.full.min.js node tools/map_test.js /tmp/shots
+      - name: Ảnh chụp màn hình
+        if: always()
+        uses: actions/upload-artifact@v4
+        with: { name: map-shots, path: /tmp/shots, retention-days: 7, if-no-files-found: ignore }

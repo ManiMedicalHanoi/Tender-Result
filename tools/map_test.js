@@ -10,14 +10,14 @@ fs.mkdirSync(OUT, { recursive: true });
 let fails = 0;
 const ok = (c, m) => { console.log((c ? '✅ ' : '❌ ') + m); if (!c) fails++; };
 
-async function boot(b, ctxOpt, mopt) {
+async function boot(b, ctxOpt, mopt, urlTail) {
   const ctx = await b.newContext(Object.assign({ serviceWorkers: 'block' }, ctxOpt));
   if (!(mopt && mopt.tour)) await ctx.addInitScript(() => { try { localStorage.setItem('tm_tour_v1', '1'); } catch (e) {} });   // không tự mở hướng dẫn lần đầu
   const page = await ctx.newPage(), errs = [];
   page.on('pageerror', e => errs.push(e.message));
   page.on('console', m => { if (m.type() === 'error' && !/favicon|Failed to load resource/.test(m.text())) errs.push(m.text()); });
   const m = await mock.install(page, mopt);
-  await page.goto(BASE + '/map/index.html');
+  await page.goto(BASE + '/map/index.html' + (urlTail || ''));
   await page.waitForFunction(() => window.WINMAP && WINMAP.pkgs().length > 0 && document.getElementById('load').style.display === 'none', null, { timeout: 20000 });
   return { ctx, page, errs, db: m.db };
 }
@@ -131,6 +131,8 @@ async function boot(b, ctxOpt, mopt) {
   await page.waitForFunction(() => document.getElementById('fudlg').hidden);
   await page.waitForFunction(() => document.querySelectorAll('.fuc').length > 0 && !/đang lưu/.test(document.querySelector('.fuc').textContent), null, { timeout: 10000 });
   ok(db.fu.length === 1 && db.fu[0][15] === 1, 'lưu gói mới (bước 1) ⇒ 1 dòng FOLLOW UP TENDER');
+  await page.waitForFunction(() => /S-NA-001/.test((document.getElementById('crmx') || {}).textContent || ''), null, { timeout: 10000 });
+  ok(await page.$eval('#crmx', e => /Lượt gặp 12 tháng/.test(e.textContent) && /Trưởng khoa/.test(e.textContent)), 'đã đăng nhập ⇒ khối CRM Surgical: mã địa bàn, lượt gặp, người liên hệ, đơn hàng');
   await page.click('[data-fu-up]');
   await page.click('.stg button[data-st="3"]');
   await page.fill('#fm-note', 'Khoa đã chốt cấu hình theo MSL28SH, chờ báo giá.');
@@ -250,6 +252,13 @@ async function boot(b, ctxOpt, mopt) {
   await page.screenshot({ path: path.join(OUT, 'm4_form.png') });
   ok(!errs.length, 'không lỗi JS (điện thoại)' + (errs.length ? ': ' + errs.join(' | ') : ''));
   await ctx.close();
+  /* ── link từ thông báo "Nhắc tôi" / email: ?v=fu#<Tỉnh>/<Cơ sở> ── */
+  ({ ctx, page, errs, db } = await boot(b, { viewport: { width: 1280, height: 800 } }, {}, '?v=fu#' + encodeURIComponent('Nghệ An') + '/' + encodeURIComponent('Bệnh viện Mắt Nghệ An')));
+  await page.waitForFunction(() => /Mắt Nghệ An/.test(document.getElementById('sh-t').textContent), null, { timeout: 10000 });
+  ok(await page.evaluate(() => WINMAP.F.view === 'fu') && !!(await page.$('#lg-email')), 'link ?v=fu#Tỉnh/Cơ sở ⇒ mở Theo dõi thầu đúng cơ sở (chưa đăng nhập ⇒ ô đăng nhập)');
+  ok(!errs.length, 'không lỗi JS (link thông báo)' + (errs.length ? ': ' + errs.join(' | ') : ''));
+  await ctx.close();
+
   /* ── hướng dẫn lần đầu ── */
   ({ ctx, page, errs, db } = await boot(b, { viewport: { width: 1366, height: 820 } }, { tour: true }));
   await page.waitForSelector('.tr-card', { timeout: 5000 });

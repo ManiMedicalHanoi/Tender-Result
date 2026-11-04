@@ -3,8 +3,8 @@
    Dữ liệu Apps Script (khác tên miền) KHÔNG qua đây — trang tự nhớ bản đọc gần nhất (localStorage).
    Đổi quy tắc lưu ⇒ tăng V. Gỡ khẩn cấp: thay toàn bộ file bằng
    self.addEventListener('install',()=>self.skipWaiting());self.addEventListener('activate',e=>e.waitUntil(self.registration.unregister())); */
-const V = 'tr-map-v5';
-const CORE = ['./', './index.html', './vn-geo.js', './vn-dist.js', './products.js', './csyt.js', './codes.js', './manifest.webmanifest', './app/icon-192.png'];
+const V = 'tr-map-v6';
+const CORE = ['./', './index.html', './app.css?v=6', './app.js?v=6', './vn-geo.js', './vn-dist.js', './products.js', './csyt.js', './codes.js', './manifest.webmanifest', './app/icon-192.png'];
 self.addEventListener('install', e => {
   self.skipWaiting();
   e.waitUntil(caches.open(V).then(c => c.addAll(CORE)).catch(() => {}));
@@ -25,5 +25,5 @@ self.addEventListener('fetch', e => {
   e.respondWith(fetch(req).then(r => {
     if (r.ok) { const cp = r.clone(); caches.open(V).then(c => c.put(req, cp)); }
     return r;
-  }).catch(() => caches.match(req).then(hit => hit || caches.match('./index.html'))));
+  }).catch(() => caches.match(req, { ignoreSearch: true }).then(hit => hit || caches.match('./index.html'))));
 });

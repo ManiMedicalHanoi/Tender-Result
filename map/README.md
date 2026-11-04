@@ -2,7 +2,7 @@
 
 Trang tĩnh (GitHub Pages): `https://manimedicalhanoi.github.io/Tender-Result/map/`
 
-## Trang (`index.html`, SVG, không cần thư viện ngoài) — cài được như app
+## Trang (`index.html` + `app.css` + `app.js`, SVG, không cần thư viện ngoài — trừ SheetJS khi bấm Xuất Excel) — cài được như app
 
 - **App (PWA)**: `manifest.webmanifest` + biểu tượng `app/` (bản đồ Việt Nam, chấm vàng Hà Nội / xanh TP.HCM; dựng bằng script SVG ⇒ PNG) + `sw.js` (trang / script lấy mạng trước, mất mạng ⇒ bản lưu;
   dữ liệu Apps Script không qua service worker, trang tự nhớ bản đọc gần nhất). Nút **Cài app**: Chrome / Android ⇒ hộp cài của trình duyệt, iPhone / trình duyệt trong Zalo… ⇒ hướng dẫn từng bước.
@@ -67,6 +67,15 @@ Trang tĩnh (GitHub Pages): `https://manimedicalhanoi.github.io/Tender-Result/ma
 - Nút **Xuất** (thanh trên): **Excel** (SheetJS 0.18.5 từ cdnjs, tải khi bấm) — sheet Bộ lọc, Gói thầu (từng SP), Bệnh viện, Tỉnh, Thầu lại, Giá trúng dao, Chuyển sang hãng khác,
   Hiệu quả NPP, Dự báo tiêu thụ; **ảnh bản đồ PNG** (đúng khung đang xem, tiêu đề + chú giải bộ lọc).
   Kiểm thử Excel: `XLSX_JS=<đường dẫn xlsx.full.min.js> NODE_PATH=$(npm root -g) node tools/map_test.js` (cdnjs bị chặn trong môi trường kiểm thử; `npm pack xlsx@0.18.5`).
+
+## Cập nhật 04/11/2026 (4) — nhắc việc, CRM, tách file, CI
+
+- **Nhắc việc Theo dõi thầu** (backend `crm-surgical/MMH_TenderFU.gs` v1.3): mỗi sáng (~08:00, trừ CN) gói có mốc dự kiến trong 3 ngày tới / quá mốc chưa cập nhật,
+  hoặc ≥ 30 ngày chưa cập nhật (kèm trưởng nhóm) ⇒ thông báo ở nút **Nhắc tôi** của Report Hub / CRM; bấm ⇒ mở Tender Map `?v=fu#<Tỉnh>/<Cơ sở>` (đúng cơ sở, chế độ Theo dõi thầu).
+  Thứ Hai: email danh sách gói đang theo dõi cho từng PIC + email tổng cho trưởng nhóm.
+- **CRM Surgical trong chi tiết cơ sở** (đã đăng nhập): địa bàn khớp tên + tỉnh ⇒ mã, PIC, lượt gặp 12 tháng (5 lượt gần nhất, phản hồi), người liên hệ (CBC, không SĐT), đơn hàng 12 tháng (`fuCrm`).
+- Mã trang tách khỏi `index.html`: `app.css` (giao diện) + `app.js` (mã). Đổi 2 file này ⇒ tăng `?v=` trong `index.html` và trong `CORE` của `sw.js` (cùng `V`).
+- **Kiểm thử tự động** (GitHub Actions `.github/workflows/map-test.yml`): mỗi PR đổi `map/**` / `tools/map_*.js` chạy `tools/map_test.js` (Playwright 1.48.2 + SheetJS 0.18.5, backend giả lập); lỗi ⇒ xem ảnh chụp trong Artifacts.
 
 ## Quy ước
 

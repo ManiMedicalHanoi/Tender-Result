@@ -77,6 +77,15 @@ Trang tĩnh (GitHub Pages): `https://manimedicalhanoi.github.io/Tender-Result/ma
 - Mã trang tách khỏi `index.html`: `app.css` (giao diện) + `app.js` (mã). Đổi 2 file này ⇒ tăng `?v=` trong `index.html` và trong `CORE` của `sw.js` (cùng `V`).
 - **Kiểm thử tự động** (GitHub Actions `.github/workflows/map-test.yml`): mỗi PR đổi `map/**` / `tools/map_*.js` chạy `tools/map_test.js` (Playwright 1.48.2 + SheetJS 0.18.5, backend giả lập); lỗi ⇒ xem ảnh chụp trong Artifacts.
 
+## Cập nhật 05/11/2026 — màu theo tiến độ · cảnh báo hợp đồng sắp hết hiệu lực
+
+- Chế độ **Theo dõi thầu**: tỉnh tô màu theo **giai đoạn đang theo dõi xa nhất** (1 Giới thiệu → 6 Chấm thầu: xanh nhạt → xanh đậm → cam; 7 Đã trúng xanh lá,
+  8 Đã trượt đỏ, 9 Dừng xám), chấm cơ sở cùng màu; chú giải liệt kê đủ 9 giai đoạn, tooltip tỉnh đếm gói theo giai đoạn.
+- **Cảnh báo**: hợp đồng MANI hết hiệu lực trong 6 tháng tới (hoặc vừa hết ≤ 3 tháng) mà cơ sở **chưa có gói theo dõi** đang chạy, hoặc gói theo dõi đã **≥ 30 ngày chưa cập nhật**
+  ⇒ khối đỏ đầu bảng bên (nút **+ Theo dõi thầu lại** điền sẵn / **Cập nhật**), tỉnh có vòng đỏ nhấp nháy (tỉnh chưa có gói theo dõi hiện huy hiệu "!"),
+  cơ sở có viền đỏ nét đứt, số cảnh báo trên nút *Theo dõi thầu* (cả khi đang xem Kết quả thầu). Hợp đồng hãng khác sắp hết hạn chưa ai theo dõi = mục "cơ hội" thu gọn bên dưới.
+  Tab Thầu lại gắn nhãn "Chưa theo dõi". Cần đăng nhập (dữ liệu theo dõi chỉ tài khoản công ty xem được).
+
 ## Quy ước
 
 - FY67 = 09/2025 – 08/2026, FY68 = 09/2026 – 08/2027 (Q1 = T9–T11).

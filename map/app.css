@@ -131,6 +131,7 @@ body.fu .fsec.w,body.fu .fchk.w,body.fu #f-reset{display:none}
 .legend .lgb{padding:0 12px 10px}
 .legend.min .lgb{display:none}
 .legend .row{display:flex;align-items:center;gap:8px;margin:3px 0}
+.legend .row svg{flex:none}
 .ramp{display:flex;height:9px;border-radius:5px;overflow:hidden;width:120px}
 .ramp i{flex:1}
 .legend label{display:flex;gap:6px;align-items:center;cursor:pointer;margin-top:6px}
@@ -418,6 +419,21 @@ table.pr td.r,table.pr th.r{text-align:right}
 .crmx .ppl{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 8px}
 .crmx .ppl span{border:1px solid var(--line2);border-radius:8px;padding:3px 8px;font-size:12px;background:var(--sf2)}
 .crmx .ppl span b{color:var(--navy);font-weight:600}
+/* Theo dõi thầu: màu giai đoạn · cảnh báo hợp đồng sắp hết hiệu lực chưa cập nhật theo dõi */
+.vsg .wb{display:inline-grid;place-items:center;min-width:18px;height:18px;border-radius:9px;background:var(--bad);color:#fff;font-size:11px;font-weight:700;padding:0 5px;margin-left:6px;vertical-align:1px}
+.pulse.wr{stroke:var(--bad)}
+.hm circle.wr{fill:none;stroke:var(--bad);stroke-width:2;stroke-dasharray:3 2}
+.wbox{border:1px solid #F3C1BC;background:#FEF6F5;border-radius:12px;padding:6px 12px 8px;margin:4px 0 12px}
+.wbox>h3{color:var(--bad);margin:6px 0 4px;display:flex;align-items:center;gap:6px}
+.wbox>h3 svg{width:15px;height:15px;flex:none}
+.wbox .cap{margin:0 0 4px}
+.wbox .ri{border-top-color:#F6D5D1}
+.wbox.opp{border-color:var(--line2);background:var(--sf2)}
+.wbox.opp>h3{color:var(--t2)}
+.wtag{font-size:11.5px;font-weight:700;color:var(--bad)}
+.stl{display:flex;flex-wrap:wrap;gap:3px 10px}
+.stl span{display:inline-flex;gap:5px;align-items:center}
+.stl i{width:10px;height:10px;border-radius:3px;display:inline-block}
 /* hướng dẫn lần đầu */
 .tr{position:fixed;inset:0;z-index:60}
 .tr-hl{position:fixed;border-radius:12px;box-shadow:0 0 0 9999px rgba(0,48,71,.5);outline:2px solid #fff;transition:all .25s ease;pointer-events:none}

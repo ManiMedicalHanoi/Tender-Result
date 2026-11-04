@@ -1441,7 +1441,9 @@ var FU=(function(){
   function auth(){ try{ var o=JSON.parse(localStorage.getItem(LS_TK)||"null"); if(!o||!o.tk||!o.user||!o.user.pic) return null; if(o.exp && Date.now()>o.exp) return null; return o; }catch(_){ return null; } }
   function tk(){ var a=auth(); return a?a.tk:""; }
   function qs(o){ return Object.keys(o).map(function(k){ return encodeURIComponent(k)+"="+encodeURIComponent(o[k]==null?"":o[k]); }).join("&"); }
-  function hub(action, params){ return jsonp(TRAINING_HUB+"?"+qs(Object.assign({action:action}, params||{})), 30000); }
+  /* đọc bằng fetch KHÔNG kèm cookie Google trước (getJSON): Chrome / điện thoại đăng nhập Gmail khác hoặc nhiều tài khoản thì thẻ <script>
+     bị Google chuyển sang trang "chọn tài khoản" ⇒ "không tải được" (cùng lỗi Report Hub đã sửa ở v16.7) */
+  function hub(action, params){ return getJSON(TRAINING_HUB+"?"+qs(Object.assign({action:action}, params||{}))); }
   function lgSend(again){
     if(lg.busy) return;
     var i=document.getElementById("lg-email"); if(i) lg.email=String(i.value||"").trim().toLowerCase().replace(/\s+/g,"");
@@ -1454,7 +1456,7 @@ var FU=(function(){
       if(d && (d.ok || d.code==="WAIT")){ lg.step="code"; lg.err=d.ok?(again?"Đã gửi mã mới.":""):(d.error||""); }
       else lg.err=(d&&d.error)||"Chưa gửi được mã.";
       side(); var c=document.getElementById("lg-code"); if(c) c.focus();
-    },function(e){ lg.busy=false; lg.err="Không kết nối được máy chủ đăng nhập ("+e.message+")."; side(); });
+    },function(e){ lg.busy=false; lg.err="Không kết nối được máy chủ đăng nhập ("+e.message+"). Kiểm tra mạng rồi bấm Gửi mã lại."; side(); });
   }
   function lgVerify(){
     if(lg.busy) return;
@@ -1883,7 +1885,7 @@ function jsonp(url, ms){
 }
 function getJSON(url){
   var ctl = window.AbortController ? new AbortController() : null, to = setTimeout(function(){ if(ctl) ctl.abort(); }, 30000);
-  return fetch(url,{redirect:"follow", signal: ctl? ctl.signal : undefined}).then(function(r){ clearTimeout(to); if(!r.ok) throw new Error("HTTP "+r.status); return r.json(); })
+  return fetch(url,{redirect:"follow", credentials:"omit", signal: ctl? ctl.signal : undefined}).then(function(r){ clearTimeout(to); if(!r.ok) throw new Error("HTTP "+r.status); return r.json(); })
     .catch(function(){ clearTimeout(to); return jsonp(url, 30000); });
 }
 function loadOne(k){

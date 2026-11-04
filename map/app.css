@@ -35,7 +35,7 @@ a{color:var(--blue)}
 .fbtn svg{width:15px;height:15px}
 .fbtn .n{min-width:18px;height:18px;border-radius:9px;background:var(--blue);color:#fff;font-size:11px;font-weight:700;display:inline-grid;place-items:center;padding:0 5px}
 .fbtn.on{border-color:var(--blue);color:var(--blue);background:var(--pale)}
-body.fu .fbtn{display:none}
+body.fu .fbtn,body.act .fbtn{display:none}
 .fchips{flex-basis:100%;display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:-2px}
 .fchips[hidden]{display:none}
 .fc{display:inline-flex;align-items:center;gap:4px;border:1px solid var(--lb);background:var(--pale);color:var(--navy);border-radius:999px;padding:3px 4px 3px 10px;font-size:12.5px;white-space:nowrap}
@@ -112,7 +112,7 @@ body.fu .fsec.w,body.fu .fchk.w,body.fu #f-reset{display:none}
 .bub circle.c{stroke:#fff;vector-effect:non-scaling-stroke;stroke-width:1.5}
 .bub text{fill:#fff;font-weight:700;text-anchor:middle;pointer-events:none}
 .bub .t2{fill:var(--navy);paint-order:stroke;stroke:#fff;stroke-width:3px;stroke-linejoin:round;font-weight:600}
-.pulse{fill:none;stroke:var(--warn);vector-effect:non-scaling-stroke;stroke-width:2;animation:pl 2.2s ease-out infinite;transform-box:fill-box;transform-origin:center;pointer-events:none}
+.pulse{fill:none;stroke:#FF1F5A;vector-effect:non-scaling-stroke;stroke-width:2.6;filter:drop-shadow(0 0 1.2px #fff);animation:pl 2.2s ease-out infinite;transform-box:fill-box;transform-origin:center;pointer-events:none}
 @keyframes pl{0%{opacity:.9;transform:scale(.6)}100%{opacity:0;transform:scale(2.2)}}
 @media (prefers-reduced-motion:reduce){.pulse{animation:none;display:none}.prov{transition:none}}
 
@@ -434,6 +434,13 @@ table.pr td.r,table.pr th.r{text-align:right}
 .stl{display:flex;flex-wrap:wrap;gap:3px 10px}
 .stl span{display:inline-flex;gap:5px;align-items:center}
 .stl i{width:10px;height:10px;border-radius:3px;display:inline-block}
+/* chế độ Hoạt động */
+#map.pickm{cursor:crosshair}
+.alog .ev.pl:before{border-color:var(--line2);background:#fff}
+.alog .ev .x{margin:2px 0}
+.stn{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.stn[hidden]{display:none}
+.tg1.c{color:#6D28D9;border-color:#DDD6FE;background:#F5F3FF}
 /* hướng dẫn lần đầu */
 .tr{position:fixed;inset:0;z-index:60}
 .tr-hl{position:fixed;border-radius:12px;box-shadow:0 0 0 9999px rgba(0,48,71,.5);outline:2px solid #fff;transition:all .25s ease;pointer-events:none}
@@ -487,7 +494,7 @@ table.pr td.r,table.pr th.r{text-align:right}
   .qs input{font-size:16px;padding:7px 12px 7px 32px}
   .fbtn{padding:6px 10px}
   .fbtn .tx{display:none}
-  body.fu .fbtn{display:inline-flex}
+  body.fu .fbtn,body.act .fbtn{display:inline-flex}
   .fchips{margin-top:0;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}
   .fchips::-webkit-scrollbar{display:none}
   .fc,.fcx{flex:none}

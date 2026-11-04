@@ -158,6 +158,7 @@ Phong cách MMH: nền sáng, chữ Aptos, navy `#003047`, xanh `#3A5CAA`, viề
 | 05/11/2026 | Sửa đăng nhập (fetch không cookie; backend v1.3.1), màu bản đồ theo tiến độ, cảnh báo hợp đồng MANI sắp hết hiệu lực chưa cập nhật theo dõi |
 | 04/11/2026 | Nhắc việc Theo dõi thầu (RH_Notify + email thứ Hai), khối CRM Surgical trong chi tiết cơ sở, tách `app.css` / `app.js`, CI kiểm thử |
 | 04/11/2026 | Tab Thầu lại · Giá trúng · Hiệu quả NPP · Dự báo; Theo dõi thầu tự khớp kết quả KQTT / NPP; xuất Excel + ảnh bản đồ |
+| 05/11/2026 | Chế độ **Hoạt động** (visiting CRM Surgical: kỳ / tháng, PIC, tỉnh đậm nhạt theo lượt, khách gặp nhiều / lâu chưa gặp, lịch sử chăm sóc + thầu, ghim vị trí, tên chuẩn); cơ sở tư nhân + giai đoạn mua sắm; tự cập nhật ~5 phút; vòng cảnh báo đỏ hồng |
 | 04/11/2026 | Theo dõi thầu chỉ cho tài khoản email công ty (backend `MMH_TenderFU.gs` v1.2); giao diện gọn sau review: thanh lọc + nhãn ×, Kỳ dạng ô chọn, bảng trượt trên điện thoại, thị phần MANI, chấm cơ sở chưa có gói, ▲▼ + “+ Theo dõi”, MANI / hãng khác ở chi tiết, hướng dẫn lần đầu |
 
 ## 8b. Bổ sung 04/11/2026
@@ -170,7 +171,7 @@ Phong cách MMH: nền sáng, chữ Aptos, navy `#003047`, xanh `#3A5CAA`, viề
 | Danh mục cơ sở | `csyt.js` = `{cols, rows, types, spec}`; nối bệnh viện có gói thầu ⇒ toạ độ thật; `hospOf(f)` tạo "bệnh viện rỗng" cho cơ sở chưa có gói để dùng chung màn chi tiết |
 | Theo dõi thầu | `FU` (trong `index.html`): **chỉ phiên email công ty** (@manimedicalhanoi.com / @mani.inc, đăng nhập mã 6 số qua Training Hub, phiên `mmh_tk` dùng chung Report Hub / CRM; backend trả `code:'AUTH'` ⇒ xoá phiên, hiện ô đăng nhập), `fuList` (JSONP / fetch), hàng đợi `fuSave` (POST JSON text/plain, dự phòng JSONP), gói = các dòng cùng *Mã theo dõi*; chế độ xem `F.view = "win" | "fu"` (`localStorage.tm_view`) đổi thống kê bản đồ (`FU.stats`), chú giải, tooltip, bảng bên |
 | Tìm | `QS` — chỉ mục chữ không dấu theo từ, điểm: khớp tên, cụm liền, có lịch sử thầu / đang theo dõi, bệnh viện, chuyên khoa mắt |
-| PWA | `sw.js` `tr-map-v9` (thêm `csyt.js`, `codes.js`) |
+| PWA | `sw.js` `tr-map-v10` (thêm `csyt.js`, `codes.js`) |
 
 ## 8c. Giao diện sau review (04/11/2026)
 
@@ -194,6 +195,21 @@ Phong cách MMH: nền sáng, chữ Aptos, navy `#003047`, xanh `#3A5CAA`, viề
 | CRM Surgical | `CRMX.fill(h)`: chỗ `#crmx` trong chi tiết cơ sở, đọc `fuCrm` (CRM Surgical, phiên công ty) 1 lần / cơ sở / phiên, chỉ thay khối đó (không vẽ lại cả bảng) |
 | Link thông báo | `?v=fu` (hoặc `?v=win`) chọn chế độ khi mở; `#<Tỉnh>/<Cơ sở>` mở thẳng cơ sở — dùng cho RH_Notify / email nhắc việc của `MMH_TenderFU.gs` v1.3 |
 | Tệp | `index.html` (khung HTML) · `app.css` · `app.js` (đổi ⇒ tăng `?v=` ở index.html + `CORE` trong `sw.js`) · CI `.github/workflows/map-test.yml` |
+
+## 8d. Hoạt động Sales · tư nhân (05/11/2026)
+
+| Phần | Cách làm |
+|---|---|
+| Chế độ | `F.view = "win" \| "fu" \| "act"` (`?v=act`, `localStorage.tm_view`); thanh trên chế độ act: `#va-per` (kỳ: `fy67`, `q…`, `m yyyymm`) · `#va-pic` · `#va-type` (Viếng thăm \| Mọi việc · Đã làm \| Cả kế hoạch), nhớ `localStorage.tm_act_*`; ẩn Kỳ / Giá trị / Bộ lọc của Kết quả thầu |
+| Dữ liệu | `ACT.load()` ⇒ `fuVisits&from=2025-09-01` (phiên công ty): `accCols` code · name · type · province · area · pic · address · gps `[lat,lng,n,nNear]` · loc (ghim) · std · **kind** (`cl` công lập · `tn` tư nhân · `npp`) + `rows` gọn `[d, pic, acc, act, st, lat, lng, photo, task]` (chỉ số, tra bảng `pics` / `acts` / `sts` / `tasks`) |
+| Định vị | `ACT.locate(a)`: ghim (`loc`) > cơ sở danh mục khớp tên (`hkey`, chỉ cơ sở không phải `src:"crm"`) > cụm GPS (`gps[3]/gps[2] ≥ 0,5`) > `sameName` > `anchorOf` (phường / quận trong địa chỉ) > GPS bất kỳ > tâm tỉnh. Nhiều khách cùng điểm ⇒ xoắn ốc nhỏ |
+| Công lập / tư nhân | `a.kind` từ `VM_STD` (backend); khách mới chưa có kind ⇒ đoán: khớp danh mục công lập hoặc tên kiểu cơ quan nhà nước (`PUB`). Tư nhân chưa có trong danh mục ⇒ `facAdd({id:"C:"+mã, t:"tn", src:"crm", acc})`; tư nhân khớp cơ sở OSM ⇒ `f.pv = 1`. `FU.isPriv(f)` = `t==="tn" \|\| pv`. NPP (`kind npp`) không thêm vào danh mục |
+| Tên | `a.disp` = tên chuẩn (sheet / `VM_STD`) hoặc `autoName` (viết hoa đầu từ trước, rồi mở viết tắt `ABBR`); tìm được bằng cả tên CRM gốc (`alias`) |
+| Bản đồ | `ACT.stats()` ⇒ `STAT[i]` (lượt, khách); tỉnh `#0E7490` đậm nhạt thang log; chấm khách = `HK["A|mã"]` màu PIC (`picCol`), to theo lượt, vòng vàng top 10; bấm bản đồ khi `S.pick` ⇒ `pickAt` lưu toạ độ ghim |
+| Bảng bên | `ACT.side()` (toàn quốc / tỉnh) · `ACT.accHtml(h)` (khách: mã, công/tư, tên chuẩn, vị trí + ghim, cơ sở gắn `QS.wire`, số lượt, `#actlog` lịch sử chăm sóc `fuVisitLog`, lịch sử thầu nếu cơ sở công lập, nút `data-act-fu` thêm cơ hội mua sắm) |
+| Giai đoạn tư nhân | `FU.ST` 11–15 (+ 18, 19), `TEND` / `PRIV`; hộp cập nhật chọn dãy giai đoạn theo `isPriv(f)` hoặc gói đang ở 11+; tư nhân ẩn TBMT, “Nội dung mua sắm”; chú giải 2 nhóm; phễu bảng bên 2 dãy |
+| Tự cập nhật | `setInterval` 60 s: trang hiện + ≥ 4,5 phút từ lần đọc trước + không bận (ô nhập trong bảng bên đang focus, hộp thoại mở, đang ghim, hướng dẫn) ⇒ `load()` + `FU.load()` + `ACT.load()`; `visibilitychange` sau ≥ 2 phút. Vẽ lại giữ vị trí cuộn bảng bên khi cùng cơ sở (`SB._hk`) |
+| Xuất | sheet Excel **Hoạt động Sales** (`ACT.sheet()`, theo kỳ / PIC / tỉnh đang xem) |
 
 ## 9. Việc có thể làm tiếp
 

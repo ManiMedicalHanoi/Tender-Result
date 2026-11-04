@@ -1,6 +1,7 @@
 # Tender Map — tài liệu thiết kế
 
-Bản đồ Việt Nam thể hiện gói thầu **tham dự / trúng** của 2 NPP nhãn khoa **Hùng Vĩ** (miền Bắc) và **iCare** (miền Nam), tính từ **FY67** (09/2025).
+Bản đồ Việt Nam thể hiện gói thầu **tham dự / trúng** của 2 NPP nhãn khoa **Hùng Vĩ** (miền Bắc) và **iCare** (miền Nam), tính từ **FY67** (09/2025),
+cộng **KQTT dao toàn quốc** (mọi hãng, file tender tổng, bỏ gói trùng số TBMT với NPP), **danh mục cơ sở y tế công lập** để tra cứu và chế độ **Theo dõi thầu** theo địa bàn (04/11/2026).
 Web tĩnh trên GitHub Pages, cài được như app (PWA).
 
 - Link: https://manimedicalhanoi.github.io/Tender-Result/map/
@@ -152,7 +153,21 @@ Phong cách MMH: nền sáng, chữ Aptos, navy `#003047`, xanh `#3A5CAA`, viề
 | 03/11/2026 | Nhóm SP, top bệnh viện, chi tiết bệnh viện (hiệu lực, gói gần nhất, lịch sử), nút quay lại / Back |
 | 04/11/2026 | PWA + biểu tượng, Giá trị / Số lượng + loại SP cho mọi thống kê, chấm bệnh viện trong tỉnh, bỏ ghi chú nguồn, đổi tên **Tender Map** |
 
+## 8b. Bổ sung 04/11/2026
+
+| Phần | Nội dung |
+|---|---|
+| Nguồn KQTT | `tender-hungvi ?action=kqttMap` đọc file tender tổng *Data xử lý* (cột theo tên: KQTT Code, Buyer, Product Code, Manufacturer_Norm, Quantity, Awarded Unit Price, Month, Decision Issue Date, Province_Clean, Location, Knife Type, Contract Duration, Expiration date). Gói = KQTT Code + bên mời thầu; kỳ = cột Month; hết hạn = Expiration date ⇒ ngày quyết định + thời hạn |
+| Bỏ trùng | TBMT (viết hoa, bỏ khoảng trắng, bỏ `-NN`) đã có ở file NPP ⇒ bỏ cả gói KQTT |
+| Gộp tên | Khoá `hkey` (bỏ dấu, mở viết tắt, bỏ "tỉnh / thành phố") ⇒ rồi `sameName` trong cùng tỉnh (cùng loại BV / TTYT, khác nhau không có từ chuyên khoa hoặc số) |
+| Danh mục cơ sở | `csyt.js` = `{cols, rows, types, spec}`; nối bệnh viện có gói thầu ⇒ toạ độ thật; `hospOf(f)` tạo "bệnh viện rỗng" cho cơ sở chưa có gói để dùng chung màn chi tiết |
+| Theo dõi thầu | `FU` (trong `index.html`): đăng nhập, `fuList` (JSONP / fetch), hàng đợi `fuSave` (POST JSON text/plain, dự phòng JSONP), gói = các dòng cùng *Mã theo dõi*; chế độ xem `F.view = "win" | "fu"` (`localStorage.tm_view`) đổi thống kê bản đồ (`FU.stats`), chú giải, tooltip, bảng bên |
+| Tìm | `QS` — chỉ mục chữ không dấu theo từ, điểm: khớp tên, cụm liền, có lịch sử thầu / đang theo dõi, bệnh viện, chuyên khoa mắt |
+| PWA | `sw.js` `tr-map-v3` (thêm `csyt.js`, `codes.js`) |
+
 ## 9. Việc có thể làm tiếp
+
+- Danh mục cơ sở đầy đủ có **số giường / hạng** (file Sở Y tế / BHXH ⇒ ghép vào `tools/csyt_build.py`); OSM còn thiếu nhiều TTYT / bệnh viện tuyến huyện.
 
 - NPP bổ sung ngày phê duyệt cho gói Win còn trống (đang hiện "Chưa có ngày phê duyệt"), sửa địa chỉ chép nhầm (vd. BV Đại học Y Hà Nội ghi địa chỉ Điện Biên), sửa tiêu đề cột FY của Hùng Vĩ.
 - Toạ độ thật cho bệnh viện (thêm cột Lat/Long vào Master Hospital name) thay cho tâm quận / phường.

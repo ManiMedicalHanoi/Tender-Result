@@ -1,7 +1,7 @@
 /* Backend giả lập cho Tender Map (map/) — dùng với Playwright: await mock.install(page[, opt]).
    · NPP Hùng Vĩ / iCare: ?action=winMap ⇒ dòng giả (dao + chỉ khâu), vài số TBMT trùng KQTT để thử bỏ trùng
    · KQTT toàn quốc: ?action=kqttMap ⇒ dữ liệu giả, hoặc file JSON thật của kqttMap (opt.kqttJson / env KQTT_JSON — KHÔNG đưa vào repo)
-   · CRM Surgical: fuList / fuSave (sheet FOLLOW UP TENDER, ghi nối tiếp, cần tk) · Training Hub: rhAuthStart / rhAuthVerify (mã đúng 123456)
+   · CRM Surgical: fuList / fuSave (sheet FOLLOW UP TENDER, ghi nối tiếp; KHÔNG cần đăng nhập — người cập nhật = pic, có tk hợp lệ thì lấy tên trong phiên)
    opt: { kqttJson, failSave:n (n lần fuSave đầu lỗi mạng), lag:ms, noKqtt:true (máy chủ chưa có kqttMap) }  ⇒ trả { db } để kiểm tra. */
 const fs = require('fs');
 const HV = 'AKfycbyL5FRVXl0Zr35ndE1PGJMGXzHOYzHjdsyQK7vHwIYhqe5owjSg3o1QtH-i8qGNBKJ-';
@@ -85,18 +85,20 @@ async function install(page, opt = {}) {
       return reply(route, url, { ok: true });
     }
     if (url.pathname.includes(CRM)) {
-      if (/^fu/.test(a) && p.tk !== db.tk) return reply(route, url, { ok: false, code: 'AUTH', error: 'Cần đăng nhập bằng email công ty.' });
-      if (a === 'fuList') return reply(route, url, { ok: true, v: '1.0', me: { pic: 'Viet Ha', local: 'vietha', level: 'pic', admin: false }, stages: ST, cols: COLS, rows: db.fu });
+      const sess = p.tk && p.tk === db.tk;
+      if (a === 'fuList') return reply(route, url, { ok: true, v: '1.1', me: { pic: sess ? 'Viet Ha' : '', local: sess ? 'vietha' : '', tk: sess }, people: ['Khang', 'Nguyen Ha', 'Tuyen', 'Viet Ha'], stages: ST, cols: COLS, rows: db.fu });
       if (a === 'fuSave') {
         if (db.failSave > 0) { db.failSave--; return route.abort('failed'); }
         db.saves++;
+        const who = sess ? 'Viet Ha' : String(p.pic || '').trim();
+        if (!who) return reply(route, url, { ok: false, code: 'NAME', error: 'Nhập tên người cập nhật.' });
         const dup = db.fu.find(r => r[20] === p.rid); if (dup) return reply(route, url, { ok: true, dup: true, rec: dup, cols: COLS });
         let id = p.case, rev = 1;
         if (id) { const ex = db.fu.filter(r => r[1] === id); if (!ex.length) return reply(route, url, { ok: false, error: 'Không tìm thấy gói ' + id }); rev = ex.length + 1; }
         else id = 'FU261104-' + String(1000 + db.fu.length);
         const items = typeof p.items === 'string' ? JSON.parse(p.items) : (p.items || []);
         const d = new Date(Date.now() + 7 * 3600e3).toISOString().replace('T', ' ').slice(0, 19);
-        const rec = [d, id, rev, 'Viet Ha', 'vietha', p.fid || '', p.hosp, p.prov, p.addr || '', p.pkg || '', p.tbmt || '', p.ptype || '', items.map(x => x.code + ' × ' + x.qty).join('; '),
+        const rec = [d, id, rev, who, sess ? 'vietha' : '', p.fid || '', p.hosp, p.prov, p.addr || '', p.pkg || '', p.tbmt || '', p.ptype || '', items.map(x => x.code + ' × ' + x.qty).join('; '),
           items.reduce((s, x) => s + (+x.qty || 0), 0), +p.value || 0, +p.stage, ST[+p.stage], p.due || '', p.note || '', JSON.stringify(items), p.rid, p.src || '', p.ll || ''];
         db.fu.push(rec); return reply(route, url, { ok: true, rec, cols: COLS });
       }

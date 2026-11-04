@@ -34,7 +34,9 @@ Trang tĩnh (GitHub Pages): `https://manimedicalhanoi.github.io/Tender-Result/ma
 - **Ô tìm** (thanh trên, Ctrl/⌘ + K): bỏ dấu, hiểu viết tắt (`bv mat nghe an`, `ttyt anh son`, `bvdk tinh`), khớp tên / tỉnh mới / tỉnh cũ / địa chỉ; nhãn NPP · KQTT · Theo dõi.
   Chọn ⇒ chi tiết cơ sở: **Thông tin cơ sở** (loại, tuyến, địa chỉ, tỉnh, quy mô, lượng trúng theo FY, Google Maps) + gói trúng gần nhất + hãng trúng + lịch sử dao & chỉ khâu (mọi nguồn).
   Cơ sở chưa có gói thầu vẫn mở được (chấm xám).
-- **Chế độ Theo dõi thầu** (nút *Trúng thầu | Theo dõi thầu*): đăng nhập email công ty + mã 6 số (Training Hub `rhAuthStart` / `rhAuthVerify`, phiên `localStorage.mmh_tk` dùng chung Report Hub / CRM).
+- **Chế độ Theo dõi thầu** (nút *Trúng thầu | Theo dõi thầu*): **không cần đăng nhập** (người dùng yêu cầu 04/11/2026 — ai có link cũng xem / cập nhật được).
+  Người cập nhật = ô **Người cập nhật** trong hộp cập nhật (chọn trong danh sách tên nhân sự `people` do máy chủ trả, hoặc gõ), máy nhớ ở `localStorage.tm_fu_name`;
+  trình duyệt đã có phiên email Report Hub / CRM (`localStorage.mmh_tk`) ⇒ dùng tên trong phiên, không hỏi.
   Ghi / đọc sheet ẨN **FOLLOW UP TENDER** của backend CRM Surgical VN (`crm-surgical/MMH_TenderFU.gs`: `fuList` / `fuSave`). Mỗi lần cập nhật = 1 dòng mới (giữ đủ lịch sử, không xoá):
   cơ sở · tên gói · TBMT · loại SP (Dao / Chỉ khâu) · mã + SL ước tính (`codes.js` từ MMH Library: 114 mã dao, 187 mã chỉ — `python3 -I tools/codes_build.py <mmh-library>`) ·
   **giai đoạn** 1 Giới thiệu → 2 Lên danh mục → 3 Chốt cấu hình → 4 Ra báo giá → 5 Ra HSMT → 6 Đang chấm thầu → 7 Đã trúng / 8 Đã trượt / 9 Huỷ · mốc dự kiến · giá trị ước tính · tình hình (chữ tự do).

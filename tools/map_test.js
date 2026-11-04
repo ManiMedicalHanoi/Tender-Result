@@ -56,15 +56,8 @@ async function boot(b, ctxOpt, mopt) {
   ok(true, 'mở được cơ sở trong danh mục: Bạch Mai');
   // theo dõi thầu
   await page.click('#f-view button[data-v="fu"]');
-  await page.waitForSelector('#lg-email');
-  await page.screenshot({ path: path.join(OUT, 'd4_dangnhap.png') });
-  await page.fill('#lg-email', 'vietha');
-  await page.click('[data-lg="send"]');
-  await page.waitForSelector('#lg-code');
-  await page.fill('#lg-code', '123456');
-  await page.click('[data-lg="verify"]');
-  await page.waitForFunction(() => document.getElementById('uchip').textContent.indexOf('Viet Ha') >= 0);
-  ok(true, 'đăng nhập email + mã 6 số');
+  await page.waitForFunction(() => window.WINMAP && WINMAP.fu._S.loaded);
+  ok(!(await page.$('#lg-email')), 'Theo dõi thầu mở ngay, không cần đăng nhập');
   await page.click('#fu-add');
   await page.waitForSelector('#fm-fq');
   await page.fill('#fm-fq', 'mat nghe an');
@@ -77,12 +70,17 @@ async function boot(b, ctxOpt, mopt) {
   await page.fill('[data-ln="code"][data-i="1"]', '1406');
   await page.fill('[data-ln="qty"][data-i="1"]', '120');
   await page.fill('#fm-note', 'Gặp trưởng khoa, giới thiệu MSL-SH. Khoa dùng dao Alcon, quan tâm giá.');
+  await page.click('[data-fm="save"]');
+  ok(/tên người cập nhật/i.test(await page.$eval('.ft2 .er', e => e.textContent)), 'chưa có tên ⇒ nhắc nhập tên người cập nhật');
+  await page.fill('#fm-who', 'Khang');
   await page.screenshot({ path: path.join(OUT, 'd5_form.png') });
   await page.click('[data-fm="save"]');
   await page.waitForFunction(() => document.getElementById('fudlg').hidden);
   await page.waitForFunction(() => document.querySelectorAll('.fuc').length > 0 && !/đang lưu/.test(document.querySelector('.fuc').textContent), null, { timeout: 10000 });
-  ok(db.fu.length === 1 && db.fu[0][15] === 1, 'lưu gói mới (bước 1) ⇒ 1 dòng FOLLOW UP TENDER');
+  ok(db.fu.length === 1 && db.fu[0][15] === 1 && db.fu[0][3] === 'Khang', 'lưu gói mới (bước 1) ⇒ 1 dòng FOLLOW UP TENDER, người cập nhật = Khang');
+  ok(await page.evaluate(() => localStorage.getItem('tm_fu_name')) === 'Khang', 'máy nhớ tên cho lần sau');
   await page.click('[data-fu-up]');
+  ok(await page.$eval('#fm-who', e => e.value) === 'Khang', 'lần cập nhật sau: tên điền sẵn');
   await page.click('.stg button[data-st="3"]');
   await page.fill('#fm-note', 'Khoa đã chốt cấu hình theo MSL28SH, chờ báo giá.');
   await page.click('[data-fm="save"]');
@@ -102,7 +100,7 @@ async function boot(b, ctxOpt, mopt) {
 
   /* ── lỗi mạng khi lưu ⇒ hàng đợi thử lại ── */
   ({ ctx, page, errs, db } = await boot(b, { viewport: { width: 1280, height: 860 } }, { failSave: 1 }));
-  await page.evaluate(tk => localStorage.setItem('mmh_tk', JSON.stringify({ tk, exp: Date.now() + 864e5, user: { pic: 'Viet Ha', email: 'vietha@manimedicalhanoi.com' } })), db.tk);
+  await page.evaluate(() => localStorage.setItem('tm_fu_name', 'Khang'));
   await page.evaluate(() => { WINMAP.view('fu'); });
   await page.waitForFunction(() => window.WINMAP && WINMAP.fu._S.loaded);
   await page.evaluate(() => { const f = WINMAP.fac().find(x => /Bạch Mai/.test(x.name)); WINMAP.fu.open({ f }); });
@@ -113,8 +111,21 @@ async function boot(b, ctxOpt, mopt) {
   await page.waitForFunction(() => !document.getElementById('obx').hidden);
   ok(true, 'mất mạng: hiện chip "Đang lưu…", thao tác không bị chặn');
   await page.waitForFunction(() => document.getElementById('obx').hidden, null, { timeout: 15000 });
-  ok(db.fu.length === 1, 'tự gửi lại khi có mạng ⇒ lưu đúng 1 dòng');
+  ok(db.fu.length === 1 && db.fu[0][3] === 'Khang', 'tự gửi lại khi có mạng ⇒ lưu đúng 1 dòng');
   ok(!errs.length, 'không lỗi JS (hàng đợi)' + (errs.length ? ': ' + errs.join(' | ') : ''));
+  await ctx.close();
+
+  /* ── có phiên email (Report Hub / CRM) ⇒ lấy tên trong phiên ── */
+  ({ ctx, page, errs, db } = await boot(b, { viewport: { width: 1280, height: 860 } }));
+  await page.evaluate(tk => localStorage.setItem('mmh_tk', JSON.stringify({ tk, exp: Date.now() + 864e5, user: { pic: 'Viet Ha', email: 'vietha@manimedicalhanoi.com' } })), db.tk);
+  await page.evaluate(() => { WINMAP.view('fu'); const f = WINMAP.fac().find(x => /Chợ Rẫy/.test(x.name)); WINMAP.fu.open({ f }); });
+  ok(!(await page.$('#fm-who')), 'có phiên email ⇒ không hỏi tên');
+  await page.fill('#fm-pkg', 'Gói thử');
+  await page.fill('[data-ln="code"][data-i="0"]', 'MSL22');
+  await page.fill('[data-ln="qty"][data-i="0"]', '100');
+  await page.click('[data-fm="save"]');
+  await page.waitForFunction(() => document.getElementById('obx').hidden, null, { timeout: 10000 });
+  ok(db.fu.length === 1 && db.fu[0][3] === 'Viet Ha', 'ghi theo tên trong phiên');
   await ctx.close();
 
   /* ── điện thoại ── */
@@ -128,7 +139,6 @@ async function boot(b, ctxOpt, mopt) {
   await page.keyboard.press('Enter');
   await page.waitForSelector('.finfo');
   await page.screenshot({ path: path.join(OUT, 'm3_benhvien.png'), fullPage: false });
-  await page.evaluate(tk => localStorage.setItem('mmh_tk', JSON.stringify({ tk, exp: Date.now() + 864e5, user: { pic: 'Viet Ha', email: 'vietha@manimedicalhanoi.com' } })), db.tk);
   await page.evaluate(() => { WINMAP.view('fu'); const f = WINMAP.fac().find(x => /Mắt Nghệ An/.test(x.name)); WINMAP.fu.open({ f }); });
   await page.waitForSelector('#fm-pkg');
   const wide2 = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);

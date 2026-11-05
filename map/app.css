@@ -276,14 +276,15 @@ table.pr td.r,table.pr th.r{text-align:right}
 .qs{position:relative;flex:1 1 220px;max-width:380px;min-width:180px}
 .qs input{width:100%;border:1px solid #C3CDD8;border-radius:999px;padding:7px 14px 7px 34px;font-family:inherit;font-size:13.5px;background:var(--sf) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%2355667D' stroke-width='1.8'%3E%3Ccircle cx='7' cy='7' r='5'/%3E%3Cpath d='M11 11l3.5 3.5'/%3E%3C/svg%3E") no-repeat 12px center}
 .qs input:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(58,92,170,.15)}
-.qsr{position:absolute;left:0;right:0;top:calc(100% + 6px);z-index:40;background:var(--sf);border:1px solid var(--line2);border-radius:12px;box-shadow:0 14px 34px rgba(0,48,71,.16);max-height:min(70vh,460px);overflow:auto;padding:4px}
+.qsr{position:absolute;left:0;right:0;min-width:min(440px,calc(100vw - 24px));top:calc(100% + 6px);z-index:40;background:var(--sf);border:1px solid var(--line2);border-radius:12px;box-shadow:0 14px 34px rgba(0,48,71,.16);max-height:min(70vh,460px);overflow:auto;padding:4px}
 .qsr[hidden]{display:none}
-.qsr .it{display:grid;grid-template-columns:1fr auto;gap:1px 10px;padding:8px 10px;border-radius:8px;cursor:pointer}
+.qsr .it{display:grid;grid-template-columns:1fr;gap:2px;padding:8px 10px;border-radius:8px;cursor:pointer}   /* tên 1 dòng riêng, nhãn ở dòng dưới (4 nhãn từng ép tên xuống từng chữ) */
 .qsr .it.on,.qsr .it:hover{background:var(--pale)}
 .qsr .nm{font-weight:600;color:var(--navy);line-height:1.3}
 .qsr .nm mark{background:#FFF1C2;color:inherit;border-radius:2px}
-.qsr .sb{grid-column:1/3;font-size:12px;color:var(--t2)}
-.qsr .tg{display:flex;gap:4px;align-items:flex-start;flex-wrap:wrap;justify-content:flex-end}
+.qsr .sb{font-size:12px;color:var(--t2)}
+.qsr .tg{display:flex;gap:4px;align-items:center;flex-wrap:wrap}
+.qsr .tg:empty{display:none}
 .qsr .hd{font-size:11.5px;color:var(--t3);padding:6px 10px 2px}
 .qsr .add{border-top:1px solid var(--line);margin-top:4px;color:var(--blue);font-weight:600}
 .tg1{font-size:10.5px;font-weight:700;border-radius:999px;padding:1px 7px;border:1px solid var(--line2);color:var(--t2);background:var(--sf2);white-space:nowrap}
@@ -492,6 +493,7 @@ table.pr td.r,table.pr th.r{text-align:right}
   .brand .logo{width:30px;height:30px}
   .qs{flex:1 1 0;min-width:0;max-width:none}
   .qs input{font-size:16px;padding:7px 12px 7px 32px}
+  .qsr{min-width:0}
   .fbtn{padding:6px 10px}
   .fbtn .tx{display:none}
   body.fu .fbtn,body.act .fbtn{display:inline-flex}

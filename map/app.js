@@ -1753,7 +1753,7 @@ var FU=(function(){
       if(!pass(c)) return;
       var h=hospOf(c.f); if(!h || h.ni<0) return;
       var s=STAT[h.ni], x=HS[h.key]||(HS[h.key]={h:h, n:0, v:0, val:0, qty:0, q:{}, gv:{}, last:null, act:0, soon:0, list:[], fu:[], top:0});
-      s.n++; s.v++; s.byN.FU=(s.byN.FU||0)+1; s.by.FU=(s.by.FU||0)+1; s.hosp[h.key]=1; s.qty+=qtyOf(c,"dao")+qtyOf(c,"chi");
+      s.n++; s.v++; s.byN.FU=(s.byN.FU||0)+1; s.by.FU=(s.by.FU||0)+1; s.hosp[h.key]=1; s.qty+=KD.reduce(function(a,x){ return a+qtyOf(c,x.k); },0);
       s.ns[c.stage]=(s.ns[c.stage]||0)+1; if(srank(c.stage)>srank(s.stg)) s.stg=c.stage;
       x.n++; x.v++; x.fu.push(c); if(srank(c.stage)>srank(x.top)) x.top=c.stage;
     });
@@ -1856,7 +1856,7 @@ var FU=(function(){
     var pv=st>=11, base=pv?10:0, last=pv?5:7, s0=st-base, cl=isWon(st)?" win":(st===8||st===18)?" lost":(st===9||st===19)?" stop":"", n=s0>=last?last:s0;
     var o='<div class="stp'+cl+'" title="'+esc(ST[st]||"")+'">'; for(var k=1;k<=last;k++) o+='<i class="'+(k<=n?"on":"")+'"></i>'; return o+'</div>'; }
   function when(at){ if(!at) return ""; var m=/^(\d{4})-(\d{2})-(\d{2})(?:[ T](\d{2}):(\d{2}))?/.exec(at); return m ? m[3]+"/"+m[2]+"/"+m[1]+(m[4]?" "+m[4]+":"+m[5]:"") : at; }
-  function itemsHtml(it){ return (it||[]).length ? '<div class="pchips">'+it.map(function(x){ var g=x.kind==="chi"?GK[grpOf(x.code)]||GK.chi_o:GK[grpOf(x.code)]||GK.dao_o; return '<span class="pc"><i style="background:'+g.c+'"></i>'+esc(x.code)+' × '+(x.qty?nfmt(x.qty):"?")+'</span>'; }).join("")+'</div>' : ""; }
+  function itemsHtml(it){ return (it||[]).length ? '<div class="pchips">'+it.map(function(x){ var g=KDK[x.kind]&&KDK[x.kind].c ? {c:KDK[x.kind].c} : x.kind==="chi"?GK[grpOf(x.code)]||GK.chi_o:GK[grpOf(x.code)]||GK.dao_o; return '<span class="pc"><i style="background:'+g.c+'"></i>'+esc(x.code)+' × '+(x.qty?nfmt(x.qty):"?")+'</span>'; }).join("")+'</div>' : ""; }
   function caseHtml(c, full){
     var L=c.last, a=auth();
     var head='<div class="t">'+esc(L.pkg||"Gói theo dõi "+c.id)+'</div>'+
@@ -1888,18 +1888,19 @@ var FU=(function(){
     if(selH && sel===selH.ni) return renderHosp();
     var t=document.getElementById("sh-t"), sub=document.getElementById("sh-s"), a=auth();
     t.textContent = "Theo dõi thầu · "+(sel>=0 ? NEW[sel][0] : SCOPE.place());
-    sub.textContent = "Gói thầu dao / chỉ khâu đang theo dõi theo địa bàn"+(S.at?" · đọc lúc "+S.at:"");
+    sub.textContent = "Gói thầu / mua sắm đang theo dõi theo địa bàn"+(S.at?" · đọc lúc "+S.at:"");
     if(!a){ SB.innerHTML=loginHtml(false)+'<div class="note">Mỗi lần cập nhật được lưu thành 1 dòng mới (giữ đủ lịch sử từng giai đoạn) trong sheet ẩn "FOLLOW UP TENDER" của file CRM Surgical.</div>'; return; }
     var all=cases(), inProv=function(c){ return sel<0 || c.f.ni===sel; };
     var base=all.filter(function(c){ return pass(c,true) && inProv(c); }), list=base.filter(function(c){ return pass(c); });
     var html=(S.err?'<div class="note err">'+esc(S.err)+'</div>':'')+(S.loading&&!S.loaded?'<div class="note">Đang đọc dữ liệu theo dõi thầu…</div>':'');
-    var fac={}, dao=0, chi=0, wk=0, t7=Date.now()-7*864e5;
-    list.forEach(function(c){ fac[c.f.id]=1; dao+=qtyOf(c,"dao"); chi+=qtyOf(c,"chi"); });
+    var fac={}, dao=0, chi=0, oth=0, wk=0, t7=Date.now()-7*864e5;
+    list.forEach(function(c){ fac[c.f.id]=1; dao+=qtyOf(c,"dao"); chi+=qtyOf(c,"chi"); oth+=qtyOf(c,"ghim")+qtyOf(c,"hook")+qtyOf(c,"forcep"); });
     all.forEach(function(c){ if(!inProv(c) || !pass(c,true)) return; c.revs.forEach(function(r){ var d=Date.parse(String(r.at).replace(" ","T")); if(d>t7) wk++; }); });
     html+=warnHtml(sel);
     html+='<div class="kpis"><div class="kpi"><b>'+list.length+'</b><span>Gói '+({open:"đang theo dõi",won:"đã trúng",lost:"trượt / dừng",all:"(mọi trạng thái)"}[S.stf])+'</span></div>'+
       '<div class="kpi"><b>'+Object.keys(fac).length+'</b><span>Cơ sở y tế</span></div><div class="kpi"><b>'+wk+'</b><span>Lần cập nhật 7 ngày qua</span></div>'+
       '<div class="kpi"><b>'+nfmt(dao)+'</b><span>Dao ước tính (cái)</span></div><div class="kpi"><b>'+nfmt(chi)+'</b><span>Chỉ khâu ước tính (sợi)</span></div>'+
+      (oth?'<div class="kpi"><b>'+nfmt(oth)+'</b><span>Ghim da · Hook · Forceps (cái)</span></div>':'')+
       '<div class="kpi"><button class="btn pri sm" type="button" data-fu-new="'+(sel>=0?"P|"+sel:"")+'" style="width:100%">+ Thêm gói</button></div></div>';
     var withRes=all.filter(function(c){ return inProv(c) && pass(c,true) && matchRes(c); });
     if(withRes.length) html+='<h3>Đã có kết quả thầu — cần cập nhật · '+withRes.length+'</h3><div class="exp">'+withRes.slice(0,10).map(function(c){ var r=matchRes(c);
@@ -1933,14 +1934,23 @@ var FU=(function(){
   /* ── hộp Thêm / Cập nhật gói ── */
   var DLG=document.getElementById("fudlg"), FB=document.getElementById("fu-b"), M=null;
   var CODES=window.MANI_CODES||{dao:[],chi:[]}, CDESC={};
-  CODES.dao.forEach(function(r){ CDESC[r[0]]=r[1]; }); CODES.chi.forEach(function(r){ CDESC[r[0]]=r[1]; });
+  /* loại sản phẩm Sales Surgical phụ trách — người dùng bổ sung 05/11/2026: ghim da (Manipler), Hook (Trabeculotomy Hook), Micro Forceps (backend MMH_TenderFU v1.8) */
+  var KD=[{k:"dao", n:"Dao nhãn khoa", add:"Mã dao", ph:"Mã dao, vd. MSL28SH", u:"cái", pt:"Dao", re:/dao/i},
+          {k:"chi", n:"Chỉ khâu", add:"Mã chỉ khâu", ph:"Mã chỉ, vd. 1406", u:"sợi", pt:"Chỉ khâu", re:/chỉ|\bchi\b/i},
+          {k:"ghim", n:"Ghim da (Manipler)", add:"Mã ghim da", ph:"Mã ghim da, vd. AZ35WS", u:"cái", pt:"Ghim da", re:/ghim|manipler/i, c:"#0F766E"},
+          {k:"hook", n:"Hook", add:"Hook", ph:"Tên / mã Hook, vd. Trabeculotomy Hook", u:"cái", pt:"Hook", re:/hook/i, c:"#B45309"},
+          {k:"forcep", n:"Micro Forceps", add:"Mã forceps", ph:"Mã forceps, vd. MSQ25A28", u:"cái", pt:"Micro Forceps", re:/forcep/i, c:"#7C3AED"}];
+  var KDK={}; KD.forEach(function(x){ KDK[x.k]=x; CODES[x.k]=CODES[x.k]||[]; CODES[x.k].forEach(function(r){ CDESC[r[0]]=r[1]; }); });
+  function kdOf(k){ return KDK[k]||KD[0]; }
+  /* mô tả dưới ô mã: theo danh mục; loại chưa có danh mục mã (Hook) ⇒ để trống */
+  function dscOf(code, kd){ var c=String(code||"").trim().toUpperCase(); return CDESC[c] || (c && CODES[kd] && CODES[kd].length ? "Mã ngoài danh mục MMH Library" : ""); }
   var PEND=null, ONL=[];
   function open(o){
     if(!auth()){ PEND=o; F.view="fu"; try{ localStorage.setItem("tm_view","fu"); }catch(_){} renderFilters(); refresh(); return; }
     var c=o.caseId ? cases().filter(function(x){ return x.id===o.caseId; })[0] : null, L=c?c.last:null;
     var f=o.f || (c?c.f:null);
     var kinds={}; ((L&&L.it)||[]).forEach(function(it){ kinds[it.kind||"dao"]=1; });
-    if(!Object.keys(kinds).length && L && L.ptype){ if(/dao/i.test(L.ptype)) kinds.dao=1; if(/chỉ|chi/i.test(L.ptype)) kinds.chi=1; }
+    if(!Object.keys(kinds).length && L && L.ptype) KD.forEach(function(x){ if(x.re.test(L.ptype)) kinds[x.k]=1; });
     if(!Object.keys(kinds).length) kinds.dao=1;
     M={ c:c, f:f, newFac:null, prov:o.prov!=null?o.prov:-1, pkg:L?L.pkg:"", tbmt:L?L.tbmt:"", kinds:kinds,
         lines:((L&&L.it)||[]).map(function(it){ return {code:it.code, qty:it.qty||"", kind:it.kind||"dao"}; }),
@@ -1966,14 +1976,14 @@ var FU=(function(){
     html+= pv ? '<div><label class="l" for="fm-pkg">Nội dung mua sắm</label><input class="inp" id="fm-pkg" placeholder="vd. Dao Slit + chỉ Nylon cho phòng mổ Phaco" value="'+esc(M.pkg)+'"></div>'
       : '<div class="two"><div><label class="l" for="fm-pkg">Tên gói thầu / nội dung</label><input class="inp" id="fm-pkg" placeholder="vd. Vật tư tiêu hao nhãn khoa 2027" value="'+esc(M.pkg)+'"></div>'+
       '<div><label class="l" for="fm-tb">Số TBMT (nếu đã có)</label><input class="inp" id="fm-tb" placeholder="IB…" value="'+esc(M.tbmt)+'"></div></div>';
-    html+='<div><label class="l">Loại sản phẩm</label><div class="kd">'+[["dao","Dao nhãn khoa"],["chi","Chỉ khâu"]].map(function(k){ return '<button type="button" data-kind="'+k[0]+'" class="'+(M.kinds[k[0]]?"on":"")+'">'+k[1]+'</button>'; }).join("")+'</div></div>';
+    html+='<div><label class="l">Loại sản phẩm</label><div class="kd">'+KD.map(function(x){ return '<button type="button" data-kind="'+x.k+'" class="'+(M.kinds[x.k]?"on":"")+'">'+x.n+'</button>'; }).join("")+'</div></div>';
     html+='<div class="lines"><label class="l">Mã sản phẩm · SL ước tính</label>'+M.lines.map(function(ln,i){
       var kd=M.kinds[ln.kind]?ln.kind:Object.keys(M.kinds)[0];
-      return '<div class="ln"><input class="inp" data-ln="code" data-i="'+i+'" list="dl-'+kd+'" placeholder="'+(kd==="chi"?"Mã chỉ, vd. 1406":"Mã dao, vd. MSL28SH")+'" value="'+esc(ln.code)+'">'+
-        '<input class="inp" data-ln="qty" data-i="'+i+'" inputmode="numeric" placeholder="SL ('+(kd==="chi"?"sợi":"cái")+')" value="'+esc(ln.qty)+'">'+
+      return '<div class="ln"><input class="inp" data-ln="code" data-i="'+i+'" list="dl-'+kd+'" placeholder="'+esc(kdOf(kd).ph)+'" value="'+esc(ln.code)+'">'+
+        '<input class="inp" data-ln="qty" data-i="'+i+'" inputmode="numeric" placeholder="SL ('+kdOf(kd).u+')" value="'+esc(ln.qty)+'">'+
         '<button class="x" type="button" data-rm="'+i+'" title="Bỏ dòng" aria-label="Bỏ dòng">×</button>'+
-        '<div class="dsc">'+esc(CDESC[String(ln.code).toUpperCase()]||(ln.code?"Mã ngoài danh mục MMH Library":""))+'</div></div>'; }).join("")+
-      '<div style="display:flex;gap:8px;flex-wrap:wrap">'+Object.keys(M.kinds).map(function(k){ return '<button class="btn sm" type="button" data-add="'+k+'">+ '+(k==="chi"?"Mã chỉ khâu":"Mã dao")+'</button>'; }).join("")+'</div></div>';
+        '<div class="dsc">'+esc(dscOf(ln.code, kd))+'</div></div>'; }).join("")+
+      '<div style="display:flex;gap:8px;flex-wrap:wrap">'+Object.keys(M.kinds).map(function(k){ return '<button class="btn sm" type="button" data-add="'+k+'">+ '+kdOf(k).add+'</button>'; }).join("")+'</div></div>';
     if(pv && M.stage<11) M.stage=11; else if(!pv && M.stage>=11) M.stage=1;
     html+='<div><label class="l">Giai đoạn'+(pv?' · mua sắm cơ sở tư nhân':'')+(c?' <span style="font-weight:400;color:var(--t3)">· hiện tại: '+esc(ST[c.stage])+'</span>':'')+'</label><div class="stg">'+(pv?PRIV:TEND).map(function(k){
       return '<button type="button" data-st="'+k+'" class="'+(M.stage===k?"on":"")+(c&&k<c.stage&&isOpen(k)?" done":"")+'"><span class="n">'+(k>10?k-10:k)+'</span>'+esc(ST[k])+'</button>'; }).join("")+'</div></div>';
@@ -1982,8 +1992,7 @@ var FU=(function(){
     html+='<div><label class="l" for="fm-note">Tình hình</label><textarea class="inp" id="fm-note" rows="4" placeholder="Đã gặp ai, kết quả, khó khăn, đối thủ, bước tiếp theo…">'+esc(M.note)+'</textarea>'+
       '<div class="hint">Lưu thành 1 lần cập nhật mới kèm thời gian — các lần trước vẫn giữ nguyên.</div></div>';
     html+='</div><div class="ft2"><span class="er">'+esc(M.err)+'</span><button class="btn" type="button" data-fm="cancel">Huỷ</button><button class="btn pri" type="button" data-fm="save">Lưu</button></div>';
-    html+='<datalist id="dl-dao">'+CODES.dao.map(function(r){ return '<option value="'+esc(r[0])+'">'+esc(r[1])+'</option>'; }).join("")+'</datalist>'+
-          '<datalist id="dl-chi">'+CODES.chi.map(function(r){ return '<option value="'+esc(r[0])+'">'+esc(r[1])+'</option>'; }).join("")+'</datalist>';
+    html+=KD.map(function(x){ return '<datalist id="dl-'+x.k+'">'+CODES[x.k].map(function(r){ return '<option value="'+esc(r[0])+'">'+esc(r[1])+'</option>'; }).join("")+'</datalist>'; }).join("");
     FB.innerHTML=html;
     var fq=document.getElementById("fm-fq");
     if(fq) QS.wire(fq, document.getElementById("fm-fr"), function(x){ grab(); M.f=x; draw(); var p=document.getElementById("fm-pkg"); if(p) p.focus(); },
@@ -1998,7 +2007,7 @@ var FU=(function(){
     [].forEach.call(FB.querySelectorAll("[data-ln]"),function(e){ var ln=M.lines[+e.dataset.i]; if(!ln) return; if(e.dataset.ln==="code") ln.code=e.value.trim().toUpperCase(); else ln.qty=e.value.replace(/[^\d]/g,""); });
   }
   FB.addEventListener("input",function(e){
-    var t=e.target; if(t.dataset && t.dataset.ln==="code"){ var d=t.parentNode.querySelector(".dsc"); var k=t.value.trim().toUpperCase(); if(d) d.textContent=CDESC[k]||(k?"Mã ngoài danh mục MMH Library":""); }
+    var t=e.target; if(t.dataset && t.dataset.ln==="code"){ var d=t.parentNode.querySelector(".dsc"); var k=t.value.trim().toUpperCase(); if(d) d.textContent=dscOf(k, String(t.getAttribute("list")||"").slice(3)); }
   });
   FB.addEventListener("click",function(e){
     var b=e.target.closest("button"); if(!b || !M) return;
@@ -2027,7 +2036,7 @@ var FU=(function(){
     if(!lines.length){ M.err="Chọn ít nhất 1 mã sản phẩm và số lượng ước tính."; draw(); return; }
     if(lines.some(function(l){ return !l.qty; })){ M.err="Nhập số lượng ước tính cho mọi mã."; draw(); return; }
     if(!M.c && !M.pkg && !M.tbmt){ M.err="Nhập tên gói thầu / nội dung (hoặc số TBMT)."; draw(); return; }
-    var ptype=[M.kinds.dao?"Dao":"", M.kinds.chi?"Chỉ khâu":""].filter(Boolean).join(" + ");
+    var ptype=KD.filter(function(x){ return M.kinds[x.k]; }).map(function(x){ return x.pt; }).join(" + ");
     var r=rid(), now=new Date(), at=now.getFullYear()+"-"+String(now.getMonth()+1).padStart(2,"0")+"-"+String(now.getDate()).padStart(2,"0")+" "+String(now.getHours()).padStart(2,"0")+":"+String(now.getMinutes()).padStart(2,"0")+":"+String(now.getSeconds()).padStart(2,"0");
     var cid=M.c?M.c.id:"tmp-"+r, rev=M.c?M.c.revs.length+1:1, qty=lines.reduce(function(s2,l){ return s2+l.qty; },0);
     var body={ action:"fuSave", rid:r, "case":M.c?M.c.id:"", fid:fid, hosp:hosp, prov:NEW[ni][0], addr:addr, own:SCOPE.ownerOf(ni, (f&&f.oi) || ((provOf(NEW[ni][0], addr)||{}).o) || ""), pkg:M.pkg, tbmt:M.tbmt, ptype:ptype, items:lines,

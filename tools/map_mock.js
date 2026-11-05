@@ -167,7 +167,8 @@ async function install(page, opt = {}) {
         let id = p.case, rev = 1;
         if (id) { const ex = db.fu.filter(r => r[1] === id); if (!ex.length) return reply(route, url, { ok: false, error: 'Không tìm thấy gói ' + id }); rev = ex.length + 1; }
         else id = 'FU261104-' + String(1000 + db.fu.length);
-        const items = typeof p.items === 'string' ? JSON.parse(p.items) : (p.items || []);
+        const KINDS = ['dao', 'chi', 'ghim', 'hook', 'forcep'];   // như backend MMH_TenderFU v1.8 (fuKind_)
+        const items = (typeof p.items === 'string' ? JSON.parse(p.items) : (p.items || [])).map(x => Object.assign({}, x, { kind: KINDS.includes(String(x.kind || '').toLowerCase()) ? String(x.kind).toLowerCase() : /^chi/i.test(x.kind || '') ? 'chi' : 'dao' }));
         const d = new Date(Date.now() + 7 * 3600e3).toISOString().replace('T', ' ').slice(0, 19);
         const rec = [d, id, rev, 'Viet Ha', 'vietha', p.fid || '', p.hosp, p.prov, p.addr || '', p.pkg || '', p.tbmt || '', p.ptype || '', items.map(x => x.code + ' × ' + x.qty).join('; '),
           items.reduce((s, x) => s + (+x.qty || 0), 0), +p.value || 0, +p.stage, ST[+p.stage], p.due || '', p.note || '', JSON.stringify(items), p.rid, p.src || '', p.ll || '', p.own || ''];

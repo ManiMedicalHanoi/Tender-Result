@@ -467,7 +467,7 @@ table.pr td.r,table.pr th.r{text-align:right}
 .stg button.on{background:var(--pale);border-color:var(--blue);color:var(--blue);font-weight:600}
 .stg button.done{color:var(--t1)}
 .stg button.done .n{background:var(--lb);border-color:var(--lb);color:var(--navy)}
-.kd{display:flex;gap:6px}
+.kd{display:flex;gap:6px;flex-wrap:wrap}
 .kd button{border:1px solid var(--line2);background:var(--sf);border-radius:999px;padding:5px 12px;cursor:pointer;color:var(--t2)}
 .kd button.on{background:var(--pale);border-color:var(--blue);color:var(--blue);font-weight:600}
 .lines .ln{display:grid;grid-template-columns:minmax(0,1fr) 110px 30px;gap:6px;margin-bottom:6px;align-items:center}

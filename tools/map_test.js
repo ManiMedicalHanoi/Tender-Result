@@ -357,6 +357,31 @@ async function boot(b, ctxOpt, mopt, urlTail) {
   ok(!errs.length, 'không lỗi JS (hàng đợi)' + (errs.length ? ': ' + errs.join(' | ') : ''));
   await ctx.close();
 
+  /* ── loại sản phẩm: dao · chỉ khâu · ghim da (Manipler) · Hook · Micro Forceps (người dùng bổ sung 05/11/2026) ── */
+  ({ ctx, page, errs, db } = await boot(b, { viewport: { width: 1280, height: 860 } }));
+  await page.evaluate(() => { WINMAP.view('fu'); });
+  await page.waitForFunction(() => window.WINMAP && WINMAP.fu._S.loaded);
+  await page.evaluate(() => { const f = WINMAP.fac().find(x => /Bạch Mai/.test(x.name)); WINMAP.fu.open({ f }); });
+  await page.waitForSelector('#fm-pkg');
+  const kb = await page.$$eval('.kd button', L => L.map(e => e.textContent));
+  ok(kb.join('|') === 'Dao nhãn khoa|Chỉ khâu|Ghim da (Manipler)|Hook|Micro Forceps', 'loại sản phẩm: ' + kb.join(' · '));
+  for (const k of ['ghim', 'hook', 'forcep', 'dao']) await page.click('.kd button[data-kind="' + k + '"]');   // bật 3 loại mới, bỏ Dao
+  await page.fill('#fm-pkg', 'Gói vật tư phẫu thuật 2027');
+  const vals = { ghim: ['AZ35WS', '60'], hook: ['Trabeculotomy Hook', '10'], forcep: ['MSQ25A28', '20'] };
+  const lk = await page.$$eval('[data-ln="code"]', L => L.map(e => e.getAttribute('list')));
+  for (let i = 0; i < lk.length; i++) { const v = vals[lk[i].slice(3)]; await page.fill('[data-ln="code"][data-i="' + i + '"]', v[0]); await page.fill('[data-ln="qty"][data-i="' + i + '"]', v[1]); }
+  const ds = await page.$$eval('.ln .dsc', L => L.map(e => e.textContent));
+  ok(lk.join() === 'dl-ghim,dl-hook,dl-forcep' && /Manipler AZ 35W/.test(ds[0]) && ds[1] === '' && /Micro Forceps 25G/.test(ds[2]),
+    'chọn Ghim da · Hook · Micro Forceps ⇒ mỗi loại 1 dòng mã, gợi ý mã theo danh mục: ' + ds.join(' | '));
+  await page.screenshot({ path: path.join(OUT, 'd9_loai_sp.png') });
+  await page.click('[data-fm="save"]');
+  for (let i = 0; i < 40 && !db.fu.length; i++) await page.waitForTimeout(250);
+  const it9 = db.fu.length ? JSON.parse(db.fu[0][19]) : [];
+  ok(db.fu.length === 1 && db.fu[0][11] === 'Ghim da + Hook + Micro Forceps' && it9.map(x => x.kind).join() === 'ghim,hook,forcep' && db.fu[0][13] === 90,
+    'lưu ⇒ Loại sản phẩm "' + (db.fu[0] || [])[11] + '", từng dòng giữ loại (ghim / hook / forcep), tổng SL ' + (db.fu[0] || [])[13]);
+  ok(!errs.length, 'không lỗi JS (loại sản phẩm)' + (errs.length ? ': ' + errs.join(' | ') : ''));
+  await ctx.close();
+
   /* ── điện thoại ── */
   ({ ctx, page, errs, db } = await boot(b, devices['Pixel 7']));
   const wide = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);

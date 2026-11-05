@@ -9,7 +9,7 @@ const IC = 'AKfycbx8xuGaBOVgLxb8JtaH25t1pcisacigDecTMLKOVaBucuDWZ7hw2W_W4IngA1nS
 const CRM = 'AKfycbxxckrqwkfhE0fszm1XVdpYyEHU_PCKQWMKE_2wBnMTgoJCZ-1nRZ_fhOCPXXsVfEE';
 const HUB = 'AKfycbwsX4cQEoH4LNlmcNfe8qWIM9K6EiDEXy7PjhP9bHY2citL6xHn5L1unsAlQJHyL9EP';
 const ST = ['', 'Giới thiệu sản phẩm', 'Lên danh mục', 'Chốt cấu hình', 'Ra báo giá', 'Ra HSMT', 'Đang chấm thầu', 'Đã trúng thầu', 'Đã trượt thầu', 'Huỷ / dừng theo dõi'];
-const COLS = ['at','id','rev','pic','mail','fid','hosp','prov','addr','pkg','tbmt','ptype','itemsTxt','qty','value','stage','stageName','due','note','items','rid','src','ll'];
+const COLS = ['at','id','rev','pic','mail','fid','hosp','prov','addr','pkg','tbmt','ptype','itemsTxt','qty','value','stage','stageName','due','note','items','rid','src','ll','own'];
 let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
 const pick = a => a[Math.floor(rnd() * a.length)];
 
@@ -167,7 +167,7 @@ async function install(page, opt = {}) {
         const items = typeof p.items === 'string' ? JSON.parse(p.items) : (p.items || []);
         const d = new Date(Date.now() + 7 * 3600e3).toISOString().replace('T', ' ').slice(0, 19);
         const rec = [d, id, rev, 'Viet Ha', 'vietha', p.fid || '', p.hosp, p.prov, p.addr || '', p.pkg || '', p.tbmt || '', p.ptype || '', items.map(x => x.code + ' × ' + x.qty).join('; '),
-          items.reduce((s, x) => s + (+x.qty || 0), 0), +p.value || 0, +p.stage, ST[+p.stage], p.due || '', p.note || '', JSON.stringify(items), p.rid, p.src || '', p.ll || ''];
+          items.reduce((s, x) => s + (+x.qty || 0), 0), +p.value || 0, +p.stage, ST[+p.stage], p.due || '', p.note || '', JSON.stringify(items), p.rid, p.src || '', p.ll || '', p.own || ''];
         db.fu.push(rec); return reply(route, url, { ok: true, rec, cols: COLS });
       }
       return reply(route, url, { ok: true });

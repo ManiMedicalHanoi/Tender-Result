@@ -140,7 +140,7 @@ async function boot(b, ctxOpt, mopt, urlTail) {
   const pst = await page.$$eval('.stg button', b => b.map(x => x.textContent));
   ok(/Giới thiệu/.test(pst[0]) && /Ký hợp đồng mua sắm/.test(pst.join('|')) && !(await page.$('#fm-tb')), 'thêm cơ hội ở bệnh viện tư ⇒ giai đoạn mua sắm (… Ký hợp đồng mua sắm → Sử dụng hàng), không có ô TBMT');
   await page.click('[data-fm="cancel"]');
-  // xem theo PIC (người không phải Sales): chọn Khang ⇒ chỉ địa bàn Quảng Ngãi → miền Nam
+  // xem theo PIC (người không phải Sales): chọn Khang ⇒ chỉ địa bàn Quảng Nam (cũ) → miền Nam
   await page.evaluate(() => WINMAP.select(-1));
   await page.click('#f-pic button[data-v="Khang"]');
   await page.waitForTimeout(900);
@@ -173,7 +173,7 @@ async function boot(b, ctxOpt, mopt, urlTail) {
   await page.click('[data-fm="save"]');
   await page.waitForFunction(() => document.getElementById('fudlg').hidden);
   await page.waitForFunction(() => document.querySelectorAll('.fuc').length > 0 && !/đang lưu/.test(document.querySelector('.fuc').textContent), null, { timeout: 10000 });
-  ok(db.fu.length === 1 && db.fu[0][15] === 1, 'lưu gói mới (bước 1) ⇒ 1 dòng FOLLOW UP TENDER');
+  ok(db.fu.length === 1 && db.fu[0][15] === 1 && db.fu[0][23] === 'Viet Ha', 'lưu gói mới (bước 1) ⇒ 1 dòng FOLLOW UP TENDER, cột PIC phụ trách địa bàn = Viet Ha (Nghệ An)');
   await page.waitForFunction(() => /S-NA-001/.test((document.getElementById('crmx') || {}).textContent || ''), null, { timeout: 10000 });
   ok(await page.$eval('#crmx', e => /Lượt gặp 12 tháng/.test(e.textContent) && /Trưởng khoa/.test(e.textContent)), 'đã đăng nhập ⇒ khối CRM Surgical: mã địa bàn, lượt gặp, người liên hệ, đơn hàng');
   await page.click('[data-fu-up]');
@@ -406,6 +406,11 @@ async function boot(b, ctxOpt, mopt, urlTail) {
   const vh = await page.evaluate(() => ({ lock: WINMAP.scope.locked(), chip: document.getElementById('f-pic').textContent, btn: document.querySelectorAll('#f-pic button').length,
     hcm: document.querySelector('.prov[data-i="28"]').classList.contains('out'), dn: document.querySelector('.prov[data-i="20"]').classList.contains('out'), n28: WINMAP.stat(28).n, t: document.getElementById('sh-t').textContent }));
   ok(vh.lock && /Viet Ha · Miền Bắc → Đà Nẵng/.test(vh.chip) && !vh.btn && vh.hcm && !vh.dn && vh.n28 === 0 && /Địa bàn Viet Ha/.test(vh.t), 'Viet Ha đăng nhập ⇒ khoá địa bàn Bắc → Đà Nẵng (Đà Nẵng trong, TP.HCM ngoài), không chọn PIC khác');
+  const dnv = await page.evaluate(() => { const F = WINMAP.fac().filter(f => f.ni === 20 && f.oi), s = WINMAP.scope;
+    return { qn: F.filter(f => f.oi === 'quangnam').length, qnIn: F.filter(f => f.oi === 'quangnam' && s.inProv(f.ni, f.oi)).length, dn: F.filter(f => f.oi === 'danang').length, dnIn: F.filter(f => f.oi === 'danang' && s.inProv(f.ni, f.oi)).length,
+      own: [s.ownerOf(20, 'danang'), s.ownerOf(20, 'quangnam'), s.ownerOf(21, '')] }; });
+  ok(dnv.qn > 0 && dnv.qnIn === 0 && dnv.dn > 0 && dnv.dnIn === dnv.dn && dnv.own.join() === 'Viet Ha,Khang,Khang',
+    `tỉnh Đà Nẵng mới chia theo tỉnh cũ: Viet Ha thấy ${dnv.dn} cơ sở Đà Nẵng cũ, không thấy ${dnv.qn} cơ sở Quảng Nam cũ (thuộc Khang)`);
   await page.screenshot({ path: path.join(OUT, 's1_vietha.png') });
   await page.evaluate(() => WINMAP.view('act'));
   await page.waitForFunction(() => WINMAP.act._S.loaded && document.querySelector('#sb .tb2'), null, { timeout: 10000 });
@@ -418,7 +423,7 @@ async function boot(b, ctxOpt, mopt, urlTail) {
   ({ ctx, page, errs, db } = await boot(b, { viewport: { width: 1280, height: 800 } }, { as: 'Khang', mail: 'mmh.saigon1' }));
   await page.waitForTimeout(600);
   ok(await page.evaluate(() => WINMAP.scope.pic() === 'Khang' && WINMAP.scope.locked() && document.querySelector('.prov[data-i="16"]').classList.contains('out') && !document.querySelector('.prov[data-i="21"]').classList.contains('out')),
-    'Khang đăng nhập ⇒ khoá địa bàn Quảng Ngãi → miền Nam (Nghệ An ngoài, Quảng Ngãi trong)');
+    'Khang đăng nhập ⇒ khoá địa bàn Quảng Nam (cũ) → miền Nam (Nghệ An ngoài, Quảng Ngãi trong)');
   await page.waitForFunction(() => WINMAP.act._S.loaded, null, { timeout: 10000 });
   ok(await page.evaluate(() => WINMAP.qs.search('mat sai gon ha noi', 8).some(f => /Sài Gòn.*Hà Nội/i.test(f.name) && f.ni === 0)),
     'Khang tìm được khách CRM của chính mình nằm ngoài địa bàn chia theo tỉnh (Mắt Sài Gòn - Hà Nội), tên chuẩn khớp được danh mục');

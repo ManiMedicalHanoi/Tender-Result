@@ -109,7 +109,7 @@ Trang tĩnh (GitHub Pages): `https://manimedicalhanoi.github.io/Tender-Result/ma
 
 - **Đăng nhập ngay khi mở app** (màn hình đầu: bản đồ minh hoạ tô theo địa bàn 2 PIC, 3 tính năng, ô email + mã 6 số, phím Enter). Chỉ email công ty;
   phiên dùng chung Report Hub / CRM nên đã đăng nhập ở đó thì vào thẳng. Phiên hết hạn / đăng xuất ⇒ về màn hình này.
-- **Địa bàn phụ trách**: Viet Ha = miền Bắc → hết Đà Nẵng, Khang = Quảng Ngãi → miền Nam. Đăng nhập là Viet Ha / Khang ⇒ **chỉ thấy địa bàn của mình**
+- **Địa bàn phụ trách** (chia theo **tỉnh cũ**, người dùng chốt 05/11/2026): Viet Ha = miền Bắc → hết **Đà Nẵng cũ**, Khang = từ **Quảng Nam cũ** trở vào (tỉnh Đà Nẵng mới gồm cả 2 — cơ sở xét theo tỉnh cũ: toạ độ danh mục, hoặc tên huyện / thị Quảng Nam cũ trong địa chỉ). Đăng nhập là Viet Ha / Khang ⇒ **chỉ thấy địa bàn của mình**
   (bản đồ phóng vào địa bàn, tỉnh ngoài địa bàn mờ, số liệu / tìm kiếm / theo dõi thầu / cảnh báo / Hoạt động chỉ trong địa bàn). Người khác (Giang, Nguyen Ha, Tuyen…)
   xem tất cả và chọn **Cả nhóm · Viet Ha · Khang** ở thanh trên. Nhắc việc + email thứ Hai của Theo dõi thầu gửi PIC phụ trách địa bàn (backend `MMH_TenderFU.gs` v1.6).
 - **Công lập / tư nhân**: danh mục `csyt.js` có cột `own` (`tools/csyt_own.py`, 53 bệnh viện tư bị OSM ghi lẫn như Mắt Sài Gòn, Việt Nhật, Tâm Trí, Pháp Việt…);

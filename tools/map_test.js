@@ -323,6 +323,11 @@ async function boot(b, ctxOpt, mopt, urlTail) {
   const [dp] = await Promise.all([page.waitForEvent('download'), page.click('#xmenu [data-x="png"]')]);
   const pp = path.join(OUT, dp.suggestedFilename()); await dp.saveAs(pp);
   ok(/\.png$/.test(dp.suggestedFilename()) && fs.statSync(pp).size > 20000, 'Xuất ảnh bản đồ: ' + dp.suggestedFilename() + ' (' + Math.round(fs.statSync(pp).size / 1024) + ' KB)');
+  const stg2 = await page.evaluate(() => ({ ls: Object.keys(localStorage).filter(k => (localStorage.getItem(k) || '').length > 20000) }));
+  const idbKeys = await page.evaluate(() => new Promise(res => { const r = indexedDB.open('tender_map', 1); r.onsuccess = () => { const q = r.result.transaction('kv').objectStore('kv').getAllKeys(); q.onsuccess = () => res(q.result); }; r.onerror = () => res([]); }));
+  ok(!stg2.ls.length && idbKeys.includes('mmh_winmap_v1') && idbKeys.includes('act'), 'bộ nhớ đệm dữ liệu thầu + hoạt động ở IndexedDB, localStorage (dùng chung Report Hub / CRM) không giữ dữ liệu lớn');
+  await page.reload();
+  await page.waitForFunction(() => window.WINMAP && WINMAP.pkgs().length > 0 && WINMAP.act._S.loaded, null, { timeout: 3000 }).then(() => ok(true, 'mở lại: bản đồ + hoạt động hiện ngay từ bộ nhớ đệm'), () => ok(false, 'mở lại: bản đồ + hoạt động hiện ngay từ bộ nhớ đệm'));
   ok(!errs.length, 'không lỗi JS (máy tính)' + (errs.length ? ': ' + errs.join(' | ') : ''));
   await ctx.close();
 
@@ -369,6 +374,11 @@ async function boot(b, ctxOpt, mopt, urlTail) {
   ok(wide2 <= 1, 'điện thoại: hộp cập nhật không tràn ngang');
   await page.screenshot({ path: path.join(OUT, 'm4_form.png') });
   await page.click('[data-fm="cancel"]');
+  await page.click('#f-more');
+  await page.waitForSelector('#fdrw:not([hidden])');
+  const dr = await page.evaluate(() => { const b = document.querySelector('.fbox'), o = document.getElementById('f-own'); return { over: b.scrollWidth - b.clientWidth, own: !!o.offsetParent }; });
+  ok(dr.over <= 1 && dr.own, 'điện thoại: ngăn Bộ lọc ở Theo dõi thầu không tràn ngang, có mục Cơ sở y tế (công lập / tư nhân)');
+  await page.click('#fdrw-ok');
   await page.evaluate(() => { WINMAP.select(-1); WINMAP.view('act'); });
   await page.waitForFunction(() => WINMAP.act._S.loaded && document.querySelector('#sb .kpis'), null, { timeout: 10000 });
   await page.evaluate(() => WINMAP.sheet.to('half'));
@@ -409,6 +419,9 @@ async function boot(b, ctxOpt, mopt, urlTail) {
   await page.waitForTimeout(600);
   ok(await page.evaluate(() => WINMAP.scope.pic() === 'Khang' && WINMAP.scope.locked() && document.querySelector('.prov[data-i="16"]').classList.contains('out') && !document.querySelector('.prov[data-i="21"]').classList.contains('out')),
     'Khang đăng nhập ⇒ khoá địa bàn Quảng Ngãi → miền Nam (Nghệ An ngoài, Quảng Ngãi trong)');
+  await page.waitForFunction(() => WINMAP.act._S.loaded, null, { timeout: 10000 });
+  ok(await page.evaluate(() => WINMAP.qs.search('mat sai gon ha noi', 8).some(f => /Sài Gòn.*Hà Nội/i.test(f.name) && f.ni === 0)),
+    'Khang tìm được khách CRM của chính mình nằm ngoài địa bàn chia theo tỉnh (Mắt Sài Gòn - Hà Nội), tên chuẩn khớp được danh mục');
   ok(!errs.length, 'không lỗi JS (Khang)' + (errs.length ? ': ' + errs.join(' | ') : ''));
   await ctx.close();
   /* ── trình duyệt đăng nhập nhiều tài khoản Google: thẻ <script> tới Apps Script hỏng ⇒ vẫn đăng nhập được (fetch không cookie) ── */

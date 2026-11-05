@@ -63,7 +63,8 @@ function visitsFake() {
     ['S-005', 'Phòng khám Nhãn khoa Thanh Hà', '', 'Hà Nội', 'Miền Bắc', 'Viet Ha', 'Cầu Giấy, Hà Nội', [21.0301, 105.8012, 3, 3], null, '', 'tn'],
     ['S-006', 'Bệnh viện Mắt tỉnh Tiền Giang', 'Hospital', 'Tiền Giang', 'Miền Nam', 'Khang', 'Mỹ Tho, Tiền Giang', null, null, '', 'cl'],
     ['S-007', 'BV Quốc tế Đồng Nai', 'Hospital', 'Đồng Nai', 'Miền Nam', 'Khang', 'Biên Hòa, Đồng Nai', null, null, '', 'tn'],
-    ['', 'BV Mới Toanh', 'Hospital', 'Đồng Nai', 'Miền Nam', 'Khang', '', null, null, '', '']];
+    ['', 'BV Mới Toanh', 'Hospital', 'Đồng Nai', 'Miền Nam', 'Khang', '', null, null, '', ''],
+    ['S-008', 'BỆNH VIỆN MẮT SÀI GÒN - HÀ NỘI ( CHI NHÁNH SỐ 1)', 'Hospital', 'Ha Noi', 'Miền Bắc', 'Khang', '', null, null, 'Bệnh viện Mắt Sài Gòn - Hà Nội (cơ sở 1)', 'tn']];   // khách của Khang nằm ngoài địa bàn chia theo tỉnh
   const pics = ['Viet Ha', 'Khang'], acts = ['Visiting', 'Telephone', 'Presentation'], sts = ['Completed', 'Plan', 'Cancel'], tasks = ['Customer visit', 'Other'];
   const rows = []; let r = 11;
   const rnd2 = () => (r = (r * 16807) % 2147483647) / 2147483647;
@@ -84,9 +85,29 @@ function picOf(email) {
   const l = String(email || '').split('@')[0];
   return { vietha: 'Viet Ha', 'mmh.saigon1': 'Khang', khang: 'Khang', 'mmh.product': 'Giang', 'tt.tuyen': 'Tuyen', 'nt.ha': 'Nguyen Ha' }[l] || 'Giang';
 }
+/* fuVisits từ danh sách khách thật (không địa chỉ / GPS — thử mức định vị theo tên + tỉnh), lượt viếng thăm giả 09/2025 → 11/2026 */
+function visitsFromList(txt) {
+  const acc = txt.split('\n').map(l => l.split('|')).filter(p => p.length >= 5 && p[0]).map(p => [p[0], p[1], p[2], p[3], '', p[4], '', null, null, '', '']);
+  const pics = ['Viet Ha', 'Khang'], acts = ['Visiting', 'Telephone', 'Presentation'], sts = ['Completed', 'Plan', 'Cancel'], tasks = ['Customer visit', 'Other'];
+  const rows = []; let r = 5; const rr = () => (r = (r * 16807) % 2147483647) / 2147483647;
+  acc.forEach((a, ai) => { const n = Math.floor(rr() * rr() * 14); for (let k = 0; k < n; k++) {
+    const y = 2025 + (rr() < 0.4 ? 0 : 1), m = y === 2025 ? 9 + Math.floor(rr() * 4) : 1 + Math.floor(rr() * 11), d = 1 + Math.floor(rr() * 27);
+    const iso = `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`, fut = iso > '2026-11-05', act = rr() < 0.75 ? 0 : 1 + Math.floor(rr() * 2);
+    rows.push([iso, Math.max(0, pics.indexOf(a[5])), ai, act, fut ? 1 : (rr() < 0.9 ? 0 : 2), '', '', act === 0 ? 1 : 0, 0]); } });
+  rows.sort((x, y) => x[0] < y[0] ? -1 : 1);
+  return { ok: true, v: '1.0', from: '2025-09-01', today: '2026-11-05', accCols: ['code', 'name', 'type', 'province', 'area', 'pic', 'address', 'gps', 'loc', 'std', 'kind'], acc, pics, acts, sts, tasks,
+    cols: ['d', 'pic', 'acc', 'act', 'st', 'lat', 'lng', 'photo', 'task'], rows };
+}
 async function install(page, opt = {}) {
   seed = 7;
   const db = { fu: [], locs: [], vis: visitsFake(), saves: 0, failSave: opt.failSave || 0, hv: nppRows('HUNGVI'), ic: nppRows('ICARE'), tk: 'mock.tk.' + 'x'.repeat(20), calls: [] };
+  /* dữ liệu thật để rà soát (KHÔNG đưa vào repo): bản xuất winMap của 2 NPP, danh sách khách CRM Surgical "mã|tên|loại|tỉnh|PIC" */
+  const hvp = opt.hvJson || process.env.NPP_HV_JSON, icp = opt.icJson || process.env.NPP_IC_JSON, accp = opt.accTxt || process.env.CRM_ACC_TXT;
+  if (hvp) db.hv = JSON.parse(fs.readFileSync(hvp, 'utf8')).rows;
+  if (icp) db.ic = JSON.parse(fs.readFileSync(icp, 'utf8')).rows;
+  if (accp) db.vis = visitsFromList(fs.readFileSync(accp, 'utf8'));
+  const stdp = opt.stdJson || process.env.CRM_STD_JSON;            // bảng tên chuẩn VM_STD {mã: [tên, cl|tn|npp]} như backend trả
+  if (accp && stdp) { const st = JSON.parse(fs.readFileSync(stdp, 'utf8')); db.vis.acc.forEach(a => { const v = st[a[0]]; if (v) { a[9] = v[0]; a[10] = v[1]; } }); }
   const kpath = opt.kqttJson || process.env.KQTT_JSON;
   db.kqtt = kpath ? JSON.parse(fs.readFileSync(kpath, 'utf8')) : kqttFake();
   // vài gói NPP trùng số TBMT với KQTT ⇒ app phải bỏ gói KQTT tương ứng

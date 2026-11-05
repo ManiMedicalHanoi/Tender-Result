@@ -158,6 +158,7 @@ Phong cách MMH: nền sáng, chữ Aptos, navy `#003047`, xanh `#3A5CAA`, viề
 | 05/11/2026 | Sửa đăng nhập (fetch không cookie; backend v1.3.1), màu bản đồ theo tiến độ, cảnh báo hợp đồng MANI sắp hết hiệu lực chưa cập nhật theo dõi |
 | 04/11/2026 | Nhắc việc Theo dõi thầu (RH_Notify + email thứ Hai), khối CRM Surgical trong chi tiết cơ sở, tách `app.css` / `app.js`, CI kiểm thử |
 | 04/11/2026 | Tab Thầu lại · Giá trúng · Hiệu quả NPP · Dự báo; Theo dõi thầu tự khớp kết quả KQTT / NPP; xuất Excel + ảnh bản đồ |
+| 05/11/2026 | Rà soát: bộ nhớ đệm IndexedDB (`IDB`, `CACHE_NPP` / `CACHE_ACT`), khớp khách CRM bằng tên chuẩn, khách của PIC ngoài địa bàn, `PVNAME`, sửa tooltip / ngăn Bộ lọc điện thoại / nút Thử lại |
 | 05/11/2026 | Đăng nhập ở màn hình đầu (`GATE`), địa bàn theo PIC (`TERR` / `SCOPE`), công lập / tư nhân (`csyt.js` cột own, `isPv`), ghi theo hãng (`brandTxt`), tóm tắt địa bàn (`psumHtml`) |
 | 05/11/2026 | Chế độ **Hoạt động** (visiting CRM Surgical: kỳ / tháng, PIC, tỉnh đậm nhạt theo lượt, khách gặp nhiều / lâu chưa gặp, lịch sử chăm sóc + thầu, ghim vị trí, tên chuẩn); cơ sở tư nhân + giai đoạn mua sắm; tự cập nhật ~5 phút; vòng cảnh báo đỏ hồng |
 | 04/11/2026 | Theo dõi thầu chỉ cho tài khoản email công ty (backend `MMH_TenderFU.gs` v1.2); giao diện gọn sau review: thanh lọc + nhãn ×, Kỳ dạng ô chọn, bảng trượt trên điện thoại, thị phần MANI, chấm cơ sở chưa có gói, ▲▼ + “+ Theo dõi”, MANI / hãng khác ở chi tiết, hướng dẫn lần đầu |
@@ -172,7 +173,7 @@ Phong cách MMH: nền sáng, chữ Aptos, navy `#003047`, xanh `#3A5CAA`, viề
 | Danh mục cơ sở | `csyt.js` = `{cols, rows, types, spec}`; nối bệnh viện có gói thầu ⇒ toạ độ thật; `hospOf(f)` tạo "bệnh viện rỗng" cho cơ sở chưa có gói để dùng chung màn chi tiết |
 | Theo dõi thầu | `FU` (trong `index.html`): **chỉ phiên email công ty** (@manimedicalhanoi.com / @mani.inc, đăng nhập mã 6 số qua Training Hub, phiên `mmh_tk` dùng chung Report Hub / CRM; backend trả `code:'AUTH'` ⇒ xoá phiên, hiện ô đăng nhập), `fuList` (JSONP / fetch), hàng đợi `fuSave` (POST JSON text/plain, dự phòng JSONP), gói = các dòng cùng *Mã theo dõi*; chế độ xem `F.view = "win" | "fu"` (`localStorage.tm_view`) đổi thống kê bản đồ (`FU.stats`), chú giải, tooltip, bảng bên |
 | Tìm | `QS` — chỉ mục chữ không dấu theo từ, điểm: khớp tên, cụm liền, có lịch sử thầu / đang theo dõi, bệnh viện, chuyên khoa mắt |
-| PWA | `sw.js` `tr-map-v11` (thêm `csyt.js`, `codes.js`) |
+| PWA | `sw.js` `tr-map-v12` (thêm `csyt.js`, `codes.js`) |
 
 ## 8c. Giao diện sau review (04/11/2026)
 
@@ -222,6 +223,14 @@ Phong cách MMH: nền sáng, chữ Aptos, navy `#003047`, xanh `#3A5CAA`, viề
 | Hãng | `brandMix(list)` / `brandTxt(list,n)`: SL trúng theo `brandOf` (MANI / Manufacturer KQTT), luôn nêu MANI + n hãng khác lớn nhất — tooltip, `rankHtml`, `hcard` |
 | Tóm tắt | `psumHtml()` đầu tab Tổng quan (tỉnh / toàn quốc / địa bàn): đếm `FAC` theo loại + công / tư; mọi gói Win có dao (mọi thời gian, mọi nguồn đã bỏ trùng) ⇒ số cơ sở, cơ sở nhiều gói nhất (`data-h`); SL dao trúng theo hãng trong `inPeriod` (bỏ qua bộ lọc nguồn / hãng); khoảng tháng = gói KQTT sớm nhất – muộn nhất |
 | Kiểm thử | `tools/map_test.js`: `boot` đăng nhập sẵn (Giang, `mopt.as` / `mopt.mail` để đổi người; `mopt.gate` = chưa đăng nhập); mock `rhAuthVerify` trả tên theo email (`picOf`) |
+
+## 8f. Bộ nhớ đệm (05/11/2026)
+
+| Phần | Cách làm |
+|---|---|
+| Nơi lưu | IndexedDB `tender_map` ▸ store `kv` (`IDB.get/set`, lưu thẳng đối tượng, không JSON). Khoá `mmh_winmap_v1` = `{at, RAW, META}` (lưu sau mỗi lần đọc thầu thành công), `act` = `{at, d}` (bản `fuVisits`). localStorage chỉ còn phiên, cài đặt nhỏ, hàng đợi ghi Theo dõi thầu |
+| Khởi động | `CACHE_NPP` / `CACHE_ACT` đọc ngay đầu script; dùng nếu mạng chưa trả (`NETDONE`). Hoạt động từ đệm ⇒ `S.cached` ⇒ `ensure()` vẫn đọc lại nền; đọc xong ở chế độ khác ⇒ `refresh()` (trừ khi đang gõ trong bảng bên) |
+| Chuyển đổi | localStorage `mmh_winmap_v1` cũ ⇒ dùng 1 lần, ghi sang IndexedDB, `removeItem` |
 
 ## 9. Việc có thể làm tiếp
 

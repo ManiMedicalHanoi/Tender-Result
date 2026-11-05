@@ -119,6 +119,17 @@ Trang tĩnh (GitHub Pages): `https://manimedicalhanoi.github.io/Tender-Result/ma
 - **Tóm tắt địa bàn** đầu tab Tổng quan (tỉnh đang xem / toàn quốc / địa bàn PIC): số bệnh viện công lập, TTYT, PKĐK khu vực, cơ sở tư nhân (theo danh mục);
   thầu dao từ tháng đầu đến tháng cuối có dữ liệu KQTT: số cơ sở trúng thầu dao, cơ sở nhiều gói nhất (số gói, số dao); hãng chiếm tỉ trọng lớn nhất theo số lượng dao trúng trong kỳ đang lọc.
 
+## Cập nhật 05/11/2026 (4) — rà soát toàn bộ (dữ liệu thật 2 NPP + 292 khách CRM)
+
+- **Bộ nhớ đệm chuyển sang IndexedDB** (`tender_map` ▸ `kv`: `mmh_winmap_v1` = thầu 2 NPP + KQTT, `act` = hoạt động CRM). Trước để ở localStorage —
+  vùng ~5 MB DÙNG CHUNG với Report Hub / CRM (hàng đợi ghi khi mất mạng của CRM nằm ở đó), dữ liệu KQTT toàn quốc lớn có thể làm đầy. Bản cũ ở localStorage tự chuyển sang rồi xoá.
+  Mở lại app: bản đồ + Hoạt động hiện từ bộ nhớ đệm (~0,4 giây), dữ liệu mới đọc nền rồi tự thay.
+- **Khớp khách CRM với danh mục bằng tên chuẩn** (VM_STD) trước tên gõ trên CRM ("BỆNH VIỆN QUÂN Y 175/BQP", "BỆNH VIỆT MẮT"…): 169 → 185 / 292 khách khớp đúng cơ sở (toạ độ thật, lịch sử thầu).
+- Sales luôn thấy / tìm được khách CRM của chính mình kể cả khi nằm ngoài địa bàn chia theo tỉnh (vd. Khang có 3 khách ở Quảng Nam cũ — nay thuộc TP Đà Nẵng — và 1 ở Hà Nội).
+- Bệnh viện chỉ có trong dữ liệu thầu (chưa có trong danh mục): nhận tư nhân theo tên (Vinmec, Hoàn Mỹ, quốc tế, công ty cổ phần…).
+- Sửa: chú thích nổi của chế độ trước còn đọng khi đổi chế độ; dòng tóm tắt điện thoại lặp tên PIC; ngăn Bộ lọc điện thoại tràn ngang và thiếu mục Cơ sở y tế ở Theo dõi thầu;
+  lỗi đọc dữ liệu có nút **Thử lại**; tóm tắt địa bàn khi chưa có dữ liệu thầu không còn hiện "từ — đến —"; nhãn ngày không xuống dòng.
+
 ## Quy ước
 
 - FY67 = 09/2025 – 08/2026, FY68 = 09/2026 – 08/2027 (Q1 = T9–T11).

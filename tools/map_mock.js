@@ -64,8 +64,9 @@ function visitsFake() {
     ['S-006', 'Bệnh viện Mắt tỉnh Tiền Giang', 'Hospital', 'Tiền Giang', 'Miền Nam', 'Khang', 'Mỹ Tho, Tiền Giang', null, null, '', 'cl'],
     ['S-007', 'BV Quốc tế Đồng Nai', 'Hospital', 'Đồng Nai', 'Miền Nam', 'Khang', 'Biên Hòa, Đồng Nai', null, null, '', 'tn'],
     ['', 'BV Mới Toanh', 'Hospital', 'Đồng Nai', 'Miền Nam', 'Khang', '', null, null, '', ''],
-    ['S-008', 'BỆNH VIỆN MẮT SÀI GÒN - HÀ NỘI ( CHI NHÁNH SỐ 1)', 'Hospital', 'Ha Noi', 'Miền Bắc', 'Khang', '', null, null, 'Bệnh viện Mắt Sài Gòn - Hà Nội (cơ sở 1)', 'tn']];   // khách của Khang nằm ngoài địa bàn chia theo tỉnh
-  const pics = ['Viet Ha', 'Khang'], acts = ['Visiting', 'Telephone', 'Presentation'], sts = ['Completed', 'Plan', 'Cancel'], tasks = ['Customer visit', 'Other'];
+    ['S-008', 'BỆNH VIỆN MẮT SÀI GÒN - HÀ NỘI ( CHI NHÁNH SỐ 1)', 'Hospital', 'Ha Noi', 'Miền Bắc', 'Khang', '', null, null, 'Bệnh viện Mắt Sài Gòn - Hà Nội (cơ sở 1)', 'tn'],   // khách của Khang nằm ngoài địa bàn chia theo tỉnh
+    ['T-001', 'TEST Bệnh viện ảo', 'Hospital', 'Hà Nội', 'Miền Bắc', 'Test', 'Hà Nội', null, null, '', '']];   // như dữ liệu thật: khách TEST
+  const pics = ['Viet Ha', 'Khang', 'Nguyen Ha', 'Test', 'Giang'], acts = ['Visiting', 'Telephone', 'Presentation'], sts = ['Completed', 'Plan', 'Cancel'], tasks = ['Customer visit', 'Other'];
   const rows = []; let r = 11;
   const rnd2 = () => (r = (r * 16807) % 2147483647) / 2147483647;
   for (let k = 0; k < 160; k++) {
@@ -76,6 +77,8 @@ function visitsFake() {
     const act = rnd2() < 0.75 ? 0 : 1 + Math.floor(rnd2() * 2), st = fut ? 1 : (rnd2() < 0.9 ? 0 : 2), g = act === 0 && a[7];
     rows.push([iso, pics.indexOf(a[5]), ai, act, st, g ? a[7][0] : '', g ? a[7][1] : '', act === 0 && st === 0 ? 1 : 0, 0]);
   }
+  /* như dữ liệu thật: CRM có cả lượt của quản lý / Admin / TEST ⇒ app chỉ tính Viet Ha, Khang */
+  [['2026-10-06', 2, 1], ['2026-10-14', 2, 2], ['2026-09-22', 4, 0], ['2026-10-20', 3, 9], ['2026-10-21', 3, 2]].forEach(([iso, pi, ai]) => rows.push([iso, pi, ai, 0, 0, '', '', 0, 0]));
   rows.sort((x, y) => x[0] < y[0] ? -1 : 1);
   return { ok: true, v: '1.0', from: '2025-09-01', to: '2027-02-04', today: '2026-11-04', accCols: ['code', 'name', 'type', 'province', 'area', 'pic', 'address', 'gps', 'loc', 'std', 'kind'], acc, pics, acts, sts, tasks,
     cols: ['d', 'pic', 'acc', 'act', 'st', 'lat', 'lng', 'photo', 'task'], rows };

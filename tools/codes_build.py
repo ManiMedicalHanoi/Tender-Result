@@ -5,12 +5,12 @@ Nguồn (kho riêng tư ManiMedicalHanoi/mmh-library, chỉ lấy MÃ + mô tả
   · Ophthalmic product/Ophthalmic Knives document/Dao nhãn khoa MANI - Hồ sơ sản phẩm.md   (bảng "| Mã | Mô tả |" + dòng liệt kê mã)
   · Ophthalmic product/Ophthalmic Sutures document/Bảng mã chỉ khâu nhãn khoa (catalogue VN 2025-08).csv
   · Surgical product/Manipler Skin Staplers document/Manipler - Hồ sơ sản phẩm.md                (mục 1. Danh mục — catalogue VN)
-  · Ophthalmic product/Micro Forceps document/Micro-Forceps-Catalog_en.pdf                          (bảng Order No — cần pdftotext)
-  Trabeculotomy Hook: thư viện chưa có mã đặt hàng ⇒ danh sách trống, app cho gõ tự do.
+  · Ophthalmic product/Micro Forceps document/Kẹp vi phẫu MANI - Hồ sơ sản phẩm.md                (mục 2. Mã đặt hàng — bản dịch flyer S0038)
+  · Ophthalmic product/Trabeculotomy Hook document/Móc mở vùng bè MANI - Hồ sơ sản phẩm.md         (mục 3. Mã đặt hàng — bản dịch catalogue S0017)
 
 Chạy:  python3 -I tools/codes_build.py <thư mục mmh-library>
 """
-import csv, datetime, json, os, re, subprocess, sys
+import csv, datetime, json, os, re, sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 FAM = [("MST", "Dao thẳng"), ("MSL", "Dao rạch"), ("MSS", "Dao rạch"), ("MSP", "Dao tạo cổng bên"), ("MVR", "Dao MVR"), ("MPK", "Dao tạo cổng"),
@@ -65,19 +65,25 @@ def staplers(md):
             rows.append([code, kind or (name + (" (" + desc[0].lower() + desc[1:] + ")" if desc else ""))])
     return rows
 
-def forceps(pdf):
-    """Micro Forceps: mã M(SQ|RD|IL)<gauge>[A28] trong bảng Order No của catalogue."""
-    try: txt = subprocess.run(["pdftotext", "-layout", pdf, "-"], capture_output=True, text=True, check=True).stdout
-    except Exception as e:
-        print("Không đọc được catalogue Micro Forceps:", e, file=sys.stderr); return []
-    tip = {"SQ": "đầu vuông", "RD": "đầu tròn", "IL": "đầu ILM"}
-    rows, seen = [], set()
-    for c in re.findall(r"\b(M(?:SQ|RD|IL)\d{2}(?:A\d{2})?)\b", txt):
-        if c in seen: continue
-        seen.add(c)
-        rows.append([c, "Micro Forceps %sG %s · %s" % (c[3:5], tip[c[1:3]], "Wide Grip 28 mm" if c.endswith("A28") else "Slim Grip 33 mm")])
-    rows.sort(key=lambda r: (not r[0].endswith("A28"), r[0][3:5], "SQRDIL".index(r[0][1:3])))
-    return rows
+def section(md, head):
+    """Các dòng bảng | … | của mục bắt đầu bằng `## <head>` trong hồ sơ sản phẩm."""
+    rows, on = [], False
+    for line in open(md, encoding="utf-8"):
+        if line.startswith("## "):
+            if on: break
+            on = line.startswith("## " + head)
+            continue
+        if on and line.startswith("|") and not re.match(r"\|\s*-", line):
+            rows.append([c.strip().strip("*") for c in line.strip().strip("|").split("|")])
+    return rows[1:]                                   # bỏ dòng tiêu đề bảng
+
+def forceps(md):
+    """Kẹp vi phẫu MANI (Micro Forceps): | Mã | Mô tả (EN) | Kiểu đầu kẹp | Gauge | Dòng |"""
+    return [[r[0], "Kẹp vi phẫu %s đầu %s · %s" % (r[3], r[2] if r[2].isupper() else r[2].lower(), r[4])] for r in section(md, "2.") if re.match(r"^M[A-Z]{2}\d{2}", r[0])]
+
+def hooks(md):
+    """Móc mở vùng bè MANI (Trabeculotomy Hook): | Mã | Quy cách | Chiều dài phần móc | Tổng chiều dài |"""
+    return [[r[0], "Móc mở vùng bè · móc %s, dài %s (%s)" % (r[2], r[3], r[1])] for r in section(md, "3.") if re.match(r"^[A-Z]{2,4}-?[A-Z0-9]+$", r[0])]
 
 def main():
     lib = sys.argv[1] if len(sys.argv) > 1 else os.path.join(os.path.dirname(ROOT), "mmh-library")
@@ -85,12 +91,13 @@ def main():
     dao = knives(os.path.join(oph, "Ophthalmic Knives document", "Dao nhãn khoa MANI - Hồ sơ sản phẩm.md"))
     chi = sutures(os.path.join(oph, "Ophthalmic Sutures document", "Bảng mã chỉ khâu nhãn khoa (catalogue VN 2025-08).csv"))
     ghim = staplers(os.path.join(lib, "Surgical product", "Manipler Skin Staplers document", "Manipler - Hồ sơ sản phẩm.md"))
-    forcep = forceps(os.path.join(oph, "Micro Forceps document", "Micro-Forceps-Catalog_en.pdf"))
-    js = ("/* Mã dao + chỉ khâu nhãn khoa, ghim da Manipler, Micro Forceps MANI (MMH Library: hồ sơ dao nhãn khoa, bảng mã chỉ khâu catalogue VN 2025-08, hồ sơ Manipler, catalogue Micro Forceps) — dựng bằng tools/codes_build.py (" +
+    forcep = forceps(os.path.join(oph, "Micro Forceps document", "Kẹp vi phẫu MANI - Hồ sơ sản phẩm.md"))
+    hook = hooks(os.path.join(oph, "Trabeculotomy Hook document", "Móc mở vùng bè MANI - Hồ sơ sản phẩm.md"))
+    js = ("/* Mã dao + chỉ khâu nhãn khoa, ghim da Manipler, kẹp vi phẫu (Micro Forceps), móc mở vùng bè (Hook) MANI (MMH Library: hồ sơ dao nhãn khoa, bảng mã chỉ khâu catalogue VN 2025-08, hồ sơ Manipler, hồ sơ kẹp vi phẫu S0038, hồ sơ móc mở vùng bè S0017) — dựng bằng tools/codes_build.py (" +
           datetime.date.today().isoformat() + "). Không sửa tay. */\nwindow.MANI_CODES=" +
-          json.dumps({"dao": dao, "chi": chi, "ghim": ghim, "forcep": forcep, "hook": []}, ensure_ascii=False, separators=(",", ":")) + ";\n")
+          json.dumps({"dao": dao, "chi": chi, "ghim": ghim, "forcep": forcep, "hook": hook}, ensure_ascii=False, separators=(",", ":")) + ";\n")
     open(os.path.join(ROOT, "map", "codes.js"), "w", encoding="utf-8").write(js)
-    print("codes.js:", len(dao), "mã dao ·", len(chi), "mã chỉ ·", len(ghim), "mã ghim da ·", len(forcep), "mã forceps ·", round(len(js.encode()) / 1024), "KB", file=sys.stderr)
+    print("codes.js:", len(dao), "mã dao ·", len(chi), "mã chỉ ·", len(ghim), "mã ghim da ·", len(forcep), "mã forceps ·", len(hook), "mã hook ·", round(len(js.encode()) / 1024), "KB", file=sys.stderr)
 
 if __name__ == "__main__":
     main()

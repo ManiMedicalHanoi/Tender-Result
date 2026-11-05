@@ -1934,12 +1934,13 @@ var FU=(function(){
   /* ── hộp Thêm / Cập nhật gói ── */
   var DLG=document.getElementById("fudlg"), FB=document.getElementById("fu-b"), M=null;
   var CODES=window.MANI_CODES||{dao:[],chi:[]}, CDESC={};
-  /* loại sản phẩm Sales Surgical phụ trách — người dùng bổ sung 05/11/2026: ghim da (Manipler), Hook (Trabeculotomy Hook), Micro Forceps (backend MMH_TenderFU v1.8) */
+  /* loại sản phẩm Sales Surgical phụ trách — người dùng bổ sung 05/11/2026: ghim da (Manipler), Hook = móc mở vùng bè MANI (MTH-S), Micro Forceps = kẹp vi phẫu MANI
+     (tên chuẩn theo hồ sơ dịch catalogue S0017 / flyer S0038 trong MMH Library; backend MMH_TenderFU v1.8) */
   var KD=[{k:"dao", n:"Dao nhãn khoa", add:"Mã dao", ph:"Mã dao, vd. MSL28SH", u:"cái", pt:"Dao", re:/dao/i},
           {k:"chi", n:"Chỉ khâu", add:"Mã chỉ khâu", ph:"Mã chỉ, vd. 1406", u:"sợi", pt:"Chỉ khâu", re:/chỉ|\bchi\b/i},
           {k:"ghim", n:"Ghim da (Manipler)", add:"Mã ghim da", ph:"Mã ghim da, vd. AZ35WS", u:"cái", pt:"Ghim da", re:/ghim|manipler/i, c:"#0F766E"},
-          {k:"hook", n:"Hook", add:"Hook", ph:"Tên / mã Hook, vd. Trabeculotomy Hook", u:"cái", pt:"Hook", re:/hook/i, c:"#B45309"},
-          {k:"forcep", n:"Micro Forceps", add:"Mã forceps", ph:"Mã forceps, vd. MSQ25A28", u:"cái", pt:"Micro Forceps", re:/forcep/i, c:"#7C3AED"}];
+          {k:"hook", n:"Hook (móc mở vùng bè)", add:"Mã Hook", ph:"Mã Hook, vd. MTH-S", u:"cái", pt:"Hook", re:/hook|móc mở/i, c:"#B45309"},
+          {k:"forcep", n:"Micro Forceps (kẹp vi phẫu)", add:"Mã forceps", ph:"Mã forceps, vd. MSQ25A28", u:"cái", pt:"Micro Forceps", re:/forcep|kẹp vi phẫu/i, c:"#7C3AED"}];
   var KDK={}; KD.forEach(function(x){ KDK[x.k]=x; CODES[x.k]=CODES[x.k]||[]; CODES[x.k].forEach(function(r){ CDESC[r[0]]=r[1]; }); });
   function kdOf(k){ return KDK[k]||KD[0]; }
   /* mô tả dưới ô mã: theo danh mục; loại chưa có danh mục mã (Hook) ⇒ để trống */

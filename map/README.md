@@ -38,7 +38,7 @@ Trang tĩnh (GitHub Pages): `https://manimedicalhanoi.github.io/Tender-Result/ma
   — đăng nhập email + mã 6 số qua Training Hub, phiên `localStorage.mmh_tk` dùng chung Report Hub / CRM (đã đăng nhập ở 2 app đó thì vào thẳng). Người cập nhật = tên trong phiên.
   Phần Kết quả thầu (NPP + KQTT) vẫn xem không cần đăng nhập.
   Ghi / đọc sheet ẨN **FOLLOW UP TENDER** của backend CRM Surgical VN (`crm-surgical/MMH_TenderFU.gs`: `fuList` / `fuSave`). Mỗi lần cập nhật = 1 dòng mới (giữ đủ lịch sử, không xoá):
-  cơ sở · tên gói · TBMT · loại SP (Dao nhãn khoa · Chỉ khâu · Ghim da Manipler · Hook · Micro Forceps) · mã + SL ước tính (`codes.js` từ MMH Library: 114 mã dao, 187 mã chỉ, 4 mã ghim da, 10 mã Micro Forceps; Hook chưa có mã trong thư viện ⇒ gõ tự do — `python3 -I tools/codes_build.py <mmh-library>`, cần `pdftotext`) ·
+  cơ sở · tên gói · TBMT · loại SP (Dao nhãn khoa · Chỉ khâu · Ghim da Manipler · Hook = móc mở vùng bè · Micro Forceps = kẹp vi phẫu) · mã + SL ước tính (`codes.js` từ MMH Library: 114 mã dao, 187 mã chỉ, 4 mã ghim da, 10 mã kẹp vi phẫu, mã Hook MTH-S — hồ sơ dịch catalogue S0017 / flyer S0038; `python3 -I tools/codes_build.py <mmh-library>`) ·
   **giai đoạn** 1 Giới thiệu → 2 Lên danh mục → 3 Chốt cấu hình → 4 Ra báo giá → 5 Ra HSMT → 6 Đang chấm thầu → 7 Đã trúng / 8 Đã trượt / 9 Huỷ · mốc dự kiến · giá trị ước tính · tình hình (chữ tự do).
   Bản đồ tô tỉnh theo số gói, chấm cơ sở theo giai đoạn; bảng bên: số gói, theo giai đoạn (bấm để lọc), tỉnh, mốc sắp tới, cập nhật gần đây; lọc Mọi PIC / Của tôi, Đang theo dõi / Đã trúng / Trượt – dừng.
   Ghi không chờ: hiện ngay, gửi nền theo hàng đợi `localStorage.tm_fu_outbox_v1` (cùng `rid`, mất mạng tự thử lại, lỗi ⇒ chip đỏ Thử lại / Bỏ).

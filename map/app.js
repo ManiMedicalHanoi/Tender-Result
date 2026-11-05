@@ -96,6 +96,11 @@ var OLD2NEW = {}, NEWIDX = {};
 NEW.forEach(function(p,i){ NEWIDX[nk(p[0])]=i; p[2].forEach(function(o){ OLD2NEW[nk(o)]=i; }); });
 NEWIDX[nk("Thừa Thiên Huế")] = NEWIDX[nk("Huế")];
 function provOf(city, addr){
+  var r=provOf0(city, addr);
+  if(r && r.n===DNI && r.o!=="quangnam" && QNAM_RE.test(nw(addr))) r.o="quangnam";
+  return r;
+}
+function provOf0(city, addr){
   var c=nk(city), i;
   if(c in OLD2NEW) return {n:OLD2NEW[c], o:c};
   if(c in NEWIDX){ i=NEWIDX[c]; return {n:i, o:oldIn(i, addr) || nk(NEW[i][2][0])}; }
@@ -327,11 +332,15 @@ try{ var tv0=localStorage.getItem("tm_view"); if(tv0==="fu"||tv0==="act") F.view
    Viet Ha: miền Bắc → hết Đà Nẵng · Khang: Quảng Ngãi → miền Nam (backend MMH_TenderFU v1.6 nhắc việc theo đúng địa bàn này).
    Đăng nhập là Viet Ha / Khang ⇒ chỉ thấy địa bàn + hoạt động của mình (khoá); người khác (Giang, Nguyen Ha, Tuyen…) xem tất cả và chọn xem theo PIC (#f-pic).
    Lọc ở app (pass / FU.pass / ACT.rowsF / tìm kiếm / khung bản đồ) — dữ liệu backend không đổi. */
-var TERR=(function(){
-  var dn=NEW.map(function(x){ return x[0]; }).indexOf("Đà Nẵng"), a={}, b={};
-  NEW.forEach(function(x,i){ (i<=dn?a:b)[i]=1; });
-  return [{ pic:"Viet Ha", lbl:"Miền Bắc → Đà Nẵng", ni:a, col:"#4F46E5" }, { pic:"Khang", lbl:"Quảng Ngãi → miền Nam", ni:b, col:"#D97706" }];
+var DNI=NEW.map(function(x){ return x[0]; }).indexOf("Đà Nẵng");
+var TERR=(function(){   /* ni[i] = 1 (cả tỉnh) hoặc {tỉnh cũ: 1} (một phần tỉnh mới) — người dùng chốt 05/11/2026: chia theo tỉnh cũ */
+  var a={}, b={};
+  NEW.forEach(function(x,i){ if(i<DNI) a[i]=1; else if(i>DNI) b[i]=1; });
+  a[DNI]={danang:1}; b[DNI]={quangnam:1};
+  return [{ pic:"Viet Ha", lbl:"Miền Bắc → Đà Nẵng (cũ)", ni:a, col:"#4F46E5" }, { pic:"Khang", lbl:"Quảng Nam (cũ) → miền Nam", ni:b, col:"#D97706" }];
 })();
+/* địa chỉ ghi "TP Đà Nẵng" sau sáp nhập nhưng thuộc Quảng Nam cũ ⇒ nhận qua tên huyện / thị cũ */
+var QNAM_RE=/\b(quang nam|tam ky|hoi an|dien ban|duy xuyen|que son|thang binh|nui thanh|phu ninh|dai loc|nong son|hiep duc|tien phuoc|tra my|phuoc son|nam giang|dong giang|tay giang|chu lai)\b/;
 var SCOPE=(function(){
   var LS="tm_scope";
   function me(){ var a=(typeof FU!=="undefined" && FU && FU.auth) ? FU.auth() : null; return a && a.user ? String(a.user.pic||"") : ""; }
@@ -339,12 +348,17 @@ var SCOPE=(function(){
   function chosen(){ var v=""; try{ v=localStorage.getItem(LS)||""; }catch(_){} return TERR.some(function(t){ return t.pic===v; }) ? v : ""; }
   function terr(){ var L=lockT(); if(L) return L; var v=chosen(); return v ? TERR.filter(function(t){ return t.pic===v; })[0] : null; }
   function pic(){ var t=terr(); return t ? t.pic : ""; }
-  function inProv(ni){ var t=terr(); return !t || (ni!=null && ni>=0 && !!t.ni[ni]); }
+  /* oi = tỉnh cũ (khoá nk) — cần cho tỉnh mới chia đôi; không rõ tỉnh cũ ⇒ coi như thuộc */
+  function inProv(ni, oi){ var t=terr(); if(!t) return true; if(ni==null || ni<0) return false; var v=t.ni[ni]; if(!v) return false; return v===1 || !oi || !!v[oi]; }
+  /* PIC phụ trách theo tỉnh mới + tỉnh cũ (không xét người đang xem) */
+  function ownerOf(ni, oi){ for(var i=0;i<TERR.length;i++){ var v=TERR[i].ni[ni]; if(v===1 || (v && oi && v[oi])) return TERR[i].pic; } return ""; }
   function place(){ var t=terr(); return t ? t.lbl : "toàn quốc"; }
   function bbox(){
     var t=terr(); if(!t || !PROV || !PROV.length) return null; var b=null;
-    Object.keys(t.ni).forEach(function(i){ var P=PROV[i]; if(!P || !P.info || !P.info.bb) return; var q=P.info.bb;
-      b = b ? [Math.min(b[0],q[0]), Math.min(b[1],q[1]), Math.max(b[2],q[2]), Math.max(b[3],q[3])] : q.slice(); });
+    var add=function(q){ if(q) b = b ? [Math.min(b[0],q[0]), Math.min(b[1],q[1]), Math.max(b[2],q[2]), Math.max(b[3],q[3])] : q.slice(); };
+    Object.keys(t.ni).forEach(function(i){ var v=t.ni[i], P=PROV[i];
+      if(v===1){ if(P && P.info) add(P.info.bb); }
+      else OLDP.forEach(function(o){ if(o.n===+i && v[o.k]) add(o.info.bb); }); });
     return b;
   }
   /* đổi phạm vi ⇒ về khung địa bàn mới (đang xem tỉnh ngoài địa bàn ⇒ về toàn địa bàn) */
@@ -367,7 +381,7 @@ var SCOPE=(function(){
       var on=cur===o[0]; return '<button type="button" data-v="'+esc(o[0])+'" class="'+(on?"on":"")+'" aria-pressed="'+on+'" title="'+esc(o[2])+'">'+(o[3]?'<i class="dot" style="background:'+o[3]+';margin-right:5px"></i>':'')+esc(o[1])+'</button>'; }).join("");
     el.onclick=function(e){ var b=e.target.closest("button"); if(!b) return; set(b.dataset.v); };
   }
-  return { terr:terr, pic:pic, inProv:inProv, place:place, bbox:bbox, set:set, ui:ui, apply:apply, me:me, locked:function(){ return !!lockT(); } };
+  return { terr:terr, pic:pic, inProv:inProv, ownerOf:ownerOf, place:place, bbox:bbox, set:set, ui:ui, apply:apply, me:me, locked:function(){ return !!lockT(); } };
 })();
 try{ var qv0=new URLSearchParams(location.search).get("v"); if(qv0==="fu"||qv0==="win"||qv0==="act") F.view=qv0; }catch(_){}   // link từ nút "Nhắc tôi" / email: ?v=fu#<Tỉnh>/<Cơ sở>
 function setType(t){ F.type=t; if(t==="all"){ F.cat="all"; F.sub=null; } else if(t==="dao"||t==="chi"){ F.cat=t; F.sub=null; } else { F.cat=GK[t].top; F.sub=t; } }
@@ -387,7 +401,7 @@ function inPeriod(p){
 /* o.np = bỏ qua kỳ · o.nb = bỏ qua hãng (thị phần) */
 function pass(p, ignoreRes, o){
   o=o||{};
-  if(!SCOPE.inProv(p.ni)) return false;                                   /* địa bàn PIC (Sales chỉ thấy địa bàn của mình) */
+  if(!SCOPE.inProv(p.ni, p.oi)) return false;                             /* địa bàn PIC (Sales chỉ thấy địa bàn của mình) */
   if(F.own!=="all" && !ownOk(isPv(p.h&&p.h.f))) return false;
   if(!o.np && !inPeriod(p)) return false;
   if(F.npp==="NPP" ? p.npp==="KQTT" : (F.npp!=="all" && p.npp!==F.npp)) return false;
@@ -561,8 +575,8 @@ function buildMap(){
   });
   oldG.forEach(function(g){
     var k = nk(g.props.o), info = geoInfo(g.polys);
-    el("path",{d:pathOf(g.polys),"class":"old"},G.old);
-    OLDP.push({ k:k, n:OLD2NEW[k], info:info, name:oldName(k) });
+    var pe=el("path",{d:pathOf(g.polys),"class":"old"},G.old);
+    OLDP.push({ k:k, n:OLD2NEW[k], info:info, name:oldName(k), d:pe.getAttribute("d") });
   });
   ISL.forEach(function(s){
     var xs=0, ys=0;
@@ -1192,17 +1206,17 @@ function renderHosp(){
    số cơ sở có gói trúng dao, cơ sở nhiều gói nhất (số gói, số dao) ③ hãng chiếm tỉ trọng lớn nhất theo SỐ LƯỢNG dao trúng trong kỳ đang lọc (bỏ qua bộ lọc nguồn / hãng). */
 function monTxt(k){ return k ? "tháng "+(k%100)+"/"+Math.floor(k/100) : "—"; }
 function psumHtml(){
-  var inP=function(ni){ return ni!=null && ni>=0 && SCOPE.inProv(ni) && (sel<0 || (ni===sel)); };
+  var inP=function(ni, oi){ return ni!=null && ni>=0 && SCOPE.inProv(ni, oi) && (sel<0 || (ni===sel)); };
   var place = sel>=0 ? NEW[sel][0]+(selOld?" ("+oldName(selOld)+" cũ)":"") : SCOPE.pic() ? "Địa bàn "+SCOPE.pic()+" ("+SCOPE.place()+")" : "Cả nước";
   var nb=0, nt=0, nk2=0, npv=0;
-  FAC.forEach(function(f){ if(!inP(f.ni) || (sel>=0 && selOld && f.oi && f.oi!==selOld)) return; if(isPv(f)) npv++; else if(f.t==="bv") nb++; else if(f.t==="ttyt") nt++; else if(f.t==="pkkv") nk2++; });
+  FAC.forEach(function(f){ if(!inP(f.ni, f.oi) || (sel>=0 && selOld && f.oi && f.oi!==selOld)) return; if(isPv(f)) npv++; else if(f.t==="bv") nb++; else if(f.t==="ttyt") nt++; else if(f.t==="pkkv") nk2++; });
   function html0(){ return '<div class="psum"><p><b>'+esc(place)+'</b> có <b>'+nfmt(nb)+'</b> bệnh viện công lập, <b>'+nfmt(nt)+'</b> trung tâm y tế'+(nk2?', '+nfmt(nk2)+' phòng khám ĐK khu vực':'')+
     (npv?' và <b>'+nfmt(npv)+'</b> cơ sở tư nhân đã biết':'')+' <span class="na">(theo danh mục)</span>.</p>'; }
   if(!PKGS.length) return html0()+'<p>Chưa có dữ liệu thầu (đang đọc, hoặc chưa kết nối được máy chủ của 2 NPP / KQTT).</p></div>';
   var a0=0, a1=0, fac={}, pk={}, q={}, by={}, tq=0;
   PKGS.forEach(function(p){
     if(p.npp==="KQTT" && p.sk){ if(!a0||p.sk<a0) a0=p.sk; if(p.sk>a1) a1=p.sk; }
-    if(p.res!=="Win" || !p.h || !inP(p.ni) || (sel>=0 && selOld && p.oi!==selOld)) return;
+    if(p.res!=="Win" || !p.h || !inP(p.ni, p.oi) || (sel>=0 && selOld && p.oi!==selOld)) return;
     var kq=0, inK=inPeriod(p);
     p.items.forEach(function(it){ if(it.result!=="Win" || it.cat!=="dao") return; var v=+it.qty||0; kq+=v; if(inK){ var b=brandOf(it); by[b]=(by[b]||0)+v; tq+=v; } });
     if(!kq) return; var k=p.h.key; fac[k]=p.h; pk[k]=(pk[k]||0)+1; q[k]=(q[k]||0)+kq;
@@ -1280,7 +1294,7 @@ var TABS=[["ov","Tổng quan"],["re","Thầu lại"],["px","Giá trúng"],["npp"
 function tabsHtml(){ if(!TABS.some(function(t){ return t[0]===TAB; })) TAB="ov";
   return '<div class="tabs stabs" role="tablist">'+TABS.map(function(t){ return '<button class="tab'+(TAB===t[0]?" on":"")+'" type="button" role="tab" aria-selected="'+(TAB===t[0])+'" data-tab="'+t[0]+'">'+t[1]+'</button>'; }).join("")+'</div>'; }
 function panelHtml(){ return TAB==="re" ? reHtml() : TAB==="px" ? pxHtml() : TAB==="npp" ? nppHtml() : TAB==="fc" ? fcHtml() : ""; }
-function inScope(p){ return SCOPE.inProv(p.ni) && (sel<0 || (p.ni===sel && (!selOld || p.oi===selOld))); }
+function inScope(p){ return SCOPE.inProv(p.ni, p.oi) && (sel<0 || (p.ni===sel && (!selOld || p.oi===selOld))); }
 function provOfP(p){ return p.ni>=0 ? NEW[p.ni][0] : (p.city||"—"); }
 function monLbl(k){ return "T"+(k%100)+"/"+Math.floor(k/100); }
 function brandOf(it){ return isMani(it) ? "MANI" : (String(it.mfr||it.brand||"").trim()||"Hãng khác"); }
@@ -1500,7 +1514,7 @@ var QS=(function(){
     var out=[];
     var sp=SCOPE.pic();
     (pool||FAC).forEach(function(f){
-      if(!SCOPE.inProv(f.ni) && !(sp && ((f.acc && f.acc.pic===sp) || ACT.byFac(f).some(function(a){ return a.pic===sp; })))) return;   /* ngoài địa bàn: chỉ khách CRM của chính PIC */
+      if(!SCOPE.inProv(f.ni, f.oi) && !(sp && ((f.acc && f.acc.pic===sp) || ACT.byFac(f).some(function(a){ return a.pic===sp; })))) return;   /* ngoài địa bàn: chỉ khách CRM của chính PIC */
       var w=idx(f); if(!t.every(function(x){ return w.indexOf(" "+x)>=0; })) return;
       var nm=" "+nw(f.name)+" ", sc=0;
       t.forEach(function(x){ if(nm.indexOf(" "+x)>=0) sc+=3; });
@@ -1698,12 +1712,13 @@ var FU=(function(){
     if(f) return f;
     var uid="U:"+ni+"|"+hkey(r.hosp); if(FID[uid]) return FID[uid];
     var ll=null, m=/^(-?[\d.]+),(-?[\d.]+)$/.exec(String(r.ll||"")); if(m) ll=[+m[2],+m[1]];
-    return facAdd({ id:uid, name:r.hosp, t:kindOf(r.hosp)==="tt"?"ttyt":kindOf(r.hosp)==="bv"?"bv":"khac", sp:"", lv:"", ni:ni, oi:"", addr:r.addr||"", ll:ll, src:"fu", alias:[], h:null });
+    var oi=r.own ? (TERR.filter(function(t){ return t.pic===r.own; }).map(function(t){ var v=t.ni[ni]; return v && v!==1 ? Object.keys(v)[0] : ""; })[0]||"") : ((provOf(r.prov, r.addr)||{}).o||"");
+    return facAdd({ id:uid, name:r.hosp, t:kindOf(r.hosp)==="tt"?"ttyt":kindOf(r.hosp)==="bv"?"bv":"khac", sp:"", lv:"", ni:ni, oi:oi, addr:r.addr||"", ll:ll, src:"fu", alias:[], h:null });
   }
   function byFac(f){ cases(); return (BYF && BYF[f.id]) || []; }
   function mine(c){ var a=auth(); return !!a && String(c.pic).toLowerCase()===String(a.user.pic).toLowerCase(); }
   function pass(c, noStage){
-    if(c.f && !SCOPE.inProv(c.f.ni) && !(SCOPE.locked() && mine(c))) return false;   /* địa bàn PIC (+ gói chính Sales đó tạo ngoài địa bàn) */
+    if(c.f && !SCOPE.inProv(c.f.ni, c.f.oi) && !(SCOPE.locked() && mine(c))) return false;   /* địa bàn PIC (+ gói chính Sales đó tạo ngoài địa bàn) */
     if(c.f && F.own!=="all" && !ownOk(isPv(c.f))) return false;
     var s=c.stage;
     if(S.stf==="open" && !isOpen(s)) return false;
@@ -1759,7 +1774,7 @@ var FU=(function(){
     var key=S.ver+"|"+PKGS.length+"|"+SCOPE.pic(); if(WC && WC.k===key) return WC.v;
     var lo=addMonths(NOW,-3), hi=addMonths(NOW,WARN_M), out=[];
     PKGS.forEach(function(p){
-      if(p.res!=="Win" || !p.end || p.end<lo || p.end>hi || p.ni<0 || !p.h || !p.h.f || !SCOPE.inProv(p.ni)) return;
+      if(p.res!=="Win" || !p.end || p.end<lo || p.end>hi || p.ni<0 || !p.h || !p.h.f || !SCOPE.inProv(p.ni, p.oi)) return;
       var ws=winSide(p), cs=byFac(p.h.f).filter(function(c){ return c.stage>=1 && c.stage<=6; });
       if(cs.some(function(c){ return ageD(c)<STALE_D; })) return;                       /* đang được cập nhật ⇒ ổn */
       cs.sort(function(a,b){ return String(b.at).localeCompare(String(a.at)); });
@@ -2014,7 +2029,7 @@ var FU=(function(){
     var ptype=[M.kinds.dao?"Dao":"", M.kinds.chi?"Chỉ khâu":""].filter(Boolean).join(" + ");
     var r=rid(), now=new Date(), at=now.getFullYear()+"-"+String(now.getMonth()+1).padStart(2,"0")+"-"+String(now.getDate()).padStart(2,"0")+" "+String(now.getHours()).padStart(2,"0")+":"+String(now.getMinutes()).padStart(2,"0")+":"+String(now.getSeconds()).padStart(2,"0");
     var cid=M.c?M.c.id:"tmp-"+r, rev=M.c?M.c.revs.length+1:1, qty=lines.reduce(function(s2,l){ return s2+l.qty; },0);
-    var body={ action:"fuSave", rid:r, "case":M.c?M.c.id:"", fid:fid, hosp:hosp, prov:NEW[ni][0], addr:addr, pkg:M.pkg, tbmt:M.tbmt, ptype:ptype, items:lines,
+    var body={ action:"fuSave", rid:r, "case":M.c?M.c.id:"", fid:fid, hosp:hosp, prov:NEW[ni][0], addr:addr, own:SCOPE.ownerOf(ni, (f&&f.oi) || ((provOf(NEW[ni][0], addr)||{}).o) || ""), pkg:M.pkg, tbmt:M.tbmt, ptype:ptype, items:lines,
                value:M.value||"", stage:M.stage, due:M.due, note:M.note.trim(), ll:ll, src:"Tender Map" };
     var row=[at, cid, rev, a.user.pic, "", fid, hosp, NEW[ni][0], addr, M.pkg, M.tbmt, ptype, lines.map(function(l){ return l.code+" × "+l.qty; }).join("; "), qty, +M.value||0, M.stage, ST[M.stage], M.due, M.note.trim(), JSON.stringify(lines), r, "Tender Map", ll];
     OB.push({rid:r, body:body, row:row, tmp:M.c?"":cid, tries:0, err:""}); obSave();
@@ -2678,7 +2693,7 @@ var TOUR=(function(){
       {el:"#f-more", t:"Bộ lọc", x: mob ? "Chế độ xem (Kết quả thầu / Theo dõi thầu), kỳ FY / quý, Giá trị / Số lượng, nguồn, hãng, loại sản phẩm và tô màu theo thị phần MANI đều ở đây."
         : "Nguồn (Hùng Vĩ · iCare · KQTT thị trường), hãng, loại sản phẩm, gói trúng / mọi gói, tô màu theo thị phần MANI. Bộ lọc đang bật hiện thành nhãn dưới thanh này — bấm × để bỏ."},
       mob ? null : {el:"#f-view", t:"3 chế độ xem", x:"Kết quả thầu (gói trúng của NPP + KQTT) · Theo dõi thầu (công lập theo giai đoạn thầu, tư nhân theo hợp đồng mua sắm) · Hoạt động (lịch sử chăm sóc khách hàng từ CRM Surgical)."},
-      mob ? null : {el:"#f-pic", t:"Địa bàn", x: SCOPE.locked() ? "Bạn đang xem địa bàn phụ trách của mình ("+SCOPE.place()+"): bản đồ, gói thầu, theo dõi và hoạt động chỉ trong địa bàn này." : "Cả nhóm · Viet Ha (miền Bắc → Đà Nẵng) · Khang (Quảng Ngãi → miền Nam): chọn 1 PIC để chỉ xem địa bàn và hoạt động của PIC đó."},
+      mob ? null : {el:"#f-pic", t:"Địa bàn", x: SCOPE.locked() ? "Bạn đang xem địa bàn phụ trách của mình ("+SCOPE.place()+"): bản đồ, gói thầu, theo dõi và hoạt động chỉ trong địa bàn này." : "Cả nhóm · Viet Ha (miền Bắc → Đà Nẵng cũ) · Khang (Quảng Nam cũ → miền Nam): chọn 1 PIC để chỉ xem địa bàn và hoạt động của PIC đó."},
       {el:".side", t:"Bảng chi tiết", x: mob ? "Kéo thanh trên cùng của bảng lên / xuống (hoặc bấm vào) để xem thêm: sản phẩm trúng, bệnh viện dẫn đầu, hợp đồng sắp hết hạn."
         : "Số liệu theo bộ lọc: sản phẩm trúng, bệnh viện dẫn đầu (▲▼ so với kỳ trước, + Theo dõi), hãng trúng, hợp đồng sắp hết hạn."},
       {el:".stabs", t:"Phân tích", x:"Thầu lại: hợp đồng MANI / hãng khác sắp hết hạn, mời thầu dự kiến, tạo gói theo dõi điền sẵn. Giá trúng: MANI so với hãng khác, cơ sở chuyển hãng. Hiệu quả NPP: tỉ lệ trúng theo quý, tỉnh. Dự báo: lượng dao / chỉ khâu mỗi tháng từ hợp đồng còn hiệu lực."},
@@ -2743,6 +2758,7 @@ var GATE=(function(){
     g.setAttribute("viewBox", x0.toFixed(1)+" "+y0.toFixed(1)+" "+(x1-x0).toFixed(1)+" "+(y1-y0).toFixed(1));
     PROV.forEach(function(P,i){ if(!P) return; var t=TERR[0].ni[i]?TERR[0]:TERR[1], k=[0.2,0.32,0.44,0.27,0.38][(i*7)%5];
       h+='<path d="'+P.el.getAttribute("d")+'" fill="'+mix(t===TERR[0]?"#0E7490":"#2F68B3",k)+'" stroke="#fff" stroke-width="0.7" vector-effect="non-scaling-stroke"/>'; });
+    OLDP.forEach(function(o){ var v=TERR[1].ni[o.n]; if(v && v!==1 && v[o.k] && o.d) h+='<path d="'+o.d+'" fill="'+mix("#2F68B3",0.38)+'" stroke="#fff" stroke-width="0.7" vector-effect="non-scaling-stroke"/>'; });
     var u=(x1-x0)/420, eye=FAC.filter(function(f){ return f.ll && f.sp==="mat"; });
     eye.forEach(function(f,i){ if(i%2) return; var cx=px(f.ll[0]), cy=py(f.ll[1]), pv=isPv(f);
       h+='<circle cx="'+cx.toFixed(1)+'" cy="'+cy.toFixed(1)+'" r="'+(5*u).toFixed(2)+'" fill="#fff" stroke="'+(pv?PVCOL:"#003047")+'" stroke-width="'+(1.8*u).toFixed(2)+'"/>'; });

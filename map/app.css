@@ -58,11 +58,10 @@ body.fu .fsec.wo,body.act .fsec.wo{display:none}
 .fsec .hint{font-size:12px;color:var(--t3);margin-top:4px}
 .fchk{display:flex;gap:8px;align-items:center;font-size:13px;color:var(--t2);margin:14px 0 4px;cursor:pointer}
 .fft{display:flex;justify-content:space-between;align-items:center;margin-top:14px;gap:10px}
-body.fu .fsec.w,body.fu .fchk.w,body.fu #f-reset{display:none}
 .fslot:empty{display:none}
 .fslot [hidden]{display:none!important}
 .fslot .hctl{flex-direction:column;align-items:stretch;gap:10px;margin:10px 0 4px}
-.fslot .hctl .seg{display:flex;border-radius:12px}
+.fslot .hctl .seg{display:flex;flex-wrap:wrap;border-radius:12px}
 .fslot .hctl .seg button{flex:1 1 auto}
 .fslot .hctl .sel{width:100%;border-radius:10px}
 .fslot .tools{margin:14px 0 0;flex-wrap:wrap;border-top:1px solid var(--line);padding-top:12px}
@@ -175,7 +174,7 @@ h3{font-size:13px;text-transform:uppercase;letter-spacing:.6px;color:var(--t2);m
 .pkg .t{font-weight:600;line-height:1.35;margin-bottom:4px}
 .meta{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:12px;color:var(--t2)}
 .meta b{color:var(--t1);font-weight:600}
-.st{display:inline-block;border-radius:999px;padding:1px 8px;font-size:11.5px;font-weight:600;border:1px solid}
+.st{display:inline-block;border-radius:999px;padding:1px 8px;font-size:11.5px;font-weight:600;border:1px solid;white-space:nowrap}
 .st.ok{color:var(--ok);border-color:#B7DDB9;background:#F1F8F1}
 .st.warn{color:var(--warn);border-color:#F3D19C;background:#FFF8EC}
 .st.bad{color:var(--bad);border-color:#F3C1BC;background:#FEF3F2}

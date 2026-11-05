@@ -225,8 +225,17 @@ async function boot(b, ctxOpt, mopt, urlTail) {
   await page.click('#f-view button[data-v="act"]');
   await page.waitForFunction(() => window.WINMAP && WINMAP.act._S.loaded && document.querySelector('#sb .kpis'), null, { timeout: 10000 });
   const av = await page.evaluate(() => ({ per: document.querySelectorAll('#va-per option').length, pic: document.querySelectorAll('#f-pic button').length,
-    na: document.querySelector('.prov[data-i="16"]').getAttribute('fill'), leg: /Lượt viếng thăm theo tỉnh/.test(document.getElementById('legend').textContent) }));
+    na: document.querySelector('.prov[data-i="16"]').getAttribute('fill'), leg: /nhiều lượt viếng thăm hơn/.test(document.getElementById('legend').textContent) }));
   ok(av.per > 5 && av.pic === 3 && av.na !== 'var(--land)' && av.leg, `Hoạt động: chọn kỳ (${av.per} mục FY / quý / tháng), PIC (Cả nhóm · Viet Ha · Khang), tỉnh tô đậm nhạt theo lượt viếng thăm`);
+  await page.selectOption('#va-per', 'fy67');
+  const ac = await page.evaluate(() => {
+    const L = document.getElementById('legend').textContent, S = document.getElementById('sb').textContent;
+    const rgb = n => { const f = document.querySelector('.prov[data-i="' + WINMAP.provIx(n) + '"]').getAttribute('fill'); return [1, 3, 5].map(i => parseInt(f.slice(i, i + 2), 16)); };
+    return { leg: /Viet Ha/.test(L) && /Khang/.test(L) && !/Nguyen Ha|Giang|Test/.test(L), sb: !/Nguyen Ha|TEST Bệnh viện/.test(S) && [...document.querySelectorAll('#sb [data-act-pic]')].map(e => e.dataset.actPic).join() === 'Viet Ha,Khang', hn: rgb('Hà Nội'), hcm: rgb('Hồ Chí Minh'),
+      pics: [...new Set(WINMAP.act.rows().map(r => r.pic))], dbg: (L.match(/.{0,40}(Nguyen Ha|Giang|Test).{0,40}/) || [''])[0] + ' || ' + (S.match(/.{0,60}(Nguyen Ha|Giang|TEST|\bTest\b).{0,40}/) || [''])[0] };
+  });
+  ok(ac.leg && ac.sb && ac.pics.every(p => p === 'Viet Ha' || p === 'Khang'), 'Hoạt động chỉ có Viet Ha · Khang (bỏ lượt của Nguyen Ha / Giang / TEST, khách TEST) — PIC trong dữ liệu: ' + ac.pics.join(', ') + (ac.leg && ac.sb ? '' : ' | ' + ac.dbg));
+  ok(ac.hn[2] > ac.hn[0] && ac.hcm[0] > ac.hcm[2], `tỉnh tô theo màu PIC: Hà Nội (Viet Ha) rgb(${ac.hn}) · TP.HCM (Khang) rgb(${ac.hcm})`);
   await page.selectOption('#va-per', 'fy67');
   const n67 = await page.$eval('#sb .kpi b', e => +e.textContent);
   await page.selectOption('#va-per', await page.$eval('#va-per option[value^="m2025"]', e => e.value));

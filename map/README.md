@@ -91,7 +91,8 @@ Trang tĩnh (GitHub Pages): `https://manimedicalhanoi.github.io/Tender-Result/ma
 - Chế độ thứ 3 **Hoạt động** (nút *Kết quả thầu | Theo dõi thầu | Hoạt động*, link `?v=act`; chỉ tài khoản email công ty — ai đăng nhập cũng xem toàn bộ dữ liệu của Viet Ha và Khang):
   đọc CRM Surgical `fuVisits` (backend `crm-surgical/MMH_VisitMap.gs`): danh sách khách 1. CUSTOMER CODE + mọi lượt việc khách hàng 6. WEEKLY REPORT từ 01/09/2025.
   - Chọn **kỳ** (FY · quý · từng tháng), **PIC** (Cả nhóm · Viet Ha · Khang), **loại** (Viếng thăm | Mọi việc), **trạng thái** (Đã làm | Cả kế hoạch).
-  - Tỉnh tô **đậm / nhạt theo số lượt viếng thăm**; chấm khách màu PIC, to theo số lượt, vòng vàng = top 10; chấm xám = khách chưa gặp trong kỳ.
+  - Chỉ tính **Viet Ha (tím xanh) và Khang (cam)** — lượt của quản lý, Admin, tài khoản TEST không lên bản đồ.
+  - Tỉnh tô **màu PIC, đậm / nhạt theo số lượt viếng thăm**; chấm khách màu PIC, to theo số lượt, vòng vàng = top 10; chấm xám = khách chưa gặp trong kỳ.
   - Bảng bên: số lượt, khách được gặp / tổng, tỉnh, % lượt có ảnh, **theo PIC**, lượt theo tháng, **khách gặp nhiều nhất**, **khách lâu chưa gặp** (≥ 90 ngày), lượt gần đây.
   - Bấm chấm / tìm tên khách ⇒ **lịch sử chăm sóc** (mọi lượt: hoạt động, kết quả, phản hồi, bước tiếp theo, ảnh — `fuVisitLog`) + **lịch sử thầu** (cơ sở công lập đã nối với danh mục).
   - **Định vị khách**: ghim tay (sheet ẩn *TENDER MAP · VỊ TRÍ ĐỊA BÀN*, `fuLocSave`) > cơ sở trong danh mục (toạ độ thật) > cụm GPS ảnh viếng thăm (trung vị, ≥ 50% điểm trong 1,5 km) > phường / quận trong địa chỉ > tâm tỉnh.

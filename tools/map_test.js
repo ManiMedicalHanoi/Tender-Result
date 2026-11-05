@@ -14,6 +14,7 @@ async function boot(b, ctxOpt, mopt, urlTail) {
   const ctx = await b.newContext(Object.assign({ serviceWorkers: 'block' }, ctxOpt));
   if (!(mopt && mopt.tour)) await ctx.addInitScript(() => { try { localStorage.setItem('tm_tour_v1', '1'); } catch (e) {} });   // không tự mở hướng dẫn lần đầu
   const page = await ctx.newPage(), errs = [];
+  if (process.env.THROTTLE) { const cdp = await ctx.newCDPSession(page); await cdp.send('Emulation.setCPUThrottlingRate', { rate: +process.env.THROTTLE }); }   // giả lập máy CI chậm
   page.on('pageerror', e => errs.push(e.message));
   page.on('console', m => { if (m.type() === 'error' && !/favicon|Failed to load resource/.test(m.text())) errs.push(m.text()); });
   const m = await mock.install(page, mopt);
@@ -271,7 +272,7 @@ async function boot(b, ctxOpt, mopt, urlTail) {
   await page.click('.stg button[data-st="12"]');
   await page.click('[data-fm="save"]');
   const pClosed = await page.waitForFunction(() => document.getElementById('fudlg').hidden, null, { timeout: 8000 }).then(() => true, () => false);
-  const pWhy = pClosed ? '' : await page.$eval('#fudlg', e => e.innerText.replace(/\s+/g, ' ').slice(0, 400));
+  const pWhy = pClosed ? '' : await page.$eval('#fudlg', e => ((e.querySelector('.er') || {}).textContent || '(không có câu lỗi)') + ' | ' + e.innerText.replace(/\s+/g, ' ').slice(0, 300));
   for (let i = 0; i < 60 && !db.fu.some(r => r[15] === 12); i++) await page.waitForTimeout(250);
   ok(db.fu.some(r => r[15] === 12 && /^C:S-004/.test(r[5])), 'lưu cơ hội mua sắm tư nhân: giai đoạn 12 (Demo), mã cơ sở C:S-004' +
     (pClosed ? '' : ' — hộp chưa đóng: ' + pWhy) + (db.fu.some(r => r[15] === 12) ? '' : ' · fid đã lưu: ' + db.fu.map(r => r[5] + '/' + r[15]).join(', ')));

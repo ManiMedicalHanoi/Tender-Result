@@ -781,12 +781,13 @@ function paintLegend(){
 /* ── phóng to / kéo ── */
 function unitPx(){ var r=svg.getBoundingClientRect(); var s=Math.min(r.width/vb.w, r.height/vb.h); return (s>0 ? 1/s : 1) * (r.width<600 ? 0.8 : 1); }
 var anim=null;
-function setVB(v){ vb=v; svg.setAttribute("viewBox", v.x+" "+v.y+" "+v.w+" "+v.h); }
+function setVB(v){ if(!(v.w>0 && v.h>0 && isFinite(v.x) && isFinite(v.y))) return; vb=v; svg.setAttribute("viewBox", v.x+" "+v.y+" "+v.w+" "+v.h); }
 function animateTo(t, ms){
   if(anim) cancelAnimationFrame(anim);
   var s=Object.assign({},vb), t0=performance.now(); ms = matchMedia("(prefers-reduced-motion: reduce)").matches ? 1 : (ms||650);
   (function step(now){
-    var u=Math.min(1,(now-t0)/ms), e=u<.5? 4*u*u*u : 1-Math.pow(-2*u+2,3)/2;
+    var u=Math.max(0, Math.min(1,(now-t0)/ms)), e=   /* mốc khung hình đầu có thể sớm hơn t0 (máy chậm) ⇒ u âm ⇒ khung nhìn âm */
+      u<.5? 4*u*u*u : 1-Math.pow(-2*u+2,3)/2;
     setVB({x:s.x+(t.x-s.x)*e, y:s.y+(t.y-s.y)*e, w:s.w+(t.w-s.w)*e, h:s.h+(t.h-s.h)*e});
     if(u<1) anim=requestAnimationFrame(step); else { anim=null; paintMap(); }
   })(t0);

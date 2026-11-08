@@ -17,7 +17,7 @@ const FIX = args.includes('--fixtures') ? args[args.indexOf('--fixtures') + 1] :
 const NOW = process.env.NEWS_NOW ? new Date(process.env.NEWS_NOW) : new Date();
 const UA = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124 Safari/537.36 MMH-News/1.0';
 const DAY = 864e5;
-const DOCS_V = 2;
+const DOCS_V = 3;
 
 // ── chữ tiếng Việt: chuẩn hoá dấu (hoà / hòa, khoẻ / khỏe) để so từ khoá ──
 const TONE = { 'oà': 'òa', 'oá': 'óa', 'oả': 'ỏa', 'oã': 'õa', 'oạ': 'ọa', 'oè': 'òe', 'oé': 'óe', 'oẻ': 'ỏe', 'oẽ': 'õe', 'oẹ': 'ọe', 'uỳ': 'ùy', 'uý': 'úy', 'uỷ': 'ủy', 'uỹ': 'ũy', 'uỵ': 'ụy' };
@@ -201,6 +201,7 @@ function scrapeLvn(html, base, slugs) {
   for (const m of html.matchAll(/class="doc-title"[^>]*>[\s\S]{0,200}?<a href="([^"]+)"[^>]*title="([^"]+)"/g)) {
     const href = dec(m[1]), title = dec(m[2]);
     const meta = strip(html.slice(m.index + m[0].length, m.index + m[0].length + 1500).split(/class="doc-title"/)[0]);
+    if (process.env.NEWS_DEBUG && !scrapeLvn.shown) { scrapeLvn.shown = 1; console.log('   lvn meta: ' + meta.slice(0, 300)); }
     const dm = meta.match(/(?:Ban hành|Ngày ban hành|Cập nhật)?[^0-9]{0,20}(\d{2}\/\d{2}\/\d{4})/);
     const slug = (href.match(/^\/([^/]+)\//) || [])[1] || '';
     if (!slugs.includes(slug) && !isHealth(title)) continue;
@@ -343,8 +344,19 @@ async function main() {
   for (const it of items) {
     const txt = it.t + ' ' + (it.sum || '');
     const nt = norm(txt);
-    let own = findDocs(it.t);                                   // chỉ văn bản nêu ở tiêu đề (văn bản chính của tin)
+    let own = findDocs(it.t);                                   // văn bản nêu ở tiêu đề = văn bản chính của tin
     if (it.kind === 'doc') own = own.slice(0, 1);
+    let clause = '';
+    if (!own.length && it.kind !== 'doc') {                      // không có ở tiêu đề ⇒ văn bản đầu tiên trong mô tả, nếu tin nói nó được ban hành
+      const d0 = findDocs(it.sum || '')[0];
+      if (d0 && d0.year >= NOW.getUTCFullYear() - 1 && NEW_DOC.test(nt)) {
+        own = [d0];
+        const i = (it.sum || '').indexOf(d0.no.split('/')[0] + '/' + d0.year);
+        const pre = (it.sum || '').slice(Math.max(0, i - 40), i).match(/(Luật|Nghị định|Nghị quyết|Thông tư|Quyết định|Chỉ thị)(\s+số)?\s*$/i);
+        clause = (pre ? pre[1] + ' ' : '') + (it.sum || '').slice(i).split(/[.;](\s|$)/)[0];
+        if (clause.length > 220) clause = clause.slice(0, 217) + '…';
+      }
+    }
     for (const dd of own) {
       if (/UBND|HĐND/i.test(dd.no)) continue;                    // văn bản cấp tỉnh: bỏ
       if (dd.year < NOW.getUTCFullYear() - 1) continue;          // văn bản cũ chỉ được nhắc tới
@@ -357,7 +369,9 @@ async function main() {
       if (NEW_DOC.test(nt) && dd.year >= NOW.getUTCFullYear() - 1) x.fresh = true;
       const ef = txt.match(EFFECT); if (ef && findDocs(it.t).some(y => y.no.toUpperCase() === k)) x.eff = `${ef[3]}-${ef[2].padStart(2, '0')}-${ef[1].padStart(2, '0')}`;
       if (it.kind === 'doc') { x.official = it.u; x.signed = x.signed || it.d; if (it.draft) x.draft = true; }
-      if (!x.title || (findDocs(it.t).some(y => y.no.toUpperCase() === k) && it.t.length > (x.title || '').length)) x.title = it.t;
+      if (it.kind === 'doc') x.title = it.t;
+      else if (!x.official && clause && (!x.title || x.fromClause)) { x.title = clause; x.fromClause = true; }
+      else if (!x.official && findDocs(it.t).some(y => y.no.toUpperCase() === k) && (!x.title || x.fromClause || it.t.length > x.title.length)) { x.title = it.t; x.fromClause = false; }
       x.topics = [...new Set([...(x.topics || []), ...it.tp.filter(t => t !== 'van-ban')])];
       x.last = x.news[0].d;
       docs.set(k, x);

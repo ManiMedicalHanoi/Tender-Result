@@ -1,0 +1,29 @@
+# Tạm thời: tạo giọng đọc cho bản tin nội bộ DEMO (dữ liệu giả) — máy Claude bị chặn dịch vụ giọng đọc.
+name: Giọng đọc bản demo
+on:
+  push:
+    branches: ['claude/health-policy-news-aggregator-gvxs88']
+    paths: ['daily/demo/*.json', '.github/workflows/daily-demo-audio.yml']
+permissions: { contents: write }
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - run: sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg >/dev/null && pip install -q edge-tts
+      - name: Tạo giọng
+        run: |
+          for F in daily/demo/*.demo.json; do
+            D=$(basename "$F" .demo.json)
+            python3 daily/tools/audio.py --ed "$F" --out "$RUNNER_TEMP/mp3"
+            cp "$RUNNER_TEMP/mp3/$D.mp3" "daily/demo/internal-$D.mp3"
+            node -e "const f='$F',fs=require('fs'),e=JSON.parse(fs.readFileSync(f));e.podcast.audio.file='audio/internal-$D.mp3';fs.writeFileSync(f,JSON.stringify(e,null,1))"
+          done
+      - name: Lưu
+        run: |
+          git config user.name "mmh-daily-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add daily/demo && git commit -qm "MMH Daily demo: giọng đọc bản tin nội bộ mẫu" && git push -q

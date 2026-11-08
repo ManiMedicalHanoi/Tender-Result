@@ -1,0 +1,407 @@
+{
+ "kind": "internal",
+ "demo": true,
+ "date": "2026-11-08",
+ "week": {
+  "from": "2026-11-02",
+  "to": "2026-11-08"
+ },
+ "updated": "2026-11-08T19:20:00+07:00",
+ "writer": "claude-code",
+ "title": {
+  "vi": "Hai tin vui từ thầu nhãn khoa, 41 lượt gặp khách",
+  "en": "Two eye-care tender wins and 41 customer meetings"
+ },
+ "intro": {
+  "vi": "Tuần 2–8/11: hai gói thầu có kết quả tốt, nhóm Dental chốt 6 đơn, Marketing chuẩn bị xong hội thảo nội nha 15/11.",
+  "en": "Week of 2–8 November: two tender wins, six Dental orders, and the endodontics workshop on 15 November is ready to go."
+ },
+ "sections": [
+  {
+   "key": "tenders",
+   "vi": "Hai gói thầu nhãn khoa được phê duyệt trong tuần, cả hai đều có dao mổ MANI. Một gói không trúng ở Thanh Hoá; hai gói mới vừa mở hồ sơ.",
+   "en": "Two ophthalmic tenders were approved, both including MANI knives. One loss in Thanh Hoa; two new tenders just opened."
+  },
+  {
+   "key": "sales",
+   "vi": "41 lượt gặp khách ở 9 tỉnh. Phản hồi nổi bật: bác sĩ dùng thử JIZAI khen độ dẻo, một bệnh viện tỉnh muốn demo dao MVR.",
+   "en": "41 customer meetings across 9 provinces. Highlights: positive JIZAI trials and a provincial hospital asking for an MVR demo."
+  },
+  {
+   "key": "departments",
+   "vi": "Marketing xong 18 việc, Back office xong 12 việc; còn 4 việc quá hạn cần xử lý đầu tuần.",
+   "en": "Marketing closed 18 tasks, Back office 12; four overdue items to clear early next week."
+  },
+  {
+   "key": "next",
+   "vi": "Tuần tới: hội thảo nội nha Hà Nội (15/11), nộp hồ sơ thầu Bệnh viện Mắt Mẫu B, báo cáo KPI tháng hạn 05/12.",
+   "en": "Next week: the Hanoi endodontics workshop (15 Nov), tender filing for Sample Eye Hospital B."
+  }
+ ],
+ "facts": {
+  "week": {
+   "from": "2026-11-02",
+   "to": "2026-11-08"
+  },
+  "departments": [
+   {
+    "id": "marketing",
+    "name": "Marketing",
+    "done": 18,
+    "overdue": 3,
+    "upcoming": 9,
+    "highlights": [
+     {
+      "key": "Hội thảo nội nha Hà Nội",
+      "task": "Chốt danh sách khách mời",
+      "pic": "Thảo",
+      "result": "86 bác sĩ đăng ký, đã gửi thư mời và nhắc lịch."
+     },
+     {
+      "key": "Fanpage tháng 11",
+      "task": "Video hướng dẫn JIZAI",
+      "pic": "Quân",
+      "result": "Đăng 3 video ngắn, lượt xem tăng gấp đôi tuần trước."
+     }
+    ],
+    "events": [
+     {
+      "name": "Hội thảo nội nha Hà Nội · 15/11",
+      "task": "Chốt danh sách, in tài liệu",
+      "pic": "Thảo",
+      "status": "done"
+     },
+     {
+      "name": "Workshop dao nhãn khoa Đà Nẵng · 22/11",
+      "task": "Đặt hội trường",
+      "pic": "Quân",
+      "status": "doing"
+     }
+    ],
+    "trips": [
+     {
+      "pic": "Nhi",
+      "what": "Công tác Đà Nẵng 5–6/11 · khảo sát hội trường"
+     }
+    ],
+    "nextWeek": [
+     {
+      "task": "In tài liệu hội thảo",
+      "pic": "Thảo",
+      "due": "2026-11-11",
+      "event": true
+     },
+     {
+      "task": "Kịch bản MC hội thảo",
+      "pic": "Quân",
+      "due": "2026-11-13",
+      "event": true
+     }
+    ]
+   },
+   {
+    "id": "backoffice",
+    "name": "Back office",
+    "done": 12,
+    "overdue": 1,
+    "upcoming": 4,
+    "highlights": [
+     {
+      "key": "Hồ sơ thầu",
+      "task": "Hồ sơ Bệnh viện Mắt Mẫu B",
+      "pic": "Bảo",
+      "result": "Đủ giấy tờ, chờ ký nộp."
+     }
+    ],
+    "events": [],
+    "trips": [],
+    "nextWeek": [
+     {
+      "task": "Nộp hồ sơ thầu Bệnh viện Mắt Mẫu B",
+      "pic": "Bảo",
+      "due": "2026-11-12"
+     }
+    ]
+   }
+  ],
+  "sales": [
+   {
+    "id": "dental",
+    "name": "Dental Sales",
+    "activities": 24,
+    "visits": 19,
+    "accounts": 15,
+    "byPic": {},
+    "provinces": {},
+    "types": {},
+    "highlights": [
+     {
+      "pic": "Khoa",
+      "account": "Nha khoa Mẫu 1",
+      "province": "Hà Nội",
+      "type": "Visiting",
+      "result": "Bác sĩ dùng thử JIZAI, khen độ dẻo khi đi ống tuỷ cong, hẹn đặt thử 10 vỉ.",
+      "feedback": "Tích cực"
+     },
+     {
+      "pic": "Linh",
+      "account": "Nha khoa Mẫu 2",
+      "province": "Hải Phòng",
+      "type": "Visiting",
+      "result": "Giới thiệu DIA-BURS, phòng khám đặt 2 bộ mũi sửa soạn cùi răng.",
+      "feedback": "Tích cực"
+     }
+    ],
+    "orders": 6,
+    "orderAmount": 128500000,
+    "orderAccounts": 5
+   },
+   {
+    "id": "surgical",
+    "name": "Surgical Sales",
+    "activities": 17,
+    "visits": 15,
+    "accounts": 11,
+    "byPic": {},
+    "provinces": {},
+    "types": {},
+    "highlights": [
+     {
+      "pic": "Hà",
+      "account": "Bệnh viện Mẫu C",
+      "province": "Nghệ An",
+      "type": "Visiting",
+      "result": "Khoa Mắt muốn demo dao MVR 23G trước khi đưa vào danh mục 2027.",
+      "feedback": "Quan tâm"
+     }
+    ],
+    "orders": 2,
+    "orderAmount": 41000000,
+    "orderAccounts": 2
+   },
+   {
+    "id": "eyeless",
+    "name": "Eyeless",
+    "activities": 9,
+    "visits": 7,
+    "accounts": 6,
+    "byPic": {},
+    "provinces": {},
+    "types": {},
+    "highlights": [],
+    "orders": 0,
+    "orderAmount": 0,
+    "orderAccounts": 0
+   }
+  ],
+  "tenders": {
+   "wins": [
+    {
+     "npp": "NPP Mẫu A",
+     "hospital": "Bệnh viện Mắt Mẫu A",
+     "city": "Nghệ An",
+     "tender": "Vật tư nhãn khoa 2027",
+     "result": "Win",
+     "approve": "2026-11-04",
+     "products": [
+      "Dao MSL15 × 200",
+      "Dao MVR × 150"
+     ],
+     "value": 96000000
+    },
+    {
+     "npp": "NPP Mẫu B",
+     "hospital": "Bệnh viện Đa khoa Mẫu",
+     "city": "Hà Tĩnh",
+     "tender": "Vật tư phẫu thuật mắt",
+     "result": "Win",
+     "approve": "2026-11-06",
+     "products": [
+      "Chỉ khâu nhãn khoa × 120"
+     ],
+     "value": 38500000
+    }
+   ],
+   "fails": 1,
+   "pendingNew": 2
+  },
+  "trainings": [
+   {
+    "date": "2026-11-06",
+    "topic": "Tư vấn dao nhãn khoa cho bác sĩ phaco",
+    "trainer": "Trainer E",
+    "type": "Internal",
+    "people": 12
+   },
+   {
+    "date": "2026-11-07",
+    "topic": "JIZAI: kỹ thuật đi ống tuỷ cong",
+    "trainer": "Trainer F",
+    "type": "External",
+    "people": 24
+   }
+  ]
+ },
+ "podcast": {
+  "show": "roundup",
+  "name": "The MMH Roundup",
+  "color": "#2F6F5E",
+  "title": "The MMH Roundup · 2 to 8 November",
+  "hosts": [
+   {
+    "id": "A",
+    "name": "Brian",
+    "voice": "en-US-BrianMultilingualNeural",
+    "role": "Host"
+   },
+   {
+    "id": "B",
+    "name": "Sonia",
+    "voice": "en-GB-SoniaNeural",
+    "role": "Co-host"
+   }
+  ],
+  "turns": [
+   {
+    "sp": "A",
+    "text": "Sunday evening, kettle's on, and the week is finally behind us. I'm Brian.",
+    "vi": "Tối Chủ nhật, ấm nước đang sôi, và một tuần đã khép lại. Tôi là Brian."
+   },
+   {
+    "sp": "B",
+    "text": "And I'm Sonia. This is The MMH Roundup. Brian, I think we have to open with the tenders.",
+    "vi": "Còn tôi là Sonia. Đây là The MMH Roundup. Brian, chắc phải mở đầu bằng chuyện thầu thôi."
+   },
+   {
+    "sp": "A",
+    "text": "We do. Two pieces of good news this week, both in eye care. First, Sample Eye Hospital A in Nghe An approved its 2027 ophthalmic supplies package on Wednesday.",
+    "vi": "Đúng vậy. Tuần này có hai tin vui, đều ở mảng nhãn khoa. Thứ nhất, Bệnh viện Mắt Mẫu A ở Nghệ An phê duyệt gói vật tư nhãn khoa 2027 hôm thứ Tư."
+   },
+   {
+    "sp": "B",
+    "text": "With our knives in it?",
+    "vi": "Có dao của mình trong đó chứ?"
+   },
+   {
+    "sp": "A",
+    "text": "Two hundred slit knives and a hundred and fifty MVR blades, through distributor A. Roughly ninety-six million dong.",
+    "vi": "Hai trăm dao rạch và một trăm năm mươi dao MVR, qua nhà phân phối A. Khoảng chín mươi sáu triệu đồng."
+   },
+   {
+    "sp": "B",
+    "text": "Lovely. And the second one came on Friday, didn't it?",
+    "vi": "Tuyệt. Còn gói thứ hai là hôm thứ Sáu đúng không?"
+   },
+   {
+    "sp": "A",
+    "text": "Friday, yes. A general hospital in Ha Tinh, ophthalmic sutures, a hundred and twenty boxes. Smaller, about thirty-eight million, but it's a new account for us.",
+    "vi": "Thứ Sáu. Một bệnh viện đa khoa ở Hà Tĩnh, chỉ khâu nhãn khoa, một trăm hai mươi hộp. Nhỏ hơn, khoảng ba mươi tám triệu, nhưng là khách hàng mới."
+   },
+   {
+    "sp": "B",
+    "text": "Honesty corner, though: we lost one in Thanh Hoa.",
+    "vi": "Nói thật thì: mình trượt một gói ở Thanh Hoá."
+   },
+   {
+    "sp": "A",
+    "text": "We did. And two new tenders opened, so Back office already has the paperwork moving. The file for Sample Eye Hospital B is complete and goes in on Thursday.",
+    "vi": "Đúng. Và có hai gói mới vừa mở, nên Back office đã bắt tay làm hồ sơ. Hồ sơ Bệnh viện Mắt Mẫu B đã đủ, thứ Năm nộp."
+   },
+   {
+    "sp": "B",
+    "text": "Right, field work. The number I love this week: forty-one customer meetings, across nine provinces.",
+    "vi": "Giờ sang đi địa bàn. Con số tôi thích nhất tuần này: bốn mươi mốt cuộc gặp khách hàng, ở chín tỉnh."
+   },
+   {
+    "sp": "A",
+    "text": "Forty-one. Dental did nineteen of those, Surgical fifteen, and the Eyeless team seven.",
+    "vi": "Bốn mươi mốt. Dental chiếm mười chín, Surgical mười lăm, nhóm Eyeless bảy."
+   },
+   {
+    "sp": "B",
+    "text": "And one visit really stood out for me. Khoa left JIZAI files with a clinic in Hanoi last week. This week the dentist said they handle curved canals beautifully, flexible but still in control, and wants a trial order of ten packs.",
+    "vi": "Có một chuyến tôi rất ấn tượng. Tuần trước Khoa để lại trâm JIZAI ở một phòng khám tại Hà Nội. Tuần này bác sĩ nói trâm đi ống tuỷ cong rất tốt, dẻo mà vẫn kiểm soát được, và muốn đặt thử mười vỉ."
+   },
+   {
+    "sp": "A",
+    "text": "That's exactly the feedback you want. And over in Hai Phong, Linh walked in with DIA-BURS and walked out with an order for two crown-prep sets.",
+    "vi": "Đúng kiểu phản hồi mình mong. Còn ở Hải Phòng, Linh mang DIA-BURS tới và ra về với đơn hai bộ mũi sửa soạn cùi răng."
+   },
+   {
+    "sp": "B",
+    "text": "Ha.",
+    "vi": "Ha."
+   },
+   {
+    "sp": "A",
+    "text": "On the surgical side, Ha had a good one in Nghe An. The eye department at a provincial hospital wants a demo of the twenty-three gauge MVR before they build next year's list.",
+    "vi": "Bên Surgical, Hà có một buổi rất tốt ở Nghệ An. Khoa Mắt một bệnh viện tỉnh muốn demo dao MVR 23G trước khi lập danh mục năm sau."
+   },
+   {
+    "sp": "B",
+    "text": "Which, given this week's tenders, feels like good timing.",
+    "vi": "Mà với hai gói thầu tuần này, thời điểm đó khá đẹp."
+   },
+   {
+    "sp": "A",
+    "text": "It does. Orders overall: eight for the week. Six from Dental, two from Surgical, about a hundred and seventy million dong in total.",
+    "vi": "Đúng. Tổng đơn hàng tuần: tám đơn. Dental sáu, Surgical hai, tổng khoảng một trăm bảy mươi triệu đồng."
+   },
+   {
+    "sp": "B",
+    "text": "Over to the office. Marketing closed eighteen tasks, and the big one is the endodontics workshop in Hanoi on the fifteenth.",
+    "vi": "Sang văn phòng. Marketing hoàn thành mười tám việc, việc lớn nhất là hội thảo nội nha ở Hà Nội ngày mười lăm."
+   },
+   {
+    "sp": "A",
+    "text": "How's the guest list?",
+    "vi": "Danh sách khách mời sao rồi?"
+   },
+   {
+    "sp": "B",
+    "text": "Eighty-six dentists signed up. Thao sent the invitations and reminders, and the printed materials are due on Wednesday.",
+    "vi": "Tám mươi sáu bác sĩ đăng ký. Thảo đã gửi thư mời và nhắc lịch, tài liệu in hạn thứ Tư."
+   },
+   {
+    "sp": "A",
+    "text": "And Quan's short JIZAI videos on the fanpage doubled last week's views. Three clips, all under a minute.",
+    "vi": "Còn ba video ngắn về JIZAI của Quân trên fanpage làm lượt xem tăng gấp đôi tuần trước. Ba clip, đều dưới một phút."
+   },
+   {
+    "sp": "B",
+    "text": "Back office closed twelve. Across the teams, four tasks are overdue, so that's a gentle Monday nudge.",
+    "vi": "Back office xong mười hai việc. Cả công ty còn bốn việc quá hạn, coi như lời nhắc nhẹ cho sáng thứ Hai."
+   },
+   {
+    "sp": "A",
+    "text": "Training, quickly. Thursday, twelve of us went through how to advise phaco surgeons on knife choice. Friday, twenty-four dentists joined the JIZAI curved-canal session.",
+    "vi": "Đào tạo, nói nhanh. Thứ Năm, mười hai anh chị em học cách tư vấn chọn dao cho bác sĩ phaco. Thứ Sáu, hai mươi bốn nha sĩ tham dự buổi JIZAI đi ống tuỷ cong."
+   },
+   {
+    "sp": "B",
+    "text": "And Nhi was in Da Nang on Thursday and Friday, checking venues for the eye knife workshop on the twenty-second.",
+    "vi": "Còn Nhi đi Đà Nẵng thứ Năm, thứ Sáu để xem hội trường cho workshop dao nhãn khoa ngày hai mươi hai."
+   },
+   {
+    "sp": "A",
+    "text": "So, the week ahead. Print run on Wednesday, tender filing on Thursday, workshop on Saturday the fifteenth.",
+    "vi": "Vậy tuần tới: thứ Tư in tài liệu, thứ Năm nộp hồ sơ thầu, thứ Bảy mười lăm là hội thảo."
+   },
+   {
+    "sp": "B",
+    "text": "Busy, but the good kind of busy. Thanks for every visit, every file, every late reply this week.",
+    "vi": "Bận, nhưng là kiểu bận vui. Cảm ơn mọi người vì từng chuyến đi, từng bộ hồ sơ, từng tin nhắn trả lời muộn tuần này."
+   },
+   {
+    "sp": "A",
+    "text": "That's The MMH Roundup. Have a restful Sunday, everyone.",
+    "vi": "The MMH Roundup đến đây là hết. Chúc cả nhà Chủ nhật thật thư thái."
+   },
+   {
+    "sp": "B",
+    "text": "See you next week.",
+    "vi": "Hẹn gặp tuần sau."
+   }
+  ]
+ }
+}

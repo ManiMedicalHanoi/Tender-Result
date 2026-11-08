@@ -324,7 +324,6 @@
   "chữa bệnh",
   "khám chữa bệnh",
   "bác sĩ",
-  "điều dưỡng",
   "thuốc",
   "dược",
   "vắc xin",
@@ -342,7 +341,13 @@
   "trạm y tế",
   "y tế cơ sở",
   "dịch vụ kỹ thuật",
-  "viện phí"
+  "viện phí",
+  "phòng bệnh",
+  "an toàn thực phẩm",
+  "ngộ độc thực phẩm",
+  "y khoa",
+  "khám sức khỏe",
+  "dân số"
  ],
  "topics": [
   {

@@ -17,6 +17,7 @@ const FIX = args.includes('--fixtures') ? args[args.indexOf('--fixtures') + 1] :
 const NOW = process.env.NEWS_NOW ? new Date(process.env.NEWS_NOW) : new Date();
 const UA = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124 Safari/537.36 MMH-News/1.0';
 const DAY = 864e5;
+const DOCS_V = 2;
 
 // ── chữ tiếng Việt: chuẩn hoá dấu (hoà / hòa, khoẻ / khỏe) để so từ khoá ──
 const TONE = { 'oà': 'òa', 'oá': 'óa', 'oả': 'ỏa', 'oã': 'õa', 'oạ': 'ọa', 'oè': 'òe', 'oé': 'óe', 'oẻ': 'ỏe', 'oẽ': 'õe', 'oẹ': 'ọe', 'uỳ': 'ùy', 'uý': 'úy', 'uỷ': 'ủy', 'uỹ': 'ũy', 'uỵ': 'ụy' };
@@ -43,9 +44,11 @@ function parseDate(s, fmt) {
   if (!s) return null;
   const m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:\s+(\d{1,2}):(\d{2})(?::\d{2})?\s*(AM|PM|SA|CH)?)?/i);
   if (m) {
-    let [dd, mm] = fmt === 'mdy' ? [+m[2], +m[1]] : [+m[1], +m[2]];
-    let h = +(m[4] || 0);
     const ap = (m[6] || '').toUpperCase();
+    const us = fmt === 'mdy' || (fmt !== 'dmy' && (ap === 'AM' || ap === 'PM'));   // có AM/PM ⇒ kiểu Mỹ tháng/ngày
+    let [dd, mm] = us ? [+m[2], +m[1]] : [+m[1], +m[2]];
+    if (mm > 12 && dd <= 12) [dd, mm] = [mm, dd];
+    let h = +(m[4] || 0);
     if ((ap === 'PM' || ap === 'CH') && h < 12) h += 12;
     if ((ap === 'AM' || ap === 'SA') && h === 12) h = 0;
     return new Date(Date.UTC(+m[3], mm - 1, dd, h - 7, +(m[5] || 0)));
@@ -215,6 +218,7 @@ async function scrapeDocSites(status) {
       if (rows.length) st.ok++;
       st.items += rows.length;
       for (const r of rows) {
+        if (/UBND|HĐND/.test(r.code || r.title.slice(0, 40)) && r.slug !== 'y-te') continue;
         if (s.type === 'vbcp' && !isHealth(r.title) && !/đấu thầu|mua sắm|bảo hiểm y tế/i.test(r.title)) continue;
         st.kept++;
         docs.push({ ...r, site: s.id, src: s.name, dom: domainOf(u) || host(u) });
@@ -259,7 +263,8 @@ async function main() {
           if (it.src) it.title = it.title.replace(new RegExp('\\s+-\\s+' + it.src.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '$'), '');
           it.desc = it.desc.replace(it.title, '').replace(it.src, '').trim();
         }
-        if (!srcDom) { why('ngoài danh sách'); continue; }   // chỉ nhận tên miền chính thống
+        if (!srcDom) { why('ngoài danh sách'); continue; }
+        if (it.title.length < 25 || it.title === it.title.toUpperCase()) { why('tiêu đề rác'); continue; }   // chỉ nhận tên miền chính thống
         const d = it.date || NOW;
         if (d < since) { why('cũ'); continue; }
         if (d - NOW > DAY) { why('ngày lỗi'); continue; }
@@ -330,19 +335,23 @@ async function main() {
   }
 
   // Sổ văn bản
-  const docsPrev = readJson(path.join(DATA, 'docs.json'), { docs: [] });
+  let docsPrev = readJson(path.join(DATA, 'docs.json'), { docs: [] });
+  if (docsPrev.v !== DOCS_V) docsPrev = { docs: [] };          // đổi luật lập sổ ⇒ dựng lại từ tin
   const docs = new Map(docsPrev.docs.map(x => [x.no.toUpperCase(), x]));
   for (const it of items) {
     const txt = it.t + ' ' + (it.sum || '');
     const nt = norm(txt);
-    for (const dd of findDocs(txt)) {
+    let own = findDocs(it.t);                                   // chỉ văn bản nêu ở tiêu đề (văn bản chính của tin)
+    if (it.kind === 'doc') own = own.slice(0, 1);
+    for (const dd of own) {
+      if (/UBND|HĐND/i.test(dd.no)) continue;                    // văn bản cấp tỉnh: bỏ
       if (dd.year < NOW.getUTCFullYear() - 1) continue;          // văn bản cũ chỉ được nhắc tới
       const k = dd.no.toUpperCase();
       const x = docs.get(k) || { ...dd, first: it.d, news: [] };
       if (it.d < x.first) x.first = it.d;
       if (!x.news.some(n => n.id === it.id)) x.news.push({ id: it.id, t: it.t, u: it.u, src: it.src, d: it.d });
       x.news.sort((a, b) => b.d.localeCompare(a.d)); x.news = x.news.slice(0, 8);
-      if (DRAFT.test(nt) && findDocs(it.t).length) x.draft = true;
+      if (DRAFT.test(nt)) x.draft = true;
       if (NEW_DOC.test(nt) && dd.year >= NOW.getUTCFullYear() - 1) x.fresh = true;
       const ef = txt.match(EFFECT); if (ef && findDocs(it.t).some(y => y.no.toUpperCase() === k)) x.eff = `${ef[3]}-${ef[2].padStart(2, '0')}-${ef[1].padStart(2, '0')}`;
       if (it.kind === 'doc') { x.official = it.u; x.signed = x.signed || it.d; if (it.draft) x.draft = true; }
@@ -359,7 +368,7 @@ async function main() {
   const topicNames = Object.fromEntries(CFG.topics.map(t => [t.id, t.name]));
   const out = { updated: iso(NOW), keepDays: CFG.keepDays, topics: topicNames, mmhTopics: CFG.mmhTopics, highlight: CFG.highlight, sources: status, items };
   fs.writeFileSync(path.join(DATA, 'news.json'), JSON.stringify(out));
-  fs.writeFileSync(path.join(DATA, 'docs.json'), JSON.stringify({ updated: iso(NOW), docs: docList }));
+  fs.writeFileSync(path.join(DATA, 'docs.json'), JSON.stringify({ v: DOCS_V, updated: iso(NOW), docs: docList }));
   const byMonth = {};
   for (const it of items) (byMonth[it.d.slice(0, 7)] ||= []).push(it);
   for (const [m, arr] of Object.entries(byMonth)) {

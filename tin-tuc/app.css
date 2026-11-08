@@ -86,7 +86,8 @@ main{max-width:1240px;margin:0 auto;padding:20px 24px 60px}
 .tg:hover{border-color:var(--sky);color:var(--blue)}
 .tg.no{border-color:var(--lb);background:var(--pale);color:var(--navy);font-weight:600;font-variant-numeric:tabular-nums}
 .it .also{font-size:12px;color:var(--t3);margin-top:4px}
-.it .th{grid-row:1/span 5;grid-column:2;width:112px;height:76px;border-radius:8px;object-fit:cover;background:var(--sf2);border:1px solid var(--line)}
+.it>*{grid-column:1}
+.it .th{grid-row:1/span 6;grid-column:2;width:112px;height:76px;border-radius:8px;object-fit:cover;background:var(--sf2);border:1px solid var(--line)}
 .it.big .t{font-size:17px}
 
 .day{font-size:13px;font-weight:700;color:var(--navy);margin:22px 0 4px;padding-bottom:6px;border-bottom:1px solid var(--line2);display:flex;gap:8px;align-items:baseline}
@@ -124,6 +125,7 @@ main{max-width:1240px;margin:0 auto;padding:20px 24px 60px}
 .dr .no a:hover{text-decoration:underline;color:var(--blue)}
 .dr .kd{display:flex;gap:4px;flex-wrap:wrap;margin-top:4px}
 .dr .ti{color:var(--t1);font-size:14.5px}
+.mini .dr .ti{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;font-size:14px}
 .dr .sub{font-size:12.5px;color:var(--t3);margin-top:3px}
 .dr .sub a{color:var(--t2)}
 .dr .dt{font-size:13px;color:var(--t2);text-align:right;font-variant-numeric:tabular-nums}

@@ -64,7 +64,7 @@ function templateWrite(ed, picked) {
   const A = show.hosts[0], B = show.hosts[1] || show.hosts[0];
   const duo = show.hosts.length > 1;
   const turns = [];
-  const say = (h, text) => { const t = speech(text); if (t) turns.push({ sp: h.id, text: t }); };
+  const say = (h, text) => { const t = speech(text).replace(/([?!…])\./g, '$1').replace(/\.\./g, '.'); if (t) turns.push({ sp: h.id, text: t }); };
   picked.read = [];
   const head = x => (x.lang === 'en' ? x.t : x.h_en || '').replace(/\s+/g, ' ').replace(/[.。]$/, '');
   const body = (x, n) => sentences(x.lang === 'en' ? x.sum : x.s_en, n);

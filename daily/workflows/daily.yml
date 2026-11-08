@@ -1,22 +1,29 @@
-# MMH Daily — chạy mỗi sáng 05:45 giờ Việt Nam: gom tin ⇒ dựng số báo ⇒ tạo podcast ⇒ lưu dữ liệu ⇒ MP3 lên Releases ⇒ đăng GitHub Pages.
-# Đặt file này ở .github/workflows/daily.yml của kho riêng. Cần: Settings ▸ Pages ▸ Source = "GitHub Actions".
-# Tuỳ chọn: secret ANTHROPIC_API_KEY ⇒ Claude viết song ngữ, phân tích y tế, kịch bản podcast đa dạng.
+# MMH Daily — đặt ở .github/workflows/daily.yml của kho riêng. Cần: Settings ▸ Pages ▸ Source = "GitHub Actions".
+#  • Mỗi sáng 05:45 (giờ VN): gom tin ⇒ số báo ⇒ podcast ⇒ MP3 lên Releases ⇒ đăng trang.
+#  • Tối Chủ nhật 19:00: BẢN TIN NỘI BỘ (Report Hub, CRM, thầu, đào tạo) ⇒ viết ⇒ giọng đọc ⇒ MÃ HOÁ (secret DAILY_INTERNAL_KEY) ⇒ chỉ lưu bản mã hoá.
+#    Chưa có DAILY_INTERNAL_KEY ⇒ bỏ qua bản tin nội bộ (không bao giờ lưu bản rõ). Admin lấy khoá: app ▸ Nội bộ ▸ Thiết lập (Admin).
+#  • Tuỳ chọn: secret ANTHROPIC_API_KEY ⇒ Claude Haiku 5.5 viết song ngữ + kịch bản tự nhiên (~15k đ/tháng). Không có ⇒ bản miễn phí.
 name: MMH Daily
 on:
   schedule:
     - cron: '45 22 * * *'
+    - cron: '0 12 * * 0'
   workflow_dispatch:
     inputs:
-      show: { description: 'Ép chương trình (briefing, twotakes, healthdesk, markets, editor, explainer, weekly) — để trống = theo lịch', required: false }
+      kind: { description: 'daily = tin hằng ngày · weekly = bản tin nội bộ · both = cả hai', required: false, default: 'daily' }
+      show: { description: 'Ép chương trình podcast (để trống = theo lịch)', required: false }
 permissions: { contents: write, pages: write, id-token: write }
 concurrency: { group: mmh-daily, cancel-in-progress: false }
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 45
     env:
       HAS_KEY: ${{ secrets.ANTHROPIC_API_KEY != '' }}
+      HAS_INKEY: ${{ secrets.DAILY_INTERNAL_KEY != '' }}
       GH_TOKEN: ${{ github.token }}
+      DO_DAILY: ${{ github.event.schedule == '45 22 * * *' || (github.event_name == 'workflow_dispatch' && inputs.kind != 'weekly') }}
+      DO_WEEKLY: ${{ github.event.schedule == '0 12 * * 0' || (github.event_name == 'workflow_dispatch' && (inputs.kind == 'weekly' || inputs.kind == 'both')) }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -31,37 +38,67 @@ jobs:
         if: env.HAS_KEY == 'true'
         run: npm i --no-save --no-audit --no-fund @anthropic-ai/sdk >/dev/null
       - name: Kho tin mấy ngày gần nhất (đệm, không lưu vào git)
+        if: env.DO_DAILY == 'true'
         uses: actions/cache@v4
         with: { path: data/pool.json, key: 'pool-${{ github.run_id }}', restore-keys: 'pool-' }
+
+      # ── tin hằng ngày ──
       - name: Gom tin
+        if: env.DO_DAILY == 'true'
         run: node tools/collect.mjs
       - name: Dựng số báo
-        env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-          DAILY_SHOW: ${{ inputs.show }}
+        if: env.DO_DAILY == 'true'
+        env: { ANTHROPIC_API_KEY: '${{ secrets.ANTHROPIC_API_KEY }}', DAILY_SHOW: '${{ inputs.show }}' }
         run: node tools/edition.mjs
       - name: Tạo podcast
+        if: env.DO_DAILY == 'true'
         run: python3 tools/audio.py
-      - name: MP3 lên Releases + lưu dữ liệu
+      - name: MP3 lên Releases
+        if: env.DO_DAILY == 'true'
         run: |
           D=$(ls data/editions | sort | tail -1 | sed 's/.json//')
           URL="https://github.com/${GITHUB_REPOSITORY}/releases/download/ep-$D/$D.mp3"
           node -e "const f='data/editions/$D.json',fs=require('fs'),e=JSON.parse(fs.readFileSync(f));if(e.podcast.audio)e.podcast.audio.alt='$URL';fs.writeFileSync(f,JSON.stringify(e))"
           gh release delete "ep-$D" -y --cleanup-tag 2>/dev/null || true
           gh release create "ep-$D" "audio/$D.mp3" --title "MMH Daily $D" --notes "Podcast $D" --latest=false
+
+      # ── bản tin nội bộ Chủ nhật (bản rõ chỉ nằm ở RUNNER_TEMP, xoá ngay sau khi mã hoá) ──
+      - name: Bản tin nội bộ — gom + viết
+        if: env.DO_WEEKLY == 'true' && env.HAS_INKEY == 'true'
+        env: { ANTHROPIC_API_KEY: '${{ secrets.ANTHROPIC_API_KEY }}', WEEKLY_OUT: '${{ runner.temp }}/wk' }
+        run: node tools/weekly.mjs
+      - name: Bản tin nội bộ — giọng đọc + mã hoá
+        if: env.DO_WEEKLY == 'true' && env.HAS_INKEY == 'true'
+        env: { DAILY_INTERNAL_KEY: '${{ secrets.DAILY_INTERNAL_KEY }}' }
+        run: |
+          F=$(ls ${{ runner.temp }}/wk/*.json | head -1); D=$(basename "$F" .json)
+          python3 tools/audio.py --ed "$F" --out "${{ runner.temp }}/wkmp3"
+          node tools/seal.mjs "$F" "${{ runner.temp }}/wkmp3"
+          rm -rf ${{ runner.temp }}/wk ${{ runner.temp }}/wkmp3
+          gh release delete "in-$D" -y --cleanup-tag 2>/dev/null || true
+          gh release create "in-$D" "audio/internal-$D.mp3.enc" --title "MMH nội bộ $D (mã hoá)" --notes "Bản mã hoá — chỉ mở được trong app khi đăng nhập email công ty." --latest=false
+      - name: Bỏ qua bản tin nội bộ (chưa có khoá)
+        if: env.DO_WEEKLY == 'true' && env.HAS_INKEY != 'true'
+        run: echo "Chưa có secret DAILY_INTERNAL_KEY — Admin mở app ▸ Nội bộ ▸ Thiết lập (Admin) để lấy khoá."
+
+      - name: Lưu dữ liệu
+        run: |
           git config user.name "mmh-daily-bot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add data
-          git diff --cached --quiet || git commit -qm "Số báo $D"
+          git diff --cached --quiet || git commit -qm "MMH Daily $(TZ=Asia/Ho_Chi_Minh date '+%d/%m/%Y %H:%M')"
           for i in 1 2 3; do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && break; sleep 5; done
-      - name: Dựng trang (kèm MP3 21 ngày gần nhất)
+      - name: Dựng trang (kèm MP3 21 ngày + bản tin nội bộ 8 tuần, đã mã hoá)
         run: |
           mkdir -p _site/audio
           cp -r index.html app.css app.js sw.js manifest.webmanifest icons data _site/
           rm -f _site/data/pool.json
-          cp audio/*.mp3 _site/audio/ 2>/dev/null || true
+          cp audio/*.mp3 audio/*.enc _site/audio/ 2>/dev/null || true
           for d in $(ls data/editions | sort -r | head -21 | sed 's/.json//'); do
             [ -f "_site/audio/$d.mp3" ] || gh release download "ep-$d" -p "$d.mp3" -D _site/audio 2>/dev/null || true
+          done
+          for d in $(node -e "try{console.log(require('./data/internal/index.json').weeks.slice(0,8).map(w=>w.date).join(' '))}catch{}"); do
+            [ -f "_site/audio/internal-$d.mp3.enc" ] || gh release download "in-$d" -p "internal-$d.mp3.enc" -D _site/audio 2>/dev/null || true
           done
       - uses: actions/upload-pages-artifact@v3
         with: { path: _site }

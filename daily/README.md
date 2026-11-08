@@ -30,3 +30,15 @@ Tờ báo buổi sáng của MMH + podcast tiếng Anh mỗi ngày.
 | Giờ chạy | `cron` trong workflow (giờ UTC = giờ VN − 7) |
 
 Chạy thử tại máy: `node tools/collect.mjs && node tools/edition.mjs && python3 tools/audio.py` (cần ffmpeg, `pip install edge-tts`), rồi `python3 -m http.server` trong thư mục này.
+
+## Bản tin nội bộ (tối Chủ nhật 19:00) — chỉ nhân sự MMH
+- `tools/weekly.mjs` đọc (chỉ đọc) tuần thứ Hai → Chủ nhật: Report Hub Marketing + Back office (việc xong / quá hạn 4 tuần / tuần sau, sự kiện, công tác),
+  CRM Dental · Surgical · Eyeless · Thái (hoạt động, gặp khách, khách, tỉnh, lượt nổi bật, đơn hàng), thầu Hùng Vĩ + iCare (gói có ngày phê duyệt trong tuần), Training Hub (buổi đào tạo).
+  Management Task Tracker chưa đọc được (chỉ cho người đăng nhập).
+- 4 chương trình xoay vòng theo tuần (`SHOWS_INTERNAL`): MMH This Week (2 người) · Sunday Notes (1 người) · The MMH Roundup (2 người) · From the Desk (1 người); phụ đề Việt.
+  Có Claude ⇒ viết tự nhiên, nêu tên người / bệnh viện, mở đầu bằng tin vui; không có ⇒ câu mẫu song ngữ (KHÔNG gửi dữ liệu nội bộ sang dịch máy bên ngoài).
+- **Bảo mật**: bản rõ chỉ nằm trong thư mục tạm của máy chạy; `tools/seal.mjs` mã hoá AES-256-GCM bằng secret `DAILY_INTERNAL_KEY` ⇒ `data/internal/<ngày>.json.enc` + MP3 mã hoá trên Releases.
+  App ▸ **Nội bộ**: đăng nhập email công ty (dùng chung phiên Report Hub / CRM) ⇒ Training Hub `dailyKey` trả khoá ⇒ giải mã ngay trên máy.
+  Log GitHub Actions chỉ in số đếm (kho công khai — ai cũng đọc được log).
+- **Cài lần đầu**: Admin mở app ▸ Nội bộ ▸ *Thiết lập (Admin)* ▸ Chép khoá ⇒ Settings ▸ Secrets ▸ Actions ▸ `DAILY_INTERNAL_KEY`. Lộ khoá ⇒ xoá Script Property `DAILY_KEY` của Training Hub ⇒ khoá mới ⇒ dán lại.
+- Chạy tay: Actions ▸ MMH Daily ▸ Run workflow ▸ kind = `weekly`.

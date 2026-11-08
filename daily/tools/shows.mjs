@@ -46,6 +46,18 @@ export const SHOWS = {
   },
 };
 
+// Bản tin nội bộ Chủ nhật — xoay vòng theo tuần: lúc 1 người dẫn, lúc 2 người.
+export const SHOWS_INTERNAL = {
+  thisweek: { name: 'MMH This Week', vi: 'MMH tuần này', style: 'duo', desc: 'Two colleagues look back at the week across MMH.',
+    hosts: [{ id: 'A', name: 'Ava', voice: 'en-US-AvaMultilingualNeural', role: 'Host' }, { id: 'B', name: 'Andrew', voice: 'en-US-AndrewMultilingualNeural', role: 'Co-host' }], color: '#8A5A00' },
+  notes: { name: 'Sunday Notes', vi: 'Ghi chú Chủ nhật', style: 'solo', desc: 'One host, the week at MMH in a relaxed Sunday chat.',
+    hosts: [{ id: 'A', name: 'Emma', voice: 'en-US-EmmaMultilingualNeural', role: 'Host' }], color: '#6B4E9B' },
+  roundup: { name: 'The MMH Roundup', vi: 'Tổng kết tuần', style: 'duo', desc: 'Wins, field work and what’s next — the team roundup.',
+    hosts: [{ id: 'A', name: 'Brian', voice: 'en-US-BrianMultilingualNeural', role: 'Host' }, { id: 'B', name: 'Sonia', voice: 'en-GB-SoniaNeural', role: 'Co-host' }], color: '#2F6F5E' },
+  desk: { name: 'From the Desk', vi: 'Từ bàn làm việc', style: 'solo', desc: 'One voice, the week’s numbers and stories from every team.',
+    hosts: [{ id: 'A', name: 'Andrew', voice: 'en-US-AndrewMultilingualNeural', role: 'Host' }], color: '#1F4E79' },
+};
+
 const ROTATION = ['briefing', 'healthdesk', 'twotakes', 'markets', 'editor', 'explainer'];
 /** Chủ nhật = Week in Review; ngày khác xoay vòng theo số ngày, không trùng hôm trước. */
 export function showFor(dateStr) {

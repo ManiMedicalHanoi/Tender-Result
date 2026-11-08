@@ -15,6 +15,7 @@ SR = 24000
 CHORDS = {  # nhạc hiệu: nốt gốc (Hz) theo chương trình
     'briefing': [392.0, 493.9, 587.3], 'twotakes': [349.2, 440.0, 523.3], 'healthdesk': [329.6, 415.3, 493.9],
     'markets': [293.7, 370.0, 440.0], 'editor': [261.6, 329.6, 392.0], 'explainer': [440.0, 523.3, 659.3], 'weekly': [311.1, 392.0, 466.2],
+    'thisweek': [349.2, 440.0, 523.3, 659.3], 'notes': [261.6, 311.1, 392.0], 'roundup': [293.7, 370.0, 440.0, 587.3], 'desk': [329.6, 392.0, 493.9],
 }
 PIPER = {'A': 'en_US-lessac-medium', 'B': 'en_GB-alan-medium'}
 
@@ -68,12 +69,16 @@ def tts_piper(text, sp, out):
 
 
 async def main():
-    date = sys.argv[1] if len(sys.argv) > 1 else None
-    eds = ROOT / 'data' / 'editions'
-    if not date:
-        date = sorted(p.stem for p in eds.glob('*.json'))[-1]
-    ed_path = eds / f'{date}.json'
+    # python3 tools/audio.py [ngày]  hoặc  python3 tools/audio.py --ed <file.json> --out <thư mục mp3>
+    args = sys.argv[1:]
+    ed_path = Path(args[args.index('--ed') + 1]) if '--ed' in args else None
+    out_dir = Path(args[args.index('--out') + 1]) if '--out' in args else ROOT / 'audio'
+    if ed_path is None:
+        eds = ROOT / 'data' / 'editions'
+        date = args[0] if args and not args[0].startswith('--') else sorted(p.stem for p in eds.glob('*.json'))[-1]
+        ed_path = eds / f'{date}.json'
     ed = json.loads(ed_path.read_text())
+    date = ed['date']
     pod = ed['podcast']
     voices = {h['id']: h['voice'] for h in pod['hosts']}
     tmp = Path(tempfile.mkdtemp())
@@ -132,13 +137,12 @@ async def main():
     lst.write_text(''.join(f"file '{p}'\n" for p in seq))
     raw = tmp / 'raw.wav'
     run(['ffmpeg', '-y', '-f', 'concat', '-safe', '0', '-i', str(lst), '-c', 'copy', str(raw)])
-    out_dir = ROOT / 'audio'
-    out_dir.mkdir(exist_ok=True)
+    out_dir.mkdir(parents=True, exist_ok=True)
     mp3 = out_dir / f'{date}.mp3'
     title = pod.get('title', 'MMH Daily')
     run(['ffmpeg', '-y', '-i', str(raw), '-af', 'loudnorm=I=-16:TP=-1.5:LRA=11', '-ar', str(SR), '-ac', '1', '-b:a', '64k',
          '-metadata', f'title={title}', '-metadata', 'artist=MMH Daily', '-metadata', 'album=MMH Daily', '-metadata', f'date={date}', str(mp3)])
-    pod['audio'] = {'file': f'audio/{date}.mp3', 'dur': round(dur(mp3), 1), 'bytes': mp3.stat().st_size, 'engine': engine}
+    pod['audio'] = {'file': f'audio/{date}.mp3' if out_dir == ROOT / 'audio' else str(mp3), 'dur': round(dur(mp3), 1), 'bytes': mp3.stat().st_size, 'engine': engine}
     ed_path.write_text(json.dumps(ed, ensure_ascii=False, separators=(',', ':')))
     shutil.rmtree(tmp, ignore_errors=True)
     print(f"Podcast {date}: {pod['audio']['dur']/60:.1f} phút · {pod['audio']['bytes']/1e6:.1f} MB · giọng {engine} · {time.time()-t_start:.0f} s")

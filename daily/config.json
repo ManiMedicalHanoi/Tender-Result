@@ -509,5 +509,74 @@
    "festival",
    "tourism"
   ]
+ },
+ "internal": {
+  "_ghi_chu": "Bản tin nội bộ Chủ nhật — nguồn dữ liệu nội bộ (chỉ đọc). Kết quả luôn được mã hoá trước khi đưa lên trang.",
+  "reportHub": [
+   {
+    "id": "marketing",
+    "name": "Marketing",
+    "url": "https://script.google.com/macros/s/AKfycbzn-5chMgO7lQPKmot8P7UkP9C40MdCPtiTTa4H1gcKepVsnr1IYfcB7sSdK1_jrZYY/exec"
+   },
+   {
+    "id": "backoffice",
+    "name": "Back office",
+    "url": "https://script.google.com/macros/s/AKfycbxWT_M07dwPD77zgzouJpJn4R64n6T6l57sVvsU3I2RgtN6JZcMrRR9eoovKE_DuFuN_g/exec"
+   },
+   {
+    "id": "management",
+    "name": "Management",
+    "url": "https://script.google.com/macros/s/AKfycbzKQYH154xD3JQSiNQCNJuReFB2VjH3W1_r6zOqnmkV9cP7__mi0ukTn_hDWxX_WHgs/exec"
+   }
+  ],
+  "crm": [
+   {
+    "id": "dental",
+    "name": "Dental Sales",
+    "url": "https://script.google.com/macros/s/AKfycbyzmhECZZfbOZUyXOK5O70ukwTgQ9DHp70MN-HUAL0wMpOptdTTbaGcvMEmcnCrCji6/exec",
+    "orders": true
+   },
+   {
+    "id": "surgical",
+    "name": "Surgical Sales",
+    "url": "https://script.google.com/macros/s/AKfycbxxckrqwkfhE0fszm1XVdpYyEHU_PCKQWMKE_2wBnMTgoJCZ-1nRZ_fhOCPXXsVfEE/exec",
+    "orders": true
+   },
+   {
+    "id": "eyeless",
+    "name": "Eyeless Sales",
+    "url": "https://script.google.com/macros/s/AKfycbxsoTRbRWZRaf-z7-xRy_oIkM-Yv1HoCOjVRO-K6oRRh3Dr7MMg4v53K0qqpMfZ_K5IAg/exec",
+    "orders": true
+   },
+   {
+    "id": "thai",
+    "name": "Thailand Surgical",
+    "url": "https://script.google.com/macros/s/AKfycbwglPhfcC3y20-lPO8mRC7yapGUyVHSO2Mp3k4fyPJXnraQEu6bbO4dysL0E9MNadwHwg/exec",
+    "orders": false
+   },
+   {
+    "id": "thaid",
+    "name": "Thailand Dental",
+    "url": "https://script.google.com/macros/s/AKfycbz2QxuRLqmadEoM5bWaXRflzOkX9J44JmxeKHOAQmwVvv-m--iD5CY1LHWty8bZZg74ug/exec",
+    "orders": false
+   }
+  ],
+  "tenders": [
+   {
+    "id": "hungvi",
+    "name": "Hùng Vĩ",
+    "url": "https://script.google.com/macros/s/AKfycbyL5FRVXl0Zr35ndE1PGJMGXzHOYzHjdsyQK7vHwIYhqe5owjSg3o1QtH-i8qGNBKJ-/exec"
+   },
+   {
+    "id": "icare",
+    "name": "iCare",
+    "url": "https://script.google.com/macros/s/AKfycbx8xuGaBOVgLxb8JtaH25t1pcisacigDecTMLKOVaBucuDWZ7hw2W_W4IngA1nSODg4/exec"
+   }
+  ],
+  "training": {
+   "url": "https://script.google.com/macros/s/AKfycbwsX4cQEoH4LNlmcNfe8qWIM9K6EiDEXy7PjhP9bHY2citL6xHn5L1unsAlQJHyL9EP/exec",
+   "rhKey": "mmh-rh-training-2026"
+  },
+  "keyUrl": "https://script.google.com/macros/s/AKfycbwsX4cQEoH4LNlmcNfe8qWIM9K6EiDEXy7PjhP9bHY2citL6xHn5L1unsAlQJHyL9EP/exec"
  }
 }

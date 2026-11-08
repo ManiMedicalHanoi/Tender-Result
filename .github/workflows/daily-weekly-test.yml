@@ -1,0 +1,32 @@
+# Tạm thời: chạy thử bản tin nội bộ Chủ nhật với dữ liệu thật — CHỈ in số đếm, KHÔNG lưu / không đăng bản rõ (kho công khai).
+name: Chạy thử bản tin nội bộ
+on:
+  push:
+    branches: ['claude/health-policy-news-aggregator-gvxs88']
+    paths: ['daily/tools/weekly.mjs', '.github/workflows/daily-weekly-test.yml']
+permissions: { contents: read }
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '22' }
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - run: sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg >/dev/null && pip install -q edge-tts
+      - name: Gom dữ liệu tuần + viết (bản rõ chỉ nằm ở thư mục tạm)
+        env: { WEEKLY_OUT: '${{ runner.temp }}/wk' }
+        run: node daily/tools/weekly.mjs
+      - name: Tạo giọng (thư mục tạm)
+        run: |
+          F=$(ls ${{ runner.temp }}/wk/*.json | head -1)
+          python3 daily/tools/audio.py --ed "$F" --out "${{ runner.temp }}/wkmp3"
+          node -e "const e=require('$F');const t=e.podcast.turns;console.log('Lượt lời',t.length,'· có phụ đề Việt',t.filter(x=>x.vi).length,'· chương trình',e.podcast.name,'· phút',(e.podcast.audio.dur/60).toFixed(1))"
+      - name: Thử mã hoá / giải mã với khoá ngẫu nhiên (không lưu)
+        run: |
+          K=$(node -e "console.log(require('crypto').randomBytes(32).toString('base64'))")
+          F=$(ls ${{ runner.temp }}/wk/*.json | head -1)
+          node --input-type=module -e "import {seal,open} from './daily/tools/seal.mjs';import fs from 'fs';const b=fs.readFileSync('$F');const e=seal(b,'$K');console.log('mã hoá',b.length,'→',e.length,'byte · giải mã khớp:',open(e,'$K').equals(b))"
+          rm -rf ${{ runner.temp }}/wk ${{ runner.temp }}/wkmp3

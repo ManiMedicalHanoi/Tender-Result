@@ -207,7 +207,7 @@ async function templateWrite(ed) {
   const wkEn = `${dEn(START)} to ${dEn(END)}`, wkVi = `${dVi(START)} đến ${dVi(END)}`;
   const open = any([['Hi everyone,', 'Chào cả nhà,'], ['Hello team,', 'Xin chào các bạn,'], ['Good evening, everyone,', 'Chào buổi tối mọi người,']]);
   say(A, [`${open[0]} and welcome to ${show.name}, your look back at the week at MMH, from ${wkEn}. I'm ${A.name}.`, `${open[1]} chào mừng đến với ${show.name} — nhìn lại tuần làm việc ở MMH, từ ${wkVi}. Mình là ${A.name}.`]);
-  if (duo) { const c = any([['It’s been a busy week.', 'Một tuần khá bận rộn.'], ['Lots to share this week.', 'Tuần này có nhiều điều để chia sẻ.'], ['Let’s dive in.', 'Cùng bắt đầu nhé.']]); say(B, [`And I’m ${B.name}. ${c[0]}`, `Và mình là ${B.name}. ${c[1]}`]); }
+  if (duo) { const c = any([['It’s been a busy week.', 'Một tuần khá bận rộn.'], ['Lots to share this week.', 'Tuần này có nhiều điều để chia sẻ.'], ['Here we go.', 'Cùng bắt đầu nhé.']]); say(B, [`And I’m ${B.name}. ${c[0]}`, `Và mình là ${B.name}. ${c[1]}`]); }
   const two = duo ? B : A;
   const wins = f.tenders.wins;
   if (wins.length) {
@@ -251,6 +251,15 @@ async function main() {
   const facts = { week: { from: START, to: END }, departments: departmentsF, sales: salesF, tenders: tendersF, trainings: trainingsF };
   const showId = pickShow();
   const S0 = SHOWS_INTERNAL[showId];
+  if (process.env.WEEKLY_FACTS_ONLY) {               // phiên Claude Code: chỉ lấy số liệu, Claude tự viết (WRITING.md) ⇒ apply_in.mjs
+    const prevShows = (() => { try { return JSON.parse(fs.readFileSync(path.join(ROOT, 'data', 'internal', 'index.json'), 'utf8')).weeks.slice(0, 4).map(w => w.show); } catch { return []; } })();
+    const f = path.join(OUT, END + '.facts.json');
+    fs.mkdirSync(OUT, { recursive: true });
+    fs.writeFileSync(f, JSON.stringify({ kind: 'internal', date: END, week: { from: START, to: END }, show: { id: showId, name: S0.name, style: S0.style, desc: S0.desc,
+      hosts: S0.hosts.map(h => ({ id: h.id, name: h.name, role: h.role })) }, recentShows: prevShows, facts }, null, 1));
+    console.log(`Số liệu tuần ${START} → ${END} ⇒ ${f} (ngoài repo). Viết theo WRITING.md rồi: node tools/apply_in.mjs ${f} <kết quả.json>`);
+    return;
+  }
   const ed = { kind: 'internal', date: END, week: { from: START, to: END }, updated: new Date(NOW).toISOString(), facts,
     podcast: { show: showId, name: S0.name, hosts: S0.hosts, color: S0.color }, prevOpenings: [] };
   if (process.env.ANTHROPIC_API_KEY) { try { await aiWrite(ed); } catch (e) { console.log('Claude lỗi, dùng bản miễn phí: ' + e.message); await templateWrite(ed); } }

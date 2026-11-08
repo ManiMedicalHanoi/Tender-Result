@@ -10,7 +10,7 @@ on:
     - cron: '0 12 * * 0'
   push:
     branches: [main]
-    paths: ['data/editions/**']          # phiên Claude Code vừa viết số báo ⇒ tạo lại giọng + đăng trang
+    paths: ['data/editions/**', 'data/inbox/**']   # phiên Claude Code vừa viết số báo / bản tin nội bộ (đã khoá) ⇒ tạo giọng + đăng trang
   workflow_dispatch:
     inputs:
       kind: { description: 'daily = tin hằng ngày · weekly = bản tin nội bộ · both = cả hai', required: false, default: 'daily' }
@@ -71,11 +71,32 @@ jobs:
         if: env.DO_AUDIO == 'true'
         run: |
           D=$(ls data/editions | sort | tail -1 | sed 's/.json//')
+          node -e "const e=require('./data/editions/$D.json');process.exit(e.podcast.audio?1:0)" || { echo "Số $D đã có giọng — bỏ qua"; exit 0; }
           python3 tools/audio.py "$D"
           URL="https://github.com/${GITHUB_REPOSITORY}/releases/download/ep-$D/$D.mp3"
           node -e "const f='data/editions/$D.json',fs=require('fs'),e=JSON.parse(fs.readFileSync(f));e.podcast.audio.alt='$URL';fs.writeFileSync(f,JSON.stringify(e))"
           gh release delete "ep-$D" -y --cleanup-tag 2>/dev/null || true
           gh release create "ep-$D" "audio/$D.mp3" --title "MMH Daily $D" --notes "Podcast $D (Claude viết)" --latest=false
+
+      # ── bản tin nội bộ do Claude Code viết: mở hộp thư (khoá công khai) ⇒ giọng đọc ⇒ mã hoá như thường ──
+      - name: Khoá công khai hộp thư (cho phiên Claude Code)
+        if: env.HAS_INKEY == 'true'
+        env: { DAILY_INTERNAL_KEY: '${{ secrets.DAILY_INTERNAL_KEY }}' }
+        run: node tools/inbox.mjs pub
+      - name: Bản tin nội bộ Claude viết — giọng đọc + mã hoá
+        if: env.HAS_INKEY == 'true' && github.event_name == 'push'
+        env: { DAILY_INTERNAL_KEY: '${{ secrets.DAILY_INTERNAL_KEY }}' }
+        run: |
+          for B in data/inbox/*.sealed; do
+            [ -f "$B" ] || continue
+            W=${{ runner.temp }}/in; mkdir -p $W; D=$(basename "$B" .sealed)
+            node tools/inbox.mjs open "$B" "$W/$D.json"
+            python3 tools/audio.py --ed "$W/$D.json" --out "$W/mp3"
+            node tools/seal.mjs "$W/$D.json" "$W/mp3"
+            rm -rf $W; git rm -q "$B"
+            gh release delete "in-$D" -y --cleanup-tag 2>/dev/null || true
+            gh release create "in-$D" "audio/internal-$D.mp3.enc" --title "MMH nội bộ $D (mã hoá)" --notes "Bản mã hoá — Claude viết." --latest=false
+          done
 
       # ── bản tin nội bộ Chủ nhật (bản rõ chỉ nằm ở RUNNER_TEMP, xoá ngay sau khi mã hoá) ──
       - name: Bản tin nội bộ — gom + viết

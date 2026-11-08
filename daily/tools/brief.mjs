@@ -10,10 +10,12 @@ const date = process.argv[2] || fs.readdirSync(dir).filter(f => f.endsWith('.jso
 const ed = JSON.parse(fs.readFileSync(path.join(dir, date + '.json'), 'utf8'));
 const idx = JSON.parse(fs.readFileSync(path.join(ROOT, 'data', 'index.json'), 'utf8'));
 const show = SHOWS[ed.podcast.show];
+console.error('Đọc WRITING.md trước khi viết. Tin xếp theo điểm liên quan MMH (mmh) cao ⇒ thấp.');
 const ids = [...new Set([...Object.values(ed.sections).flat(), ...ed.docs, ...Object.values(ed.healthDesk.groups).flat()])];
 console.log(JSON.stringify({
   date, show: { id: ed.podcast.show, name: show.name, style: show.style, desc: show.desc, hosts: show.hosts.map(h => ({ id: h.id, name: h.name, role: h.role })) },
   lead: ed.lead, sections: ed.sections, healthGroups: ed.healthDesk.groups,
   recentShows: idx.editions.filter(e => e.date < date).slice(0, 5).map(e => `${e.date} ${e.show}: ${e.lead}`),
-  stories: ids.map(id => { const x = ed.stories[id]; return x && { id, sec: x.sec, tags: x.tags, lang: x.lang, src: x.src, title: x.t, sum: (x.sum || '').slice(0, 450), docs: x.docs }; }).filter(Boolean),
+  stories: ids.map(id => { const x = ed.stories[id]; return x && { id, sec: x.sec, tags: x.tags, mmh: x.mmh || 0, lang: x.lang, src: x.src, title: x.t, sum: (x.sum || '').slice(0, 450), docs: x.docs }; }).filter(Boolean)
+    .sort((a, b) => b.mmh - a.mmh),
 }, null, 1));

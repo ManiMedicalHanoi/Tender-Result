@@ -8,7 +8,8 @@
     set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch { /* riêng tư */ } },
   };
   const SEC = { health: ['Y tế', 'Health'], economy: ['Kinh tế', 'Economy'], politics: ['Chính trị', 'Politics'], society: ['Xã hội', 'Society'] };
-  const TAG = { tender: 'Đấu thầu', policy: 'Chính sách', invest: 'Đầu tư công', hospital: 'Bệnh viện', device: 'Thiết bị y tế' };
+  const TAG = { dental: 'Nha khoa', eye: 'Nhãn khoa', tender: 'Đấu thầu', device: 'Thiết bị y tế', insurance: 'BHYT & giá', surgery: 'Phẫu thuật', policy: 'Chính sách', invest: 'Đầu tư công', hospital: 'Bệnh viện', market: 'Thị trường' };
+  const DESK = { dental: 'Nha khoa', eye: 'Nhãn khoa', tender: 'Thầu & thiết bị', policy: 'Chính sách & BHYT', market: 'Bệnh viện & thị trường', invest: 'Đầu tư công', hospital: 'Bệnh viện', device: 'Thiết bị y tế' };
   const WD = ['Chủ nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'];
   const ICON = {
     play: '<svg viewBox="0 0 24 24"><path d="M7 4.5v15a1 1 0 0 0 1.5.86l12.4-7.5a1 1 0 0 0 0-1.72L8.5 3.64A1 1 0 0 0 7 4.5z" fill="currentColor"/></svg>',
@@ -123,11 +124,11 @@
     const an = ed.healthDesk?.analysis;
     const col = t => {
       const xs = (g[t] || []).map(id => story(ed, id)).filter(Boolean).slice(0, compact ? 4 : 8);
-      return `<div><h4>${TAG[t]}</h4>${xs.length ? `<ul>${xs.map(x => `<li>${link(x, esc(H(x)))}<small>${esc(x.src)} · ${esc(ago(x.d))}</small></li>`).join('')}</ul>` : '<p class="none">Chưa có tin mới.</p>'}</div>`;
+      return `<div><h4>${DESK[t] || TAG[t]}</h4>${xs.length ? `<ul>${xs.map(x => `<li>${link(x, esc(H(x)))}<small>${esc(x.src)} · ${esc(ago(x.d))}</small></li>`).join('')}</ul>` : '<p class="none">Chưa có tin mới.</p>'}</div>`;
     };
-    return `<section class="desk"><div class="sec-h"><h2>Bàn tin Y tế</h2><span class="sub">Health Desk — đấu thầu, chính sách, đầu tư công, bệnh viện</span><a href="#/s/health">Tất cả tin y tế →</a></div>
+    return `<section class="desk"><div class="sec-h"><h2>Bàn tin Y tế</h2><span class="sub">Tin ảnh hưởng tới MMH — nha khoa, nhãn khoa, thầu, thiết bị, BHYT, thị trường</span><a href="#/s/health">Tất cả tin y tế →</a></div>
       ${an ? `<div class="desk-an"><div><p>${esc(an.vi)}</p></div><div><p class="en">${esc(an.en)}</p></div></div>` : ''}
-      <div class="desk-g">${['tender', 'policy', 'invest', 'hospital', 'device'].map(col).join('')}</div></section>`;
+      <div class="desk-g">${(ed.healthDesk?.order || ['tender', 'policy', 'invest', 'hospital', 'device']).map(col).join('')}</div></section>`;
   }
 
   function vocabHtml(ed, dark) {

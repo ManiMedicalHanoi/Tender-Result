@@ -1,30 +1,30 @@
 {
- "_ghi_chu": "MMH Daily — nguồn tin + từ khoá. Mảng: health (ưu tiên), economy, politics, society. lang: vi | en. sec = mảng mặc định của kênh (null = tự xếp theo từ khoá).",
+ "_ghi_chu": "MMH Daily — nguồn tin + từ khoá. Ưu tiên tin ảnh hưởng tới kinh doanh MMH: nha khoa, nhãn khoa, phẫu thuật, thiết bị / vật tư y tế, đấu thầu, BHYT, chính sách Bộ Y tế, bệnh viện, thị trường (Nhật Bản, tỷ giá, nhập khẩu). Tin chung về kinh tế / chính trị / xã hội chỉ giữ ít, chọn tin liên quan.",
  "keepDays": 4,
  "sections": {
   "health": {
    "vi": "Y tế",
    "en": "Health",
-   "quota": 9,
+   "quota": 14,
    "w": 6
   },
   "economy": {
    "vi": "Kinh tế",
    "en": "Economy",
-   "quota": 7,
-   "w": 3
+   "quota": 5,
+   "w": 2
   },
   "politics": {
    "vi": "Chính trị",
    "en": "Politics",
-   "quota": 5,
-   "w": 2
+   "quota": 3,
+   "w": 0.5
   },
   "society": {
    "vi": "Xã hội",
    "en": "Society",
-   "quota": 5,
-   "w": 1
+   "quota": 2,
+   "w": 0
   }
  },
  "trusted": {
@@ -257,7 +257,11 @@
     "Vietnam health OR hospital OR pharmaceutical when:3d",
     "Vietnam public investment OR infrastructure when:3d",
     "\"Vietnam\" (\"Ministry of Health\" OR hospital OR hospitals) when:3d",
-    "Vietnam (\"medical equipment\" OR \"medical devices\" OR pharmaceutical OR drug procurement) when:5d"
+    "Vietnam (\"medical equipment\" OR \"medical devices\" OR pharmaceutical OR drug procurement) when:5d",
+    "Vietnam (dental OR dentistry OR \"eye hospital\" OR ophthalmology OR cataract) when:7d",
+    "Vietnam (\"medical device\" OR medtech OR \"private hospital\" OR \"healthcare market\") when:7d",
+    "Vietnam Japan (healthcare OR \"medical\" OR investment) when:4d",
+    "(\"yen\" OR \"exchange rate\") Vietnam dong when:3d"
    ]
   },
   {
@@ -270,7 +274,13 @@
     "(\"thiết bị y tế\" OR \"trang thiết bị y tế\") when:3d",
     "(\"Bạch Mai\" OR \"Chợ Rẫy\" OR \"Việt Đức\" OR \"Bệnh viện K\" OR \"Trung ương Huế\" OR \"Bệnh viện 108\" OR \"Nhi Trung ương\" OR \"Từ Dũ\" OR \"Mắt Trung ương\" OR \"Răng Hàm Mặt Trung ương\") when:3d",
     "(\"đầu tư công\" OR \"giải ngân\") (\"bệnh viện\" OR \"y tế\") when:7d",
-    "(\"bảo hiểm y tế\" OR BHYT) when:3d"
+    "(\"bảo hiểm y tế\" OR BHYT) when:3d",
+    "(\"nha khoa\" OR \"răng hàm mặt\" OR \"implant\" OR \"chỉnh nha\") when:4d",
+    "(\"nhãn khoa\" OR \"bệnh viện mắt\" OR \"đục thủy tinh thể\" OR \"phẫu thuật mắt\" OR \"tật khúc xạ\") when:4d",
+    "(\"vật tư y tế\" OR \"trang thiết bị y tế\") (\"nhập khẩu\" OR \"đăng ký lưu hành\" OR \"giá\" OR \"thiếu\") when:5d",
+    "(\"giá dịch vụ kỹ thuật\" OR \"thanh toán bảo hiểm y tế\" OR \"tự chủ bệnh viện\") when:5d",
+    "(\"bệnh viện tư\" OR \"y tế tư nhân\" OR \"chuỗi phòng khám\" OR \"đầu tư bệnh viện\") when:5d",
+    "(\"Bệnh viện Mắt\" OR \"Răng Hàm Mặt\") (đầu tư OR \"mua sắm\" OR \"kỹ thuật mới\" OR \"khai trương\") when:7d"
    ]
   },
   {
@@ -278,8 +288,9 @@
    "lang": "vi",
    "sec": "economy",
    "gnews": [
-    "(\"đầu tư công\" OR \"giải ngân\") when:2d",
-    "(GDP OR CPI OR \"xuất khẩu\" OR FDI) \"Việt Nam\" when:2d"
+    "(\"tỷ giá\" OR \"đồng yên\" OR \"nhập khẩu\") when:2d",
+    "(\"đầu tư công\" OR \"giải ngân\") (\"y tế\" OR \"bệnh viện\") when:5d",
+    "(\"Nhật Bản\" OR JICA) (\"y tế\" OR \"đầu tư\") when:4d"
    ]
   }
  ],
@@ -406,7 +417,15 @@
    "medical equipment",
    "medical device",
    "medical devices",
-   "medical supplies"
+   "medical supplies",
+   "trang thiết bị y tế",
+   "đăng ký lưu hành",
+   "cấp phép lưu hành",
+   "nhà cung cấp",
+   "vật tư tiêu hao",
+   "dụng cụ y tế",
+   "consumables",
+   "medtech"
   ],
   "economy": [
    "kinh tế",
@@ -508,6 +527,145 @@
    "culture",
    "festival",
    "tourism"
+  ],
+  "dental": [
+   "nha khoa",
+   "nha sĩ",
+   "bác sĩ răng",
+   "răng hàm mặt",
+   "răng miệng",
+   "implant",
+   "cấy ghép răng",
+   "chỉnh nha",
+   "niềng răng",
+   "nội nha",
+   "điều trị tủy",
+   "tủy răng",
+   "sâu răng",
+   "phòng khám nha",
+   "phục hình răng",
+   "dental",
+   "dentist",
+   "dentistry",
+   "orthodontic",
+   "orthodontics",
+   "oral health"
+  ],
+  "eye": [
+   "nhãn khoa",
+   "bệnh viện mắt",
+   "mắt trung ương",
+   "khám mắt",
+   "bệnh về mắt",
+   "bệnh mắt",
+   "phẫu thuật mắt",
+   "mổ mắt",
+   "thị lực",
+   "mù lòa",
+   "đục thủy tinh thể",
+   "thủy tinh thể",
+   "phaco",
+   "glôcôm",
+   "glaucoma",
+   "võng mạc",
+   "giác mạc",
+   "tật khúc xạ",
+   "cận thị",
+   "lác mắt",
+   "ophthalmic",
+   "ophthalmology",
+   "ophthalmologist",
+   "eye hospital",
+   "eye care",
+   "eye surgery",
+   "cataract",
+   "retina",
+   "myopia"
+  ],
+  "surgery": [
+   "phẫu thuật",
+   "ca mổ",
+   "khâu",
+   "chỉ khâu",
+   "ngoại khoa",
+   "vi phẫu",
+   "nội soi",
+   "phòng mổ",
+   "surgery",
+   "surgical",
+   "suture",
+   "operating room"
+  ],
+  "insurance": [
+   "bảo hiểm y tế",
+   "bhyt",
+   "quỹ bhyt",
+   "giá dịch vụ",
+   "giá dịch vụ kỹ thuật",
+   "viện phí",
+   "thanh toán bhyt",
+   "tự chủ bệnh viện",
+   "tự chủ tài chính",
+   "health insurance",
+   "hospital fees"
+  ],
+  "market": [
+   "nhật bản",
+   "đồng yên",
+   "yên nhật",
+   "tỷ giá",
+   "nhập khẩu",
+   "thuế nhập khẩu",
+   "hải quan",
+   "y tế tư nhân",
+   "bệnh viện tư",
+   "đầu tư bệnh viện",
+   "chuỗi phòng khám",
+   "japan",
+   "japanese",
+   "yen",
+   "exchange rate",
+   "import",
+   "imports",
+   "tariff",
+   "tariffs",
+   "private hospital",
+   "private healthcare",
+   "healthcare market",
+   "medtech"
+  ],
+  "case": [
+   "bé trai",
+   "bé gái",
+   "cứu sống",
+   "nguy kịch",
+   "hiếm gặp",
+   "tai nạn",
+   "đột quỵ",
+   "ngộ độc",
+   "tử vong",
+   "qua đời",
+   "cấp cứu",
+   "nhập viện",
+   "khối u",
+   "phát hiện"
+  ],
+  "lowrel": [
+   "an toàn thực phẩm",
+   "thực phẩm chức năng",
+   "thuốc lá",
+   "thuốc lá điện tử",
+   "y học cổ truyền",
+   "thuốc cổ truyền",
+   "dược liệu",
+   "sốt xuất huyết",
+   "vắc xin",
+   "food safety",
+   "tobacco",
+   "e-cigarettes",
+   "dengue",
+   "vaccine",
+   "traditional medicine"
   ]
  },
  "internal": {
@@ -574,5 +732,17 @@
   },
   "keyUrl": "https://script.google.com/macros/s/AKfycbwsX4cQEoH4LNlmcNfe8qWIM9K6EiDEXy7PjhP9bHY2citL6xHn5L1unsAlQJHyL9EP/exec",
   "_management": "Management Task Tracker chỉ cho người đăng nhập đọc ⇒ chưa đưa vào bản tin (cần quyền đọc riêng cho máy chủ GitHub)."
+ },
+ "mmhWeight": {
+  "dental": 5,
+  "eye": 5,
+  "surgery": 3,
+  "device": 4,
+  "tender": 4,
+  "insurance": 3,
+  "policy": 2.5,
+  "hospital": 1.5,
+  "invest": 1.5,
+  "market": 2.5
  }
 }

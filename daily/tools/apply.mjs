@@ -5,6 +5,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { lint } from './style.mjs';
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const [date, file] = process.argv.slice(2);
 const fp = path.join(ROOT, 'data', 'editions', date + '.json');
@@ -18,6 +19,8 @@ const turns = out.podcast?.turns || [];
 if (turns.length < 8) err.push('kịch bản quá ngắn (' + turns.length + ' lượt)');
 turns.forEach((t, i) => { if (!hosts.includes(t.sp)) err.push(`lượt ${i}: người nói ${t.sp} không có trong chương trình (${hosts})`); if (!t.text || !t.vi) err.push(`lượt ${i}: thiếu text hoặc phụ đề vi`); });
 const words = turns.reduce((n, t) => n + String(t.text).split(/\s+/).length, 0);
+err.push(...lint(turns));
+for (const s of out.stories || []) if (!s.h_en || !s.h_vi || !s.s_vi || !s.s_en) err.push('tin ' + s.id + ': thiếu tiêu đề / tóm tắt Anh hoặc Việt');
 if (words < 700) err.push('kịch bản ' + words + ' từ — cần ≥ 700 (≈ 5 phút)');
 if (err.length) { console.error('KHÔNG GHI — sửa lại:\n- ' + err.join('\n- ')); process.exit(1); }
 const speech = s => String(s).replace(/\bHCMC\b/g, 'Ho Chi Minh City').replace(/\bVND\b/g, 'dong').replace(/(\d)%/g, '$1 percent').replace(/\s+/g, ' ').trim();

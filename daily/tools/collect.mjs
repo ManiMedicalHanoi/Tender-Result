@@ -21,28 +21,38 @@ const count = (n, list) => list.reduce((s, k) => s + (hasKw(n, k) ? 1 : 0), 0);
 const dePrefix = s => String(s || '').replace(/^\s*\(?[\p{L}\d&.\s]{2,22}\)?\s*[-–—:]\s+/u, m => (/\s\S+\s\S+\s\S+/.test(m.trim()) ? m : '')).trim();
 const CRIME = ['tạm giữ', 'khởi tố', 'bắt giữ', 'truy nã', 'sàm sỡ', 'cướp', 'trộm', 'giết', 'án mạng', 'lừa đảo', 'arrested', 'murder', 'robbery'];
 
-function classify(it, feed) {
+const MW = CFG.mmhWeight || {};
+const TAGK = [['dental', 'dental'], ['eye', 'eye'], ['tender', 'health_tender'], ['device', 'device'], ['insurance', 'insurance'], ['surgery', 'surgery'],
+  ['policy', 'health_policy'], ['hospital', 'hospital'], ['invest', 'public_invest'], ['market', 'market']];
+/** Phân mảng + nhãn + điểm. Điểm ưu tiên tin ảnh hưởng tới kinh doanh MMH (nha khoa, nhãn khoa, thiết bị, thầu, BHYT, thị trường). */
+export function classify(it, feed) {
   const n = norm(it.title + ' ' + it.desc), nt = norm(it.title);
   const health = count(n, CFG.health_core) + count(nt, CFG.health_core);
+  const spec = count(n, KW.dental) + count(n, KW.eye);
   const sc = {
-    health: health * 2 + (feed.sec === 'health' ? 3 : 0),
+    health: health * 2 + spec * 3 + (feed.sec === 'health' ? 3 : 0),
     economy: count(n, KW.economy) + (feed.sec === 'economy' ? 3 : 0),
     politics: count(n, KW.politics) + (feed.sec === 'politics' ? 3 : 0),
     society: count(n, KW.society) + (feed.sec === 'society' ? 3 : 0),
   };
   let sec = Object.entries(sc).sort((a, b) => b[1] - a[1])[0];
   if (sec[1] <= 0) return null;
-  if (health >= 2 || feed.sec === 'health') sec = ['health', Math.max(sc.health, 2)];   // có nội dung y tế rõ ⇒ ưu tiên mảng Y tế
-  const tags = [];
+  if (health >= 2 || spec || feed.sec === 'health') sec = ['health', Math.max(sc.health, 2)];   // có nội dung y tế rõ ⇒ mảng Y tế
   const crime = count(n, CRIME) > 0;
-  if (sec[0] === 'health' && !crime) {
-    for (const t of ['health_tender', 'health_policy', 'public_invest', 'hospital', 'device']) if (count(n, KW[t])) tags.push(t.replace('health_', ''));
-  } else if (count(n, KW.public_invest)) tags.push('invest');
+  const tags = [];
+  if (sec[0] === 'health' && !crime) { for (const [t, k] of TAGK) if (count(n, KW[k])) tags.push(t); }
+  else { if (count(n, KW.public_invest)) tags.push('invest'); if (count(n, KW.market)) tags.push('market'); }
   const docs = findDocs(it.title + ' ' + it.desc, NOW).map(d => d.no);
   if (docs.length && !tags.includes('policy')) tags.push('policy');
-  // điểm: mảng + chiều sâu y tế + văn bản + nguồn
-  let score = (crime ? -2 : 0) + CFG.sections[sec[0]].w + Math.min(sec[1], 6) * 0.5 + tags.length * 1.5 + (docs.length ? 2 : 0) + (count(nt, KW[sec[0] === 'health' ? 'health_tender' : 'economy']) ? 1 : 0);
-  return { sec: sec[0], tags, docs, score };
+  // liên quan MMH: tổng trọng số nhãn (tối đa 9); tin ca bệnh / tai nạn không có góc kinh doanh ⇒ trừ điểm
+  const bizTag = tags.some(t => ['dental', 'eye', 'tender', 'device', 'insurance', 'market'].includes(t));
+  // tin ngành y nhưng xa MMH (an toàn thực phẩm, thuốc lá, vắc xin…) ⇒ giảm điểm liên quan
+  const mmh = Math.max(0, Math.min(9, tags.reduce((s, t) => s + (MW[t] || 0), 0)) - (!bizTag && count(n, KW.lowrel) ? 3 : 0));
+  const story = count(nt, KW.case) > 0 && !bizTag;
+  const plainEcon = sec[0] === 'economy' && !tags.length;
+  let score = (crime ? -3 : 0) + (story ? -3 : 0) + (plainEcon ? -1.5 : 0) + CFG.sections[sec[0]].w + Math.min(sec[1], 6) * 0.4 + mmh + (docs.length ? 1.5 : 0)
+    + ((count(nt, KW.dental) + count(nt, KW.eye)) ? 2 : 0);
+  return { sec: sec[0], tags, docs, score, mmh };
 }
 
 async function main() {
@@ -51,6 +61,13 @@ async function main() {
   try { prev = JSON.parse(fs.readFileSync(POOL, 'utf8')); } catch { /* lần đầu */ }
   const since = NOW - CFG.keepDays * DAY;
   const byId = new Map(prev.items.filter(x => new Date(x.d) >= since).map(x => [x.id, x]));
+  // chấm lại tin cũ theo luật hiện tại (đổi từ khoá / trọng số thì kho cũ cũng theo)
+  for (const x of byId.values()) {
+    if (x.kind === 'doc') continue;
+    const c = classify({ title: x.t, desc: x.sum || '' }, { sec: x.fsec !== undefined ? x.fsec : (x.sec === 'health' ? 'health' : null) });
+    if (!c) { byId.delete(x.id); continue; }
+    Object.assign(x, { sec: c.sec, fsec: f.sec ?? null, tags: c.tags.length ? c.tags : undefined, mmh: c.mmh || undefined, sc: +c.score.toFixed(2) });
+  }
   const byKey = new Map([...byId.values()].map(x => [tkey(x.t), x.id]));
   const status = [];
 
@@ -79,7 +96,7 @@ async function main() {
         const o = byId.get(id);
         byId.set(id, { ...(o || {}), id, t: it.title, u: it.link, d: iso(d), src: tn[1], dom: tn[0], lang: f.lang,
           sum: dePrefix((it.desc || '').replace(it.title, '')).slice(0, 400) || undefined, img: it.img || o?.img || undefined,
-          sec: c.sec, tags: c.tags.length ? c.tags : undefined, docs: c.docs.length ? c.docs : undefined, sc: +c.score.toFixed(2), first: o?.first || iso(NOW) });
+          sec: c.sec, fsec: f.sec ?? null, tags: c.tags.length ? c.tags : undefined, mmh: c.mmh || undefined, docs: c.docs.length ? c.docs : undefined, sc: +c.score.toFixed(2), first: o?.first || iso(NOW) });
         st.kept++;
       }
     }
@@ -117,4 +134,4 @@ async function main() {
   console.log(`\nKho tin: ${items.length} · ${JSON.stringify(by)}`);
   if (!status.some(s => s.ok)) process.exit(1);
 }
-main().catch(e => { console.error(e); process.exit(1); });
+if (process.argv[1] === fileURLToPath(import.meta.url)) main().catch(e => { console.error(e); process.exit(1); });

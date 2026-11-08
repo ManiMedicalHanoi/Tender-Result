@@ -1,0 +1,511 @@
+{
+ "_ghi_chu": "MMH Daily — nguồn tin + từ khoá. Mảng: health (ưu tiên), economy, politics, society. lang: vi | en. sec = mảng mặc định của kênh (null = tự xếp theo từ khoá).",
+ "keepDays": 4,
+ "sections": {
+  "health": {
+   "vi": "Y tế",
+   "en": "Health",
+   "quota": 9,
+   "w": 6
+  },
+  "economy": {
+   "vi": "Kinh tế",
+   "en": "Economy",
+   "quota": 7,
+   "w": 3
+  },
+  "politics": {
+   "vi": "Chính trị",
+   "en": "Politics",
+   "quota": 5,
+   "w": 2
+  },
+  "society": {
+   "vi": "Xã hội",
+   "en": "Society",
+   "quota": 5,
+   "w": 1
+  }
+ },
+ "trusted": {
+  "baochinhphu.vn": "Báo Chính phủ",
+  "chinhphu.vn": "Cổng TTĐT Chính phủ",
+  "moh.gov.vn": "Bộ Y tế",
+  "vanban.chinhphu.vn": "Văn bản Chính phủ",
+  "suckhoedoisong.vn": "Sức khỏe & Đời sống",
+  "nhandan.vn": "Nhân Dân",
+  "vietnamplus.vn": "VietnamPlus",
+  "vtv.vn": "VTV",
+  "vov.vn": "VOV",
+  "baodauthau.vn": "Báo Đấu thầu",
+  "vnexpress.net": "VnExpress",
+  "tuoitre.vn": "Tuổi Trẻ",
+  "thanhnien.vn": "Thanh Niên",
+  "dantri.com.vn": "Dân trí",
+  "vneconomy.vn": "VnEconomy",
+  "baodautu.vn": "Báo Đầu tư",
+  "thesaigontimes.vn": "Kinh tế Sài Gòn",
+  "laodong.vn": "Lao Động",
+  "tienphong.vn": "Tiền Phong",
+  "vietnamnet.vn": "VietNamNet",
+  "qdnd.vn": "Quân đội Nhân dân",
+  "dangcongsan.vn": "Báo Đảng Cộng sản",
+  "quochoi.vn": "Quốc hội",
+  "daibieunhandan.vn": "Đại biểu Nhân dân",
+  "baotintuc.vn": "Báo Tin tức (TTXVN)",
+  "hanoimoi.vn": "Hà Nội Mới",
+  "sggp.org.vn": "Sài Gòn Giải Phóng",
+  "nld.com.vn": "Người Lao Động",
+  "plo.vn": "Pháp luật TP.HCM",
+  "luatvietnam.vn": "Luật Việt Nam",
+  "mof.gov.vn": "Bộ Tài chính",
+  "sbv.gov.vn": "Ngân hàng Nhà nước",
+  "gso.gov.vn": "Tổng cục Thống kê",
+  "nso.gov.vn": "Cục Thống kê",
+  "e.vnexpress.net": "VnExpress International",
+  "tuoitrenews.vn": "Tuoi Tre News",
+  "en.vietnamplus.vn": "VietnamPlus English",
+  "vietnamnews.vn": "Viet Nam News",
+  "vir.com.vn": "Vietnam Investment Review",
+  "theinvestor.vn": "The Investor",
+  "en.nhandan.vn": "Nhan Dan English",
+  "english.vov.vn": "VOV English",
+  "english.thesaigontimes.vn": "The Saigon Times",
+  "hanoitimes.vn": "Hanoi Times",
+  "vietnam-briefing.com": "Vietnam Briefing",
+  "reuters.com": "Reuters",
+  "bloomberg.com": "Bloomberg",
+  "asia.nikkei.com": "Nikkei Asia",
+  "ft.com": "Financial Times",
+  "apnews.com": "AP News",
+  "bbc.com": "BBC",
+  "cnbc.com": "CNBC",
+  "scmp.com": "South China Morning Post",
+  "thediplomat.com": "The Diplomat",
+  "who.int": "WHO",
+  "worldbank.org": "World Bank",
+  "adb.org": "ADB"
+ },
+ "feeds": [
+  {
+   "id": "bcp-yt",
+   "lang": "vi",
+   "sec": "health",
+   "urls": [
+    "https://baochinhphu.vn/y-te.rss"
+   ]
+  },
+  {
+   "id": "bcp-cs",
+   "lang": "vi",
+   "sec": null,
+   "urls": [
+    "https://baochinhphu.vn/chinh-sach-moi.rss",
+    "https://baochinhphu.vn/van-ban-moi.rss"
+   ]
+  },
+  {
+   "id": "bcp-kt",
+   "lang": "vi",
+   "sec": "economy",
+   "urls": [
+    "https://baochinhphu.vn/kinh-te.rss"
+   ]
+  },
+  {
+   "id": "bcp-ct",
+   "lang": "vi",
+   "sec": "politics",
+   "urls": [
+    "https://baochinhphu.vn/chinh-tri.rss",
+    "https://baochinhphu.vn/thoi-su.rss"
+   ]
+  },
+  {
+   "id": "bcp-xh",
+   "lang": "vi",
+   "sec": "society",
+   "urls": [
+    "https://baochinhphu.vn/xa-hoi.rss"
+   ]
+  },
+  {
+   "id": "skds",
+   "lang": "vi",
+   "sec": "health",
+   "urls": [
+    "https://suckhoedoisong.vn/y-te.rss",
+    "https://suckhoedoisong.vn/chinh-sach.rss",
+    "https://suckhoedoisong.vn/thoi-su.rss"
+   ]
+  },
+  {
+   "id": "nd",
+   "lang": "vi",
+   "sec": null,
+   "urls": [
+    "https://nhandan.vn/rss/y-te-1309.rss",
+    "https://nhandan.vn/rss/kinhte-1185.rss",
+    "https://nhandan.vn/rss/chinhtri-1171.rss",
+    "https://nhandan.vn/rss/xahoi-1211.rss"
+   ]
+  },
+  {
+   "id": "vnp",
+   "lang": "vi",
+   "sec": "health",
+   "urls": [
+    "https://www.vietnamplus.vn/rss/suckhoe-327.rss"
+   ]
+  },
+  {
+   "id": "bdt",
+   "lang": "vi",
+   "sec": null,
+   "urls": [
+    "https://baodauthau.vn/rss/dau-thau-2.rss",
+    "https://baodauthau.vn/rss/thoi-su-14.rss"
+   ]
+  },
+  {
+   "id": "vne",
+   "lang": "vi",
+   "sec": null,
+   "urls": [
+    "https://vnexpress.net/rss/suc-khoe.rss",
+    "https://vnexpress.net/rss/kinh-doanh.rss",
+    "https://vnexpress.net/rss/thoi-su.rss"
+   ]
+  },
+  {
+   "id": "tt",
+   "lang": "vi",
+   "sec": null,
+   "urls": [
+    "https://tuoitre.vn/rss/suc-khoe.rss",
+    "https://tuoitre.vn/rss/kinh-doanh.rss"
+   ]
+  },
+  {
+   "id": "tn",
+   "lang": "vi",
+   "sec": null,
+   "urls": [
+    "https://thanhnien.vn/rss/suc-khoe.rss",
+    "https://thanhnien.vn/rss/kinh-te.rss",
+    "https://thanhnien.vn/rss/chinh-tri.rss"
+   ]
+  },
+  {
+   "id": "dt",
+   "lang": "vi",
+   "sec": "health",
+   "urls": [
+    "https://dantri.com.vn/rss/suc-khoe.rss"
+   ]
+  },
+  {
+   "id": "vnec",
+   "lang": "vi",
+   "sec": "economy",
+   "urls": [
+    "https://vneconomy.vn/tai-chinh.rss"
+   ]
+  },
+  {
+   "id": "e-vne",
+   "lang": "en",
+   "sec": null,
+   "urls": [
+    "https://e.vnexpress.net/rss/news.rss",
+    "https://e.vnexpress.net/rss/business.rss",
+    "https://e.vnexpress.net/rss/life.rss"
+   ]
+  },
+  {
+   "id": "e-tt",
+   "lang": "en",
+   "sec": null,
+   "urls": [
+    "https://tuoitrenews.vn/rss"
+   ]
+  },
+  {
+   "id": "e-vnp",
+   "lang": "en",
+   "sec": null,
+   "urls": [
+    "https://en.vietnamplus.vn/rss/home.rss",
+    "https://en.vietnamplus.vn/rss/business-311.rss"
+   ]
+  },
+  {
+   "id": "e-misc",
+   "lang": "en",
+   "sec": null,
+   "urls": [
+    "https://en.nhandan.vn/rss/home.rss"
+   ]
+  },
+  {
+   "id": "gn-intl",
+   "lang": "en",
+   "sec": null,
+   "gnews": [
+    "Vietnam economy when:2d",
+    "Vietnam (Reuters OR Bloomberg OR Nikkei) when:3d",
+    "Vietnam health OR hospital OR pharmaceutical when:3d",
+    "Vietnam public investment OR infrastructure when:3d"
+   ]
+  },
+  {
+   "id": "gn-yte",
+   "lang": "vi",
+   "sec": "health",
+   "gnews": [
+    "site:moh.gov.vn when:3d",
+    "(\"đấu thầu\" OR \"mua sắm\") (thuốc OR \"thiết bị y tế\" OR \"vật tư y tế\" OR \"bệnh viện\") when:3d",
+    "(\"thiết bị y tế\" OR \"trang thiết bị y tế\") when:3d",
+    "(\"Bạch Mai\" OR \"Chợ Rẫy\" OR \"Việt Đức\" OR \"Bệnh viện K\" OR \"Trung ương Huế\" OR \"Bệnh viện 108\" OR \"Nhi Trung ương\" OR \"Từ Dũ\" OR \"Mắt Trung ương\" OR \"Răng Hàm Mặt Trung ương\") when:3d",
+    "(\"đầu tư công\" OR \"giải ngân\") (\"bệnh viện\" OR \"y tế\") when:7d",
+    "(\"bảo hiểm y tế\" OR BHYT) when:3d"
+   ]
+  },
+  {
+   "id": "gn-kt",
+   "lang": "vi",
+   "sec": "economy",
+   "gnews": [
+    "(\"đầu tư công\" OR \"giải ngân\") when:2d",
+    "(GDP OR CPI OR \"xuất khẩu\" OR FDI) \"Việt Nam\" when:2d"
+   ]
+  }
+ ],
+ "docSites": [
+  {
+   "id": "vbcp",
+   "name": "Văn bản Chính phủ",
+   "type": "vbcp",
+   "url": "https://vanban.chinhphu.vn/he-thong-van-ban"
+  }
+ ],
+ "health_core": [
+  "y tế",
+  "bộ y tế",
+  "sở y tế",
+  "bệnh viện",
+  "bệnh nhân",
+  "người bệnh",
+  "khám bệnh",
+  "chữa bệnh",
+  "bác sĩ",
+  "thuốc",
+  "dược",
+  "vắc xin",
+  "bảo hiểm y tế",
+  "bhyt",
+  "thiết bị y tế",
+  "vật tư y tế",
+  "trang thiết bị y tế",
+  "sức khỏe",
+  "nha khoa",
+  "nhãn khoa",
+  "phẫu thuật",
+  "dịch bệnh",
+  "trạm y tế",
+  "viện phí",
+  "an toàn thực phẩm",
+  "health",
+  "hospital",
+  "hospitals",
+  "medical",
+  "medicine",
+  "pharmaceutical",
+  "pharma",
+  "drug",
+  "drugs",
+  "vaccine",
+  "patients",
+  "doctor",
+  "doctors",
+  "healthcare",
+  "health insurance",
+  "ministry of health",
+  "disease",
+  "dengue",
+  "clinic",
+  "surgery"
+ ],
+ "kw": {
+  "health_tender": [
+   "đấu thầu",
+   "gói thầu",
+   "nhà thầu",
+   "mua sắm",
+   "lựa chọn nhà thầu",
+   "trúng thầu",
+   "đàm phán giá",
+   "mua sắm tập trung",
+   "tender",
+   "procurement",
+   "bidding",
+   "bid"
+  ],
+  "health_policy": [
+   "nghị định",
+   "thông tư",
+   "quyết định",
+   "luật",
+   "dự thảo",
+   "chính sách",
+   "quy định",
+   "decree",
+   "circular",
+   "law",
+   "regulation",
+   "policy",
+   "draft"
+  ],
+  "public_invest": [
+   "đầu tư công",
+   "giải ngân",
+   "vốn ngân sách",
+   "dự án",
+   "xây mới",
+   "cơ sở vật chất",
+   "public investment",
+   "disbursement",
+   "infrastructure",
+   "state budget"
+  ],
+  "hospital": [
+   "bạch mai",
+   "chợ rẫy",
+   "việt đức",
+   "bệnh viện k",
+   "trung ương huế",
+   "bệnh viện 108",
+   "nhi trung ương",
+   "từ dũ",
+   "mắt trung ương",
+   "răng hàm mặt trung ương",
+   "bệnh viện đa khoa tỉnh",
+   "bệnh viện trung ương",
+   "cho ray",
+   "bach mai",
+   "viet duc",
+   "central hospital"
+  ],
+  "device": [
+   "thiết bị y tế",
+   "trang thiết bị",
+   "vật tư y tế",
+   "số lưu hành",
+   "medical equipment",
+   "medical device",
+   "medical devices",
+   "medical supplies"
+  ],
+  "economy": [
+   "kinh tế",
+   "gdp",
+   "cpi",
+   "lạm phát",
+   "xuất khẩu",
+   "nhập khẩu",
+   "fdi",
+   "đầu tư",
+   "ngân hàng",
+   "lãi suất",
+   "tỷ giá",
+   "chứng khoán",
+   "doanh nghiệp",
+   "thuế",
+   "ngân sách",
+   "bất động sản",
+   "giá vàng",
+   "tăng trưởng",
+   "economy",
+   "economic",
+   "gdp",
+   "inflation",
+   "export",
+   "exports",
+   "investment",
+   "investors",
+   "bank",
+   "banks",
+   "interest rate",
+   "stock",
+   "stocks",
+   "tax",
+   "budget",
+   "property",
+   "growth",
+   "trade",
+   "tariff",
+   "tariffs",
+   "fdi"
+  ],
+  "politics": [
+   "quốc hội",
+   "chính phủ",
+   "thủ tướng",
+   "tổng bí thư",
+   "chủ tịch nước",
+   "bộ chính trị",
+   "trung ương",
+   "đại hội",
+   "nghị quyết",
+   "bổ nhiệm",
+   "ngoại giao",
+   "hội nghị",
+   "đối ngoại",
+   "national assembly",
+   "government",
+   "prime minister",
+   "party",
+   "general secretary",
+   "president",
+   "diplomatic",
+   "diplomacy",
+   "minister",
+   "ministry",
+   "politburo",
+   "congress"
+  ],
+  "society": [
+   "xã hội",
+   "giáo dục",
+   "lao động",
+   "việc làm",
+   "giao thông",
+   "môi trường",
+   "thời tiết",
+   "bão",
+   "lũ",
+   "tai nạn",
+   "an sinh",
+   "người dân",
+   "học sinh",
+   "văn hóa",
+   "lễ hội",
+   "du lịch",
+   "society",
+   "education",
+   "labor",
+   "jobs",
+   "traffic",
+   "environment",
+   "weather",
+   "storm",
+   "flood",
+   "floods",
+   "accident",
+   "students",
+   "culture",
+   "festival",
+   "tourism"
+  ]
+ }
+}

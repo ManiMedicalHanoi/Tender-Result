@@ -1,0 +1,49 @@
+# Tạm thời (nhánh phụ): chạy thử trọn vòng MMH Daily — gom tin ⇒ số báo ⇒ podcast ⇒ lưu vào daily/data + daily/audio.
+# Khi có kho riêng: dùng daily/workflows/daily.yml (có lịch hằng ngày + GitHub Pages + Releases).
+name: Chạy thử MMH Daily
+on:
+  push:
+    branches: ['claude/health-policy-news-aggregator-gvxs88']
+    paths: ['daily/tools/**', 'daily/config.json', '.github/workflows/daily-test.yml']
+permissions: { contents: write, models: read }
+concurrency: { group: daily-test, cancel-in-progress: false }
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      HAS_KEY: ${{ secrets.ANTHROPIC_API_KEY != '' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '22' }
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - name: Cài ffmpeg + edge-tts
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg >/dev/null
+          pip install -q edge-tts
+      - name: Cài thư viện Claude (chỉ khi có khoá)
+        if: env.HAS_KEY == 'true'
+        run: cd daily && npm i --no-save --no-audit --no-fund @anthropic-ai/sdk >/dev/null
+      - name: Kiểm tra AI của GitHub (chẩn đoán)
+        run: |
+          curl -s -o /tmp/m.txt -w "%{http_code}\n" -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" -H "Content-Type: application/json" \
+            https://models.github.ai/inference/chat/completions -d '{"model":"openai/gpt-4.1-mini","messages":[{"role":"user","content":"hi"}],"max_tokens":5}' || true
+          head -c 300 /tmp/m.txt; echo
+      - name: Gom tin
+        run: node daily/tools/collect.mjs
+      - name: Dựng số báo
+        env: { ANTHROPIC_API_KEY: '${{ secrets.ANTHROPIC_API_KEY }}' }
+        run: node daily/tools/edition.mjs
+      - name: Tạo podcast
+        run: python3 daily/tools/audio.py
+      - name: Lưu kết quả thử
+        run: |
+          git config user.name "mmh-daily-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add daily/data daily/audio
+          git diff --cached --quiet && exit 0
+          git commit -qm "MMH Daily: số báo chạy thử $(TZ=Asia/Ho_Chi_Minh date '+%d/%m/%Y %H:%M')"
+          for i in 1 2 3; do git pull -q --rebase -X theirs origin "${GITHUB_REF_NAME}" && git push -q origin "HEAD:${GITHUB_REF_NAME}" && exit 0; sleep 5; done
+          exit 1

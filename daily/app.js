@@ -14,7 +14,7 @@
     play: '<svg viewBox="0 0 24 24"><path d="M7 4.5v15a1 1 0 0 0 1.5.86l12.4-7.5a1 1 0 0 0 0-1.72L8.5 3.64A1 1 0 0 0 7 4.5z" fill="currentColor"/></svg>',
     pause: '<svg viewBox="0 0 24 24"><rect x="5.5" y="4" width="4.5" height="16" rx="1.2" fill="currentColor"/><rect x="14" y="4" width="4.5" height="16" rx="1.2" fill="currentColor"/></svg>',
   };
-  const S = { index: null, eds: {}, cur: null, lang: store.get('mmh_daily_lang', 'vi'), ep: null, tab: '' };
+  const S = { index: null, eds: {}, cur: null, lang: store.get('mmh_daily_lang', 'vi'), ep: null, tab: '', sub: store.get('mmh_daily_sub', 'both') };
   const toast = t => { const el = $('#toast'); el.textContent = t; el.hidden = false; clearTimeout(toast.t); toast.t = setTimeout(() => (el.hidden = true), 2400); };
   const viDate = ds => { const d = new Date(ds + 'T00:00:00Z'); return `${WD[d.getUTCDay()]}, ${d.getUTCDate()}/${d.getUTCMonth() + 1}/${d.getUTCFullYear()}`; };
   const enDate = ds => new Date(ds + 'T00:00:00Z').toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
@@ -182,9 +182,12 @@
         <button class="spd" id="ls-spd" type="button" title="Tốc độ đọc">${(store.get('mmh_daily_rate', 1)).toFixed(2).replace(/0$/, '')}×</button>
         ${a ? `<a class="dl" href="${esc(a.file)}" download>Tải MP3</a>` : '<span class="dl">Âm thanh đang được tạo…</span>'}
       </div>
+      <div class="nowsub" id="nowsub" aria-live="off"><span class="en"></span><span class="vi"></span></div>
       <div class="seek"><span id="ls-cur">0:00</span><div class="tr" id="ls-tr"><i id="ls-prog" style="width:0"></i></div><span id="ls-dur">${a ? mmss(a.dur) : '--:--'}</span></div>
       <div class="ls-grid">
-        <div class="ls-box"><h3>Lời thoại<small>bấm một câu để nghe từ đó</small></h3><div class="tx" id="tx">${turns.map((t, i) => `<p data-i="${i}" data-t="${t.t ?? ''}"><b>${esc(hosts[t.sp]?.name || t.sp)}</b>${esc(t.text)}</p>`).join('')}</div></div>
+        <div class="ls-box"><h3>Lời thoại<small>bấm một câu để nghe từ đó</small></h3>
+          <div class="subsel" id="subsel" role="group" aria-label="Phụ đề">${[['both', 'Anh + Việt'], ['en', 'Tiếng Anh'], ['vi', 'Tiếng Việt']].map(([k, l]) => `<button type="button" data-sub="${k}" class="${S.sub === k ? 'on' : ''}">${l}</button>`).join('')}</div>
+          <div class="tx sub-${S.sub}" id="tx">${turns.map((t, i) => `<p data-i="${i}" data-t="${t.t ?? ''}"><b>${esc(hosts[t.sp]?.name || t.sp)}</b><span class="en">${esc(t.text)}</span>${t.vi ? `<span class="vi">${esc(t.vi)}</span>` : ''}</p>`).join('')}</div></div>
         <div>
           <div class="ls-box"><h3>Các số gần đây</h3><div class="eps">${recent.map(e => `<a class="ep${e.date === ed.date ? ' on' : ''}" href="#/listen/${e.date}"><div class="cv">${cover({ name: showName(e.show), color: showColor(e.show) }, e.date)}</div><div><b>${esc(showName(e.show))}</b><span>${esc(viDate(e.date))}</span></div><em>${e.words ? '~' + Math.round(e.words / 130) + ' ph' : ''}</em></a>`).join('')}</div></div>
           ${ed.vocab?.length ? `<div style="margin-top:20px">${vocabHtml(ed, true)}</div>` : ''}
@@ -233,11 +236,21 @@
   }
   let lastSave = 0, lastLine = -1;
   function onTime() {
+    if (!S.ep) return;
     const d = audio.duration || S.ep?.podcast.audio?.dur || 1, t = audio.currentTime;
     $('#mini-prog').style.width = (t / d * 100) + '%';
+    curSubMini(t);
     const lp = $('#ls-prog');
     if (lp && S.cur && S.ep && S.cur.date === S.ep.date) { lp.style.width = (t / d * 100) + '%'; $('#ls-cur').textContent = mmss(t); $('#ls-dur').textContent = mmss(d); hiLine(t); }
     if (Date.now() - lastSave > 4000) { lastSave = Date.now(); const p = store.get('mmh_daily_pos', {}); p[S.ep.date] = Math.floor(t); store.set('mmh_daily_pos', p); }
+  }
+  // dòng 2 của thanh phát nhỏ = phụ đề Việt câu đang đọc (học tiếng Anh khi nghe)
+  let miniIdx = -2;
+  function curSubMini(t) {
+    const turns = (S.ep?.podcast.turns || []).filter(x => x.text);
+    let i = -1; turns.forEach((x, k) => { if (x.t != null && x.t <= t + 0.2) i = k; });
+    if (i === miniIdx) return; miniIdx = i;
+    $('#mini-s').textContent = (i >= 0 && turns[i].vi && !audio.paused) ? turns[i].vi : viDate(S.ep.date) + ' · ' + S.ep.podcast.hosts.map(h => h.name).join(' & ');
   }
   function hiLine(t) {
     const ps = [...document.querySelectorAll('#tx p')];
@@ -246,6 +259,8 @@
     if (idx === lastLine) return;
     lastLine = idx;
     ps.forEach((p, i) => { p.classList.toggle('now', i === idx); p.classList.toggle('past', i < idx); });
+    const turn = S.ep?.podcast.turns.filter(t => t.text)[idx], ns = $('#nowsub');
+    if (ns) { ns.querySelector('.en').textContent = turn ? turn.text : ''; ns.querySelector('.vi').textContent = turn?.vi || ''; ns.className = 'nowsub sub-' + S.sub + (turn ? ' on' : ''); }
     const el = ps[idx], box = $('#tx');
     if (el && box && box.scrollHeight > box.clientHeight + 4) box.scrollTop = el.offsetTop - box.offsetTop - box.clientHeight / 3;
   }
@@ -331,6 +346,8 @@
   document.addEventListener('click', e => {
     const p = e.target.closest('[data-play]');
     if (p) { e.preventDefault(); e.stopPropagation(); playDate(p.dataset.play); return; }
+    const sb = e.target.closest('[data-sub]');
+    if (sb) { S.sub = sb.dataset.sub; store.set('mmh_daily_sub', S.sub); document.querySelectorAll('#subsel button').forEach(b => b.classList.toggle('on', b === sb)); const tx = $('#tx'); if (tx) tx.className = 'tx sub-' + S.sub; lastLine = -1; onTime(); return; }
     const c = e.target.closest('[data-tab]');
     if (c) { S.tab = c.dataset.tab; route(); }
   });

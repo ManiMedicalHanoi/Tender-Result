@@ -6,7 +6,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { DAY, vnDay, iso } from './lib.mjs';
 import { SHOWS, showFor, GLOSSARY } from './shows.mjs';
-import { translateStories } from './translate.mjs';
+import { translateStories, translate } from './translate.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const CFG = JSON.parse(fs.readFileSync(path.join(ROOT, 'config.json'), 'utf8'));
@@ -126,6 +126,7 @@ function templateWrite(ed, picked) {
         xs.forEach(x => say(A, `${head(x)}.`));
         continue;
       }
+      if (duo && sec !== order[0] && show.style !== 'qa' && rnd() < 0.7) say(B, any(['Okay.', 'Right.', 'Got it. Let’s move on.', 'Good. What’s next?', 'Mm-hm.']));
       if (show.style === 'qa') say(A, any([`What should listeners know about ${sec === 'economy' ? 'the economy' : sec} today?`, `Let’s talk about ${sec === 'economy' ? 'the economy' : sec}. What’s the main story?`, `And on ${sec === 'economy' ? 'the economy' : sec}, what stood out?`]));
       else say(A, any(SEG[sec]));
       let lastTag = '';
@@ -187,7 +188,7 @@ async function claudeWrite(ed, picked) {
       vocab: { type: 'array', items: { type: 'object', additionalProperties: false, required: ['en', 'vi', 'ex'], properties: { en: { type: 'string' }, vi: { type: 'string' }, ex: { type: 'string' } } } },
       podcast: { type: 'object', additionalProperties: false, required: ['title', 'desc', 'turns'], properties: {
         title: { type: 'string' }, desc: { type: 'string' },
-        turns: { type: 'array', items: { type: 'object', additionalProperties: false, required: ['sp', 'text'], properties: { sp: { type: 'string', enum: show.hosts.map(h => h.id) }, text: { type: 'string' } } } } } },
+        turns: { type: 'array', items: { type: 'object', additionalProperties: false, required: ['sp', 'text', 'vi'], properties: { sp: { type: 'string', enum: show.hosts.map(h => h.id) }, text: { type: 'string' }, vi: { type: 'string' } } } } } },
     },
   };
   const hosts = show.hosts.map(h => `${h.id} = ${h.name} (${h.role})`).join('; ');
@@ -209,7 +210,9 @@ Tasks:
 5. podcast: title, one-line desc, and turns (speaker ids ${show.hosts.map(h => h.id).join('/')}) for a 1,300–1,700 word script (about 9–11 minutes) in the "${show.name}" format.
    Open with the date and show name, cover health first and in most depth, then economy, politics and society; natural transitions, no bullet lists, no URLs,
    numbers written to be spoken. ${show.style === 'deep' ? 'Spend half the show explaining the lead story step by step, then a quick round-up.' : ''}${show.style === 'qa' ? 'Host A asks short listener-style questions; B answers.' : ''}${show.style === 'desk' ? 'B is the health correspondent and carries the health segment in depth; A wraps up other news briefly.' : ''}
-   Vary the opening and sign-off; make it feel different from yesterday.
+   Sound like real people talking, not reading: contractions, short sentences, natural reactions ("Right.", "That's a big number."), a light personal touch,
+   and smooth hand-offs between hosts. Never sound cheerful about accidents or deaths. Vary the opening and sign-off; make it feel different from yesterday.
+   For every turn also give "vi": a natural Vietnamese subtitle of that turn (meaning, not word-for-word).
 
 Stories (JSON):
 ${JSON.stringify(list)}
@@ -228,7 +231,7 @@ ${notes ? 'Research notes for the top health stories:\n' + notes.slice(0, 8000) 
   for (const x of all) { const s = byId.get(x.id); if (s) Object.assign(x, { h_en: s.h_en, h_vi: s.h_vi, dek: s.dek_en, s_vi: s.s_vi, s_en: s.s_en, why: s.why_vi || undefined }); }
   ed.note = out.note; ed.healthDesk.analysis = out.health; ed.vocab = out.vocab;
   ed.podcast.title = out.podcast.title; ed.podcast.desc = out.podcast.desc;
-  ed.podcast.turns = out.podcast.turns.map(t => ({ sp: t.sp, text: speech(t.text) }));
+  ed.podcast.turns = out.podcast.turns.map(t => ({ sp: t.sp, text: speech(t.text), vi: t.vi }));
   ed.research = notes ? notes.slice(0, 6000) : undefined;
   ed.writer = 'claude';
 }
@@ -258,6 +261,13 @@ async function main() {
       try { console.log(`Dịch máy: ${await translateStories(list)}/${list.length} tin`); } catch (e) { console.log('Bỏ qua dịch máy: ' + e.message); }
     }
     templateWrite(ed, picked);
+    if (process.env.DAILY_MT !== '0') {
+      try {
+        const { out, ok } = await translate(ed.podcast.turns.map(t => t.text), 'en', 'vi');
+        ed.podcast.turns.forEach((t, i) => { if (out[i]) t.vi = out[i]; });
+        console.log(`Phụ đề Việt: ${ok}/${ed.podcast.turns.length} lượt lời`);
+      } catch (e) { console.log('Bỏ qua phụ đề Việt: ' + e.message); }
+    }
   };
   if (useAI) {
     try { await claudeWrite(ed, picked); }

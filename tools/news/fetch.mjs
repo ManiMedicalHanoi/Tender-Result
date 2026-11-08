@@ -200,10 +200,12 @@ function scrapeLvn(html, base, slugs) {
   const draft = /du-thao/.test(base);
   for (const m of html.matchAll(/class="doc-title"[^>]*>[\s\S]{0,200}?<a href="([^"]+)"[^>]*title="([^"]+)"/g)) {
     const href = dec(m[1]), title = dec(m[2]);
+    const meta = strip(html.slice(m.index + m[0].length, m.index + m[0].length + 1500).split(/class="doc-title"/)[0]);
+    const dm = meta.match(/(?:Ban hành|Ngày ban hành|Cập nhật)?[^0-9]{0,20}(\d{2}\/\d{2}\/\d{4})/);
     const slug = (href.match(/^\/([^/]+)\//) || [])[1] || '';
     if (!slugs.includes(slug) && !isHealth(title)) continue;
     const no = findDocs(title)[0];
-    out.push({ code: no ? no.no : '', title, date: null, u: new URL(href, base).href, draft, slug });
+    out.push({ code: no ? no.no : '', title, date: dm ? parseDate(dm[1], 'dmy') : null, u: new URL(href, base).href, draft, slug });
   }
   return out;
 }
@@ -314,8 +316,8 @@ async function main() {
     const c = classify({ title: t0, desc: '' }, { health: true }) || { topics: [], score: 0, docs: [] };
     if (!c.topics.includes('van-ban')) c.topics.unshift('van-ban');
     const rec = {
-      id, t: t0, u: r.u, d: iso(d), src: r.src, dom: r.dom, tier: 'gov', kind: 'doc', draft: r.draft || undefined,
-      sum: '', tp: c.topics, sc: c.score + 4, docs: c.docs.length ? c.docs.map(x => x.no) : (r.code ? [r.code] : undefined),
+      id, t: t0, u: r.u, d: iso(d), src: r.src, dom: r.dom, tier: CFG.domains[r.dom]?.[1] || 'press', kind: 'doc', draft: r.draft || undefined,
+      sum: '', tp: c.topics, sc: c.score + (/UBND|HĐND|VBHN|hợp nhất/.test(t0.slice(0, 60)) ? 0 : 4), docs: c.docs.length ? c.docs.map(x => x.no) : (r.code ? [r.code] : undefined),
       first: o?.first || iso(NOW), ai: o?.ai,
     };
     rec.mmh = c.topics.some(t => CFG.mmhTopics.includes(t)) || undefined;

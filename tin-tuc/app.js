@@ -62,7 +62,7 @@
 
   // ── thẻ tin ──
   function itemHtml(it, big) {
-    const tags = (it.tp || []).map(t => `<button class="tg" data-topic="${esc(t)}" type="button">${esc(T(t))}</button>`).join('');
+    const tags = (it.tp || []).filter(t => !(t === 'van-ban' && it.docs?.length)).slice(0, 3).map(t => `<button class="tg" data-topic="${esc(t)}" type="button">${esc(T(t))}</button>`).join('');
     const nos = (it.docs || []).slice(0, 4).map(n => `<button class="tg no" data-doc="${esc(n)}" type="button" title="Xem văn bản ${esc(n)}">${esc(n)}</button>`).join('');
     const s = it.ai?.s || it.sum || '';
     return `<article class="it${S.read.has(it.id) ? ' read' : ''}${big ? ' big' : ''}" data-id="${it.id}">

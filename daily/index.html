@@ -8,13 +8,16 @@
 <meta name="theme-color" content="#FBF9F4">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
-<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="icon" href="icons/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="MMH Daily">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;0,800;0,900;1,600&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="app.css?v=2">
+<link rel="stylesheet" href="app.css?v=3">
 </head>
 <body>
 <div id="app">
@@ -22,7 +25,7 @@
     <div class="mast-top">
       <span id="m-date"></span>
       <span class="mast-mid" id="m-no"></span>
-      <span class="mast-r"><button class="upd-btn" id="upd-btn" type="button" title="Tổng hợp bản tin mới ngay bây giờ">Tổng hợp ngay</button> <button class="lang" id="lang" type="button" aria-label="Đổi ngôn ngữ tiêu đề">EN · VI</button></span>
+      <span class="mast-r"><button class="inst-btn" id="inst-btn" type="button" hidden title="Cài MMH Daily thành ứng dụng trên máy này"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v11m0 0-4-4m4 4 4-4M5 17v2a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Cài app</button> <button class="upd-btn" id="upd-btn" type="button" title="Tổng hợp bản tin mới ngay bây giờ">Tổng hợp ngay</button> <button class="lang" id="lang" type="button" aria-label="Đổi ngôn ngữ tiêu đề">EN · VI</button></span>
     </div>
     <a class="logo" href="#/" aria-label="MMH Daily — trang nhất">MMH Daily</a>
     <div class="tagline">Health · Economy · Politics · Society — Vietnam, every morning</div>
@@ -62,6 +65,11 @@
   <p class="dlg-wait" id="upd-wait" hidden>Đang chờ số mới… trang tự kiểm tra mỗi phút.</p>
   <div class="dlg-ft"><button type="button" id="upd-close" class="dlg-x">Đóng</button></div>
 </div></div>
+<div class="dlg" id="inst-dlg" hidden role="dialog" aria-modal="true" aria-labelledby="inst-h"><div class="dlg-box inst">
+  <div class="inst-top"><img src="icons/icon-192.png" alt="" width="64" height="64"><div><h2 id="inst-h">Cài MMH Daily</h2><p class="dlg-sub">Có biểu tượng trên màn hình chính, mở như một ứng dụng, không cần tìm link.</p></div></div>
+  <ol class="inst-steps" id="inst-steps"></ol>
+  <div class="dlg-ft"><button type="button" id="inst-close" class="dlg-x">Đã hiểu</button></div>
+</div></div>
 <script>
 /* Cấu hình: link Routine (claude.ai/code/routines/…) + kho GitHub. demo = bản xem thử (bản tin nội bộ dữ liệu giả, không cần đăng nhập). */
 window.DAILY_CFG = window.DAILY_CFG || {
@@ -70,6 +78,7 @@ window.DAILY_CFG = window.DAILY_CFG || {
   demo: false
 };
 </script>
-<script src="app.js?v=2"></script>
+<script src="app.js?v=3"></script>
+<script src="install.js?v=1"></script>
 </body>
 </html>

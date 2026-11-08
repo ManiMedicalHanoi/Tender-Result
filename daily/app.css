@@ -362,3 +362,16 @@ body.dark .upd-btn{background:#fff;color:#111;border-color:#fff}
 .dlg-x{background:none;border:1px solid var(--hair);border-radius:6px;padding:7px 14px;font:600 13.5px var(--sans)}
 .demo-note{font:600 13px var(--sans);background:#FFF4DC;color:#6B4E00;border:1px solid #F0D9A0;border-radius:6px;padding:8px 12px;margin:0 0 14px}
 @media (max-width:640px){ .upd-btn{padding:3px 9px;font-size:11px} .mast-r{white-space:nowrap} }
+/* cài ứng dụng */
+.inst-btn{display:inline-flex;align-items:center;gap:6px;font:600 12.5px var(--sans);color:var(--accent-ink);background:transparent;border:1px solid var(--accent);border-radius:999px;padding:5px 12px 5px 9px;cursor:pointer}
+.inst-btn svg{width:15px;height:15px}
+.inst-btn:hover{background:var(--accent);color:var(--paper)}
+.inst-top{display:flex;gap:14px;align-items:center;margin-bottom:6px}
+.inst-top img{border-radius:14px;box-shadow:0 1px 0 var(--hair)}
+.inst-top h2{margin:0 0 2px}
+.inst-steps{margin:10px 0 4px;padding-left:22px;font:15px/1.55 var(--sans);color:var(--ink)}
+.inst-steps li{padding:6px 0;border-bottom:1px solid var(--hair)}
+.inst-steps li:last-child{border:0}
+.inst-steps .ii{width:18px;height:18px;vertical-align:-3px;color:#1A73E8}
+html.is-app .mast{padding-top:max(8px,env(safe-area-inset-top))}
+@media (max-width:560px){.inst-btn{padding:5px 9px}.inst-btn{font-size:0;gap:0}.inst-btn svg{width:17px;height:17px}}

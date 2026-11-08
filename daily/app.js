@@ -370,7 +370,7 @@
     try { await loadIndex(); }
     catch { $('#view').innerHTML = '<div class="empty">Chưa có dữ liệu. Thử tải lại sau ít phút.</div>'; return; }
     await route();
-    if ('serviceWorker' in navigator && location.protocol === 'https:' && !(window.DAILY_CFG || {}).demo) navigator.serviceWorker.register('sw.js').catch(() => {});
+    if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost') && !(window.DAILY_CFG || {}).demo) navigator.serviceWorker.register('sw.js').catch(() => {});
   }
 
   // ══════════ BẢN TIN NỘI BỘ (Chủ nhật) — chỉ người đăng nhập email công ty ══════════

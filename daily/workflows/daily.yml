@@ -127,7 +127,7 @@ jobs:
       - name: Dựng trang (kèm MP3 21 ngày + bản tin nội bộ 8 tuần, đã mã hoá)
         run: |
           mkdir -p _site/audio
-          cp -r index.html app.css app.js sw.js manifest.webmanifest icons data _site/
+          cp -r index.html app.css app.js install.js sw.js manifest.webmanifest icons data _site/
           rm -f _site/data/pool.json
           cp audio/*.mp3 audio/*.enc _site/audio/ 2>/dev/null || true
           for d in $(ls data/editions | sort -r | head -21 | sed 's/.json//'); do

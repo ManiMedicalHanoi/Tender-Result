@@ -310,7 +310,8 @@ async function main() {
     if (seenKey.has(k) && seenKey.get(k) !== id) continue;
     seenKey.set(k, id);
     const o = old.get(id);
-    const d = r.date || (o ? new Date(o.d) : NOW);
+    const okDate = r.date && r.date <= NOW && NOW - r.date < 60 * DAY;
+    const d = okDate ? r.date : (o ? new Date(o.d) : NOW);
     if (d < since) continue;
     const t0 = r.code && !r.title.includes(r.code) ? `${docKind(r.code.split('/').pop())} ${r.code}: ${r.title}` : r.title;
     const c = classify({ title: t0, desc: '' }, { health: true }) || { topics: [], score: 0, docs: [] };

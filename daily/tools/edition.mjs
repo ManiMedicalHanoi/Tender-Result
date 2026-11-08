@@ -153,86 +153,50 @@ function templateWrite(ed, picked) {
   ed.writer = 'template';
 }
 
-// ── viết bằng Claude ──
+// ── viết bằng Claude (gói Tiết kiệm: Haiku 5.5) — 2 lượt: tin song ngữ; podcast + phụ đề Việt + phân tích ──
 async function claudeWrite(ed, picked) {
-  const { default: Anthropic } = await import('@anthropic-ai/sdk');
-  const client = new Anthropic();
+  const { askJson, S: J } = await import('./ai.mjs');
   const show = SHOWS[ed.podcast.show];
   const deskX = Object.values(picked.desk).flat().map(id => picked.cand.find(y => y.id === id)).filter(Boolean);
   const all = [...new Map(Object.values(picked.sections).flat().concat(picked.docs, deskX).map(x => [x.id, x])).values()];
-  const list = all.map(x => ({ id: x.id, sec: x.sec, tags: x.tags, lang: x.lang, source: x.src, also: x.also, date: x.d.slice(0, 10), title: x.t, summary: (x.sum || '').slice(0, 500) }));
+  const list = all.map(x => ({ id: x.id, sec: x.sec, tags: x.tags, lang: x.lang, source: x.src, date: x.d.slice(0, 10), title: x.t, summary: (x.sum || '').slice(0, 450) }));
   const prev = (readJson(path.join(ROOT, 'data', 'index.json'), { editions: [] }).editions || []).slice(0, 5).map(e => `${e.date}: ${e.show} — ${e.lead}`);
-
-  // 1. Tìm thêm thông tin cho tin Y tế quan trọng (web search)
-  let notes = '';
-  if (process.env.DAILY_RESEARCH !== '0') {
-    try {
-      const top = picked.sections.health.slice(0, 3).map(x => `- ${x.t} (${x.src}, ${x.u})`).join('\n');
-      let msgs = [{ role: 'user', content: `Research these Vietnam health-sector stories from today. For each, find concrete extra facts from reputable sources (numbers, dates, officials, which hospitals or agencies, tender values, policy articles). Reply with short bullet notes in English, each with its source URL. Do not speculate.\n${top}` }];
-      for (let i = 0; i < 3; i++) {
-        const r = await client.messages.create({ model: 'claude-opus-5-5', max_tokens: 6000, output_config: { effort: 'low' }, tools: [{ type: 'web_search_20260209', name: 'web_search', max_uses: 6 }], messages: msgs });
-        notes += r.content.filter(b => b.type === 'text').map(b => b.text).join('\n');
-        if (r.stop_reason !== 'pause_turn') break;
-        msgs = [...msgs, { role: 'assistant', content: r.content }];
-      }
-    } catch (e) { console.log('Bỏ qua tìm thêm: ' + e.message); }
-  }
-
-  const SCHEMA = {
-    type: 'object', additionalProperties: false, required: ['stories', 'note', 'health', 'vocab', 'podcast'],
-    properties: {
-      stories: { type: 'array', items: { type: 'object', additionalProperties: false, required: ['id', 'h_en', 'h_vi', 'dek_en', 's_vi', 's_en', 'why_vi'],
-        properties: { id: { type: 'string' }, h_en: { type: 'string' }, h_vi: { type: 'string' }, dek_en: { type: 'string' }, s_vi: { type: 'string' }, s_en: { type: 'string' }, why_vi: { type: 'string' } } } },
-      note: { type: 'object', additionalProperties: false, required: ['en', 'vi'], properties: { en: { type: 'string' }, vi: { type: 'string' } } },
-      health: { type: 'object', additionalProperties: false, required: ['en', 'vi'], properties: { en: { type: 'string' }, vi: { type: 'string' } } },
-      vocab: { type: 'array', items: { type: 'object', additionalProperties: false, required: ['en', 'vi', 'ex'], properties: { en: { type: 'string' }, vi: { type: 'string' }, ex: { type: 'string' } } } },
-      podcast: { type: 'object', additionalProperties: false, required: ['title', 'desc', 'turns'], properties: {
-        title: { type: 'string' }, desc: { type: 'string' },
-        turns: { type: 'array', items: { type: 'object', additionalProperties: false, required: ['sp', 'text', 'vi'], properties: { sp: { type: 'string', enum: show.hosts.map(h => h.id) }, text: { type: 'string' }, vi: { type: 'string' } } } } } },
-    },
-  };
-  const hosts = show.hosts.map(h => `${h.id} = ${h.name} (${h.role})`).join('; ');
   const SYSTEM = `You are the editor of MMH Daily, a morning news app about Vietnam for staff of MANI Medical Hanoi (MMH), a distributor of surgical,
-ophthalmic and dental medical devices that sells to public hospitals through tenders. Readers are Vietnamese professionals who also want to practise English.
-Priorities: health sector first and in depth (tenders and procurement, Ministry of Health policy and decrees, public investment in hospitals, the big central hospitals,
-medical devices, health insurance), then the economy, politics and society. Use only the facts given (stories and research notes); never invent numbers, names or quotes.
-Write natural, broadcast-quality English for the podcast and clear Vietnamese for summaries.`;
-  const USER = `Date: ${dateEn(DATE)} (${DATE}).
-Today's show: "${show.name}" — ${show.desc} Format: ${show.style}. Hosts: ${hosts}.
-Recent editions (avoid repeating their angle): ${prev.join(' | ') || 'none'}.
+ophthalmic and dental medical devices that sells to public hospitals through tenders. Readers are Vietnamese professionals practising English.
+Health comes first and in depth (tenders and procurement, Ministry of Health policy, public investment in hospitals, the big central hospitals,
+medical devices, health insurance), then the economy, politics and society. Use only the facts given; never invent numbers, names or quotes.`;
 
-Tasks:
-1. stories: for EVERY story id below, write h_en (sharp English headline), h_vi (Vietnamese headline), dek_en (one-line English standfirst), s_vi (2–3 sentence Vietnamese summary),
-   s_en (2–3 sentence English summary), why_vi (one sentence "vì sao quan trọng" — for health stories, what it means for medical-device suppliers / hospitals; empty string if nothing useful).
-2. note: a short editor's note (60–90 words) in English and Vietnamese on today's big picture.
-3. health: an in-depth health-sector analysis (180–260 words) in English and Vietnamese: tenders, policy, investment, hospitals — what changed, who is affected, what to watch.
-4. vocab: 8 useful English terms from today's podcast with Vietnamese meaning and a short example sentence from the script.
-5. podcast: title, one-line desc, and turns (speaker ids ${show.hosts.map(h => h.id).join('/')}) for a 1,300–1,700 word script (about 9–11 minutes) in the "${show.name}" format.
-   Open with the date and show name, cover health first and in most depth, then economy, politics and society; natural transitions, no bullet lists, no URLs,
-   numbers written to be spoken. ${show.style === 'deep' ? 'Spend half the show explaining the lead story step by step, then a quick round-up.' : ''}${show.style === 'qa' ? 'Host A asks short listener-style questions; B answers.' : ''}${show.style === 'desk' ? 'B is the health correspondent and carries the health segment in depth; A wraps up other news briefly.' : ''}
-   Sound like real people talking, not reading: contractions, short sentences, natural reactions ("Right.", "That's a big number."), a light personal touch,
-   and smooth hand-offs between hosts. Never sound cheerful about accidents or deaths. Vary the opening and sign-off; make it feel different from yesterday.
-   For every turn also give "vi": a natural Vietnamese subtitle of that turn (meaning, not word-for-word).
-
-Stories (JSON):
-${JSON.stringify(list)}
-
-${notes ? 'Research notes for the top health stories:\n' + notes.slice(0, 8000) : ''}`;
-
-  const res = await client.beta.messages.create({
-    model: 'claude-opus-5-5', max_tokens: 32000, betas: ['server-side-fallback-2026-07-01'], fallbacks: 'default',
-    output_config: { effort: 'medium', format: { type: 'json_schema', schema: SCHEMA } },
-    system: SYSTEM, messages: [{ role: 'user', content: USER }],
-  }, { timeout: 600000 });
-  if (res.stop_reason === 'refusal') throw new Error('Claude từ chối: ' + (res.stop_details?.category || ''));
-  if (res.stop_reason === 'max_tokens') throw new Error('Claude trả lời bị cắt (max_tokens)');
-  const out = JSON.parse(res.content.filter(b => b.type === 'text').map(b => b.text).join(''));
-  const byId = new Map(out.stories.map(s => [s.id, s]));
+  // 1. tin song ngữ
+  const st = await askJson({ system: SYSTEM, effort: 'low', schema: J.obj({ stories: J.arr(J.obj({ id: J.str, h_en: J.str, h_vi: J.str, dek_en: J.str, s_vi: J.str, s_en: J.str, why_vi: J.str })) }),
+    user: `For EVERY story below write: h_en (sharp English headline), h_vi (Vietnamese headline), dek_en (one-line English standfirst),
+s_vi (2–3 sentence Vietnamese summary), s_en (2–3 sentence English summary), why_vi (one Vietnamese sentence on why it matters — for health stories,
+what it means for medical-device suppliers or hospitals; empty string if nothing useful).\n\nStories (JSON):\n${JSON.stringify(list)}` });
+  const byId = new Map(st.stories.map(s => [s.id, s]));
   for (const x of all) { const s = byId.get(x.id); if (s) Object.assign(x, { h_en: s.h_en, h_vi: s.h_vi, dek: s.dek_en, s_vi: s.s_vi, s_en: s.s_en, why: s.why_vi || undefined }); }
+
+  // 2. podcast + phụ đề + lời biên tập + phân tích y tế + từ vựng
+  const pick = sec => (picked.sections[sec] || []).slice(0, sec === 'health' ? 8 : 4).map(x => ({ id: x.id, tags: x.tags, source: x.src, headline: x.h_en || x.t, summary: x.s_en || x.sum }));
+  const hosts = show.hosts.map(h => `${h.id} = ${h.name} (${h.role})`).join('; ');
+  const out = await askJson({ system: SYSTEM, effort: 'medium',
+    schema: J.obj({ note: J.obj({ en: J.str, vi: J.str }), health: J.obj({ en: J.str, vi: J.str }), vocab: J.arr(J.obj({ en: J.str, vi: J.str, ex: J.str })),
+      podcast: J.obj({ title: J.str, desc: J.str, turns: J.arr(J.obj({ sp: { type: 'string', enum: show.hosts.map(h => h.id) }, text: J.str, vi: J.str })) }) }),
+    user: `Date: ${dateEn(DATE)} (${DATE}). Today's show: "${show.name}" — ${show.desc} Format: ${show.style}. Hosts: ${hosts}.
+Recent editions (do not repeat their angle or opening): ${prev.join(' | ') || 'none'}.
+1. note: editor's note (60–90 words) in English and Vietnamese.
+2. health: health-sector analysis (180–240 words) in English and Vietnamese: tenders, policy, investment, hospitals — what changed, who is affected, what to watch.
+3. vocab: 8 useful English terms used in the script, with Vietnamese meaning and a short example from the script.
+4. podcast: title, one-line desc, and turns for a 1,200–1,500 word script (about 8–10 minutes). Open with the date and show name. Health first and deepest,
+   then economy, politics, society. ${show.style === 'solo' ? 'One anchor only.' : show.style === 'qa' ? 'A asks short listener-style questions; B answers.' : show.style === 'desk' ? 'B is the health correspondent and carries health in depth; A wraps up other news briefly.' : show.style === 'deep' ? 'Spend half the show explaining the lead story step by step, then a quick round-up.' : 'Two hosts in real conversation.'}
+   Sound like real people talking, not reading: contractions, short sentences, natural reactions and hand-offs, a light personal touch; numbers written to be spoken;
+   no URLs or lists. Never sound cheerful about accidents or deaths. For every turn also give "vi": a natural Vietnamese subtitle of that turn.
+
+Stories — health: ${JSON.stringify(pick('health'))}
+economy: ${JSON.stringify(pick('economy'))}
+politics: ${JSON.stringify(pick('politics'))}
+society: ${JSON.stringify(pick('society'))}` });
   ed.note = out.note; ed.healthDesk.analysis = out.health; ed.vocab = out.vocab;
   ed.podcast.title = out.podcast.title; ed.podcast.desc = out.podcast.desc;
   ed.podcast.turns = out.podcast.turns.map(t => ({ sp: t.sp, text: speech(t.text), vi: t.vi }));
-  ed.research = notes ? notes.slice(0, 6000) : undefined;
   ed.writer = 'claude';
 }
 

@@ -9,8 +9,8 @@ Tờ báo buổi sáng của MMH + podcast tiếng Anh mỗi ngày.
    Chỉ nhận tin từ tên miền trong `config.json ▸ trusted`. Xếp tin vào 4 mảng, gắn nhãn y tế chuyên sâu, chấm điểm, gộp tin trùng.
 2. `tools/edition.mjs`: chọn tin của số báo (không lặp tin của 3 số trước) và chương trình podcast trong ngày (`tools/shows.mjs`):
    Morning Briefing · Health Desk · Two Takes · Market Watch · Ask the Editor · The Explainer · (Chủ nhật) Week in Review.
-   - (Tuỳ chọn, tốn phí) Có secret `ANTHROPIC_API_KEY`: Claude tìm thêm thông tin cho 3 tin y tế lớn nhất (web search), viết tiêu đề + tóm tắt Việt / Anh,
-     "vì sao quan trọng", lời biên tập, phân tích y tế, 8 từ vựng và kịch bản podcast 9–11 phút.
+   - (Tuỳ chọn, ~15k đ/tháng) Có secret `ANTHROPIC_API_KEY`: Claude Haiku 5.5 (đổi bằng biến `DAILY_MODEL`) viết tiêu đề + tóm tắt Việt / Anh,
+     "vì sao quan trọng", lời biên tập, phân tích y tế, 8 từ vựng, kịch bản podcast 8–10 phút + phụ đề Việt.
    - **Mặc định, 0 đồng**: dịch máy Google (miễn phí) tin Việt ⇄ Anh; podcast soạn theo mẫu từ tin tiếng Anh + tin y tế tiếng Việt đã dịch (7 kiểu chương trình, câu chuyển ý thay đổi theo ngày).
 3. `tools/audio.py`: giọng đọc neural (edge-tts, miễn phí), mỗi người dẫn một giọng, có nhạc hiệu, chuẩn âm lượng, ghi mốc thời gian để phụ đề chạy theo.
 4. Lưu `data/` vào git, MP3 lên Releases (`ep-yyyy-mm-dd`), đăng trang lên GitHub Pages (kèm MP3 của 21 ngày gần nhất).

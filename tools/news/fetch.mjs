@@ -200,9 +200,8 @@ function scrapeLvn(html, base, slugs) {
   const draft = /du-thao/.test(base);
   for (const m of html.matchAll(/class="doc-title"[^>]*>[\s\S]{0,200}?<a href="([^"]+)"[^>]*title="([^"]+)"/g)) {
     const href = dec(m[1]), title = dec(m[2]);
-    const meta = strip(html.slice(m.index + m[0].length, m.index + m[0].length + 1500).split(/class="doc-title"/)[0]);
-    if (process.env.NEWS_DEBUG && !scrapeLvn.shown) { scrapeLvn.shown = 1; console.log('   lvn meta: ' + meta.slice(0, 300)); }
-    const dm = meta.match(/(?:Ban hành|Ngày ban hành|Cập nhật)?[^0-9]{0,20}(\d{2}\/\d{2}\/\d{4})/);
+    const meta = strip(html.slice(m.index + m[0].length, m.index + m[0].length + 6000).split(/class="doc-title"/)[0]);
+    const dm = meta.match(/(?:Ban hành|Ngày ban hành)[^0-9]{0,20}(\d{2}\/\d{2}\/\d{4})/) || meta.match(/(\d{2}\/\d{2}\/\d{4})/);
     const slug = (href.match(/^\/([^/]+)\//) || [])[1] || '';
     if (!slugs.includes(slug) && !isHealth(title)) continue;
     const no = findDocs(title)[0];
@@ -325,7 +324,7 @@ async function main() {
     if (o) old.set(id, { ...o, ...rec }); else fresh.push(rec);
   }
 
-  let items = [...old.values(), ...fresh].filter(x => new Date(x.d) >= since);
+  let items = [...old.values(), ...fresh].filter(x => new Date(x.d) >= since && new Date(x.d) - NOW <= DAY);
   items.sort((a, b) => b.d.localeCompare(a.d));
 
   // Tóm tắt bằng Claude (nếu có khoá)

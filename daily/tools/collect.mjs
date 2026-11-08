@@ -37,7 +37,7 @@ export function classify(it, feed) {
   };
   let sec = Object.entries(sc).sort((a, b) => b[1] - a[1])[0];
   if (sec[1] <= 0) return null;
-  if (health >= 2 || spec || feed.sec === 'health') sec = ['health', Math.max(sc.health, 2)];   // có nội dung y tế rõ ⇒ mảng Y tế
+  if (health >= 2 || spec || (feed.sec === 'health' && health >= 1)) sec = ['health', Math.max(sc.health, 2)];   // kênh y tế nhưng bài không nói về y tế ⇒ xếp theo nội dung   // có nội dung y tế rõ ⇒ mảng Y tế
   const crime = count(n, CRIME) > 0;
   const tags = [];
   if (sec[0] === 'health' && !crime) { for (const [t, k] of TAGK) if (count(n, KW[k])) tags.push(t); }
@@ -49,8 +49,9 @@ export function classify(it, feed) {
   // tin ngành y nhưng xa MMH (an toàn thực phẩm, thuốc lá, vắc xin…) ⇒ giảm điểm liên quan
   const mmh = Math.max(0, Math.min(9, tags.reduce((s, t) => s + (MW[t] || 0), 0)) - (!bizTag && count(n, KW.lowrel) ? 3 : 0));
   const story = count(nt, KW.case) > 0 && !bizTag;
+  const advice = count(nt, KW.advice) > 0 && !tags.some(t => ['tender', 'device', 'insurance', 'market'].includes(t));   // bài tư vấn sức khoẻ cho người bệnh
   const plainEcon = sec[0] === 'economy' && !tags.length;
-  let score = (crime ? -3 : 0) + (story ? -3 : 0) + (plainEcon ? -1.5 : 0) + CFG.sections[sec[0]].w + Math.min(sec[1], 6) * 0.4 + mmh + (docs.length ? 1.5 : 0)
+  let score = (crime ? -3 : 0) + (story ? -3 : 0) + (advice ? -3 : 0) + (plainEcon ? -1.5 : 0) + CFG.sections[sec[0]].w + Math.min(sec[1], 6) * 0.4 + mmh + (docs.length ? 1.5 : 0)
     + ((count(nt, KW.dental) + count(nt, KW.eye)) ? 2 : 0);
   return { sec: sec[0], tags, docs, score, mmh };
 }

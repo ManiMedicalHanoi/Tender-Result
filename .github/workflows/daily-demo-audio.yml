@@ -3,7 +3,7 @@ name: Giọng đọc bản demo
 on:
   push:
     branches: ['claude/health-policy-news-aggregator-gvxs88']
-    paths: ['daily/demo/*.json', '.github/workflows/daily-demo-audio.yml']
+    paths: ['daily/demo/*.json', 'daily/data/editions/*.json', '.github/workflows/daily-demo-audio.yml']
 permissions: { contents: write }
 jobs:
   run:
@@ -14,9 +14,16 @@ jobs:
       - uses: actions/setup-python@v5
         with: { python-version: '3.12' }
       - run: sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg >/dev/null && pip install -q edge-tts
+      - name: Giọng cho số báo Claude viết (chưa có âm thanh)
+        run: |
+          for F in daily/data/editions/*.json; do
+            D=$(basename "$F" .json)
+            node -e "const e=require('./$F');process.exit(e.writer==='claude-code'&&!e.podcast.audio?0:1)" && python3 daily/tools/audio.py "$D" || true
+          done
       - name: Tạo giọng
         run: |
           for F in daily/demo/*.demo.json; do
+            node -e "const e=require('./$F');process.exit(e.podcast.audio&&e.podcast.audio.engine?1:0)" || continue
             D=$(basename "$F" .demo.json)
             python3 daily/tools/audio.py --ed "$F" --out "$RUNNER_TEMP/mp3"
             cp "$RUNNER_TEMP/mp3/$D.mp3" "daily/demo/internal-$D.mp3"
@@ -26,4 +33,4 @@ jobs:
         run: |
           git config user.name "mmh-daily-bot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add daily/demo && git commit -qm "MMH Daily demo: giọng đọc bản tin nội bộ mẫu" && git push -q
+          git add daily/demo daily/data daily/audio && git diff --cached --quiet || git commit -qm "MMH Daily demo: giọng đọc bản tin nội bộ mẫu" && git push -q

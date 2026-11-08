@@ -47,7 +47,7 @@ function pick(pool) {
     const out = [], cap = Math.ceil(def.quota * 0.6), n = { vi: 0, en: 0 };
     for (const x of all) { if (out.length >= def.quota) break; if (n[x.lang] >= cap && all.some(y => y.lang !== x.lang && !out.includes(y))) continue; out.push(x); n[x.lang]++; }
     for (const x of all) { if (out.length >= def.quota) break; if (!out.includes(x)) out.push(x); }
-    sections[sec] = out;
+    sections[sec] = sec === 'health' ? out.filter((x, i) => i < 6 || (x.mmh || 0) > 0) : out;
   }
   // Bàn tin Y tế: nhóm theo mức ảnh hưởng tới MMH
   const desk = {};
@@ -61,7 +61,8 @@ function pick(pool) {
 const speech = s => String(s || '')
   .replace(/\bHCMC\b/g, 'Ho Chi Minh City').replace(/\bVND\b/g, 'dong').replace(/\bUS\$/g, '$').replace(/(\d)%/g, '$1 percent')
   .replace(/\s*\([^)]*\)/g, '').replace(/[“”]/g, '"').replace(/\s+/g, ' ').trim();
-const sentences = (s, n) => (String(s || '').match(/[^.!?]+[.!?]+(\s|$)/g) || [String(s || '')]).slice(0, n).join(' ').trim();
+const sentences = (s, n) => { const t = String(s || '').replace(/(\d)\.(\d)/g, '$1\u2024$2');   // không cắt câu ở số thập phân
+  return ((t.match(/[^.!?]+[.!?]+(\s|$)/g) || [t]).slice(0, n).join(' ').trim()).replace(/\u2024/g, '.'); };
 const ordinal = d => d + (d % 10 === 1 && d !== 11 ? 'st' : d % 10 === 2 && d !== 12 ? 'nd' : d % 10 === 3 && d !== 13 ? 'rd' : 'th');
 function dateEn(ds) {
   const d = new Date(ds + 'T00:00:00Z');
@@ -76,7 +77,8 @@ const similar = (a, b) => { const A = words(a), B = words(b); if (!A.size || !B.
 function templateWrite(ed, picked) {
   // Bản miễn phí: ít tin, nói như hai đồng nghiệp — mỗi tin MMH có 1 câu "liên quan gì tới mình". Tin chung chỉ điểm nhanh.
   const rnd = seedRand(DATE + ed.podcast.show);
-  const any = a => a[Math.floor(rnd() * a.length)];
+  const usedP = new Set();
+  const any = a => { const free = a.filter(x => !usedP.has(x)); const x = (free.length ? free : a)[Math.floor(rnd() * (free.length || a.length))]; usedP.add(x); return x; };
   const show = SHOWS[ed.podcast.show];
   const A = show.hosts[0], B = show.hosts[1] || show.hosts[0];
   const duo = show.hosts.length > 1;

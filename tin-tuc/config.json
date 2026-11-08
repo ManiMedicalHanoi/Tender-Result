@@ -1,79 +1,543 @@
 {
-  "_ghi_chu": "Cấu hình Bản tin Y tế & Chính sách. Sửa nguồn / từ khoá ở đây rồi gộp vào main — lượt lấy tin kế tiếp tự áp dụng. Chỉ nhận tin từ tên miền trong 'domains'.",
-  "keepDays": 45,
-  "docsKeepDays": 400,
-  "domains": {
-    "chinhphu.vn": ["Cổng TTĐT Chính phủ", "gov"],
-    "vanban.chinhphu.vn": ["Hệ thống văn bản Chính phủ", "gov"],
-    "baochinhphu.vn": ["Báo Chính phủ", "gov"],
-    "moh.gov.vn": ["Bộ Y tế", "gov"],
-    "kcb.vn": ["Cục Quản lý Khám, chữa bệnh", "gov"],
-    "dav.gov.vn": ["Cục Quản lý Dược", "gov"],
-    "vss.gov.vn": ["Bảo hiểm xã hội Việt Nam", "gov"],
-    "baohiemxahoi.gov.vn": ["Bảo hiểm xã hội Việt Nam", "gov"],
-    "mof.gov.vn": ["Bộ Tài chính", "gov"],
-    "mpi.gov.vn": ["Bộ Kế hoạch và Đầu tư", "gov"],
-    "muasamcong.mpi.gov.vn": ["Hệ thống mạng đấu thầu quốc gia", "gov"],
-    "quochoi.vn": ["Quốc hội", "gov"],
-    "vbpl.vn": ["CSDL quốc gia về văn bản pháp luật", "gov"],
-    "suckhoedoisong.vn": ["Sức khỏe & Đời sống (Bộ Y tế)", "press"],
-    "baodauthau.vn": ["Báo Đấu thầu", "press"],
-    "daibieunhandan.vn": ["Đại biểu Nhân dân", "press"],
-    "nhandan.vn": ["Nhân Dân", "press"],
-    "dangcongsan.vn": ["Báo Điện tử Đảng Cộng sản", "press"],
-    "vietnamplus.vn": ["VietnamPlus (TTXVN)", "press"],
-    "baotintuc.vn": ["Báo Tin tức (TTXVN)", "press"],
-    "vtv.vn": ["VTV", "press"],
-    "vov.vn": ["VOV", "press"],
-    "qdnd.vn": ["Quân đội Nhân dân", "press"],
-    "thuvienphapluat.vn": ["Thư viện Pháp luật", "press"],
-    "luatvietnam.vn": ["Luật Việt Nam", "press"],
-    "baophapluat.vn": ["Báo Pháp luật Việt Nam", "press"],
-    "vnexpress.net": ["VnExpress", "press"],
-    "tuoitre.vn": ["Tuổi Trẻ", "press"],
-    "thanhnien.vn": ["Thanh Niên", "press"],
-    "dantri.com.vn": ["Dân trí", "press"],
-    "laodong.vn": ["Lao Động", "press"],
-    "plo.vn": ["Pháp luật TP.HCM", "press"],
-    "nld.com.vn": ["Người Lao Động", "press"],
-    "sggp.org.vn": ["Sài Gòn Giải Phóng", "press"],
-    "hanoimoi.vn": ["Hà Nội Mới", "press"],
-    "tienphong.vn": ["Tiền Phong", "press"],
-    "vietnamnet.vn": ["VietNamNet", "press"],
-    "vneconomy.vn": ["VnEconomy", "press"],
-    "kinhtedothi.vn": ["Kinh tế & Đô thị", "press"]
+ "_ghi_chu": "Cấu hình Bản tin Y tế & Chính sách. Sửa nguồn / từ khoá ở đây rồi gộp vào main — lượt lấy tin kế tiếp tự áp dụng. Chỉ nhận tin từ tên miền trong 'domains'.",
+ "keepDays": 45,
+ "docsKeepDays": 400,
+ "domains": {
+  "chinhphu.vn": [
+   "Cổng TTĐT Chính phủ",
+   "gov"
+  ],
+  "vanban.chinhphu.vn": [
+   "Hệ thống văn bản Chính phủ",
+   "gov"
+  ],
+  "baochinhphu.vn": [
+   "Báo Chính phủ",
+   "gov"
+  ],
+  "moh.gov.vn": [
+   "Bộ Y tế",
+   "gov"
+  ],
+  "kcb.vn": [
+   "Cục Quản lý Khám, chữa bệnh",
+   "gov"
+  ],
+  "dav.gov.vn": [
+   "Cục Quản lý Dược",
+   "gov"
+  ],
+  "vss.gov.vn": [
+   "Bảo hiểm xã hội Việt Nam",
+   "gov"
+  ],
+  "baohiemxahoi.gov.vn": [
+   "Bảo hiểm xã hội Việt Nam",
+   "gov"
+  ],
+  "mof.gov.vn": [
+   "Bộ Tài chính",
+   "gov"
+  ],
+  "mpi.gov.vn": [
+   "Bộ Kế hoạch và Đầu tư",
+   "gov"
+  ],
+  "muasamcong.mpi.gov.vn": [
+   "Hệ thống mạng đấu thầu quốc gia",
+   "gov"
+  ],
+  "quochoi.vn": [
+   "Quốc hội",
+   "gov"
+  ],
+  "vbpl.vn": [
+   "CSDL quốc gia về văn bản pháp luật",
+   "gov"
+  ],
+  "suckhoedoisong.vn": [
+   "Sức khỏe & Đời sống (Bộ Y tế)",
+   "press"
+  ],
+  "baodauthau.vn": [
+   "Báo Đấu thầu",
+   "press"
+  ],
+  "daibieunhandan.vn": [
+   "Đại biểu Nhân dân",
+   "press"
+  ],
+  "nhandan.vn": [
+   "Nhân Dân",
+   "press"
+  ],
+  "dangcongsan.vn": [
+   "Báo Điện tử Đảng Cộng sản",
+   "press"
+  ],
+  "vietnamplus.vn": [
+   "VietnamPlus (TTXVN)",
+   "press"
+  ],
+  "baotintuc.vn": [
+   "Báo Tin tức (TTXVN)",
+   "press"
+  ],
+  "vtv.vn": [
+   "VTV",
+   "press"
+  ],
+  "vov.vn": [
+   "VOV",
+   "press"
+  ],
+  "qdnd.vn": [
+   "Quân đội Nhân dân",
+   "press"
+  ],
+  "thuvienphapluat.vn": [
+   "Thư viện Pháp luật",
+   "press"
+  ],
+  "luatvietnam.vn": [
+   "Luật Việt Nam",
+   "press"
+  ],
+  "baophapluat.vn": [
+   "Báo Pháp luật Việt Nam",
+   "press"
+  ],
+  "vnexpress.net": [
+   "VnExpress",
+   "press"
+  ],
+  "tuoitre.vn": [
+   "Tuổi Trẻ",
+   "press"
+  ],
+  "thanhnien.vn": [
+   "Thanh Niên",
+   "press"
+  ],
+  "dantri.com.vn": [
+   "Dân trí",
+   "press"
+  ],
+  "laodong.vn": [
+   "Lao Động",
+   "press"
+  ],
+  "plo.vn": [
+   "Pháp luật TP.HCM",
+   "press"
+  ],
+  "nld.com.vn": [
+   "Người Lao Động",
+   "press"
+  ],
+  "sggp.org.vn": [
+   "Sài Gòn Giải Phóng",
+   "press"
+  ],
+  "hanoimoi.vn": [
+   "Hà Nội Mới",
+   "press"
+  ],
+  "tienphong.vn": [
+   "Tiền Phong",
+   "press"
+  ],
+  "vietnamnet.vn": [
+   "VietNamNet",
+   "press"
+  ],
+  "vneconomy.vn": [
+   "VnEconomy",
+   "press"
+  ],
+  "kinhtedothi.vn": [
+   "Kinh tế & Đô thị",
+   "press"
+  ]
+ },
+ "feeds": [
+  {
+   "id": "bcp-vb",
+   "name": "Báo Chính phủ · Văn bản mới",
+   "urls": [
+    "https://baochinhphu.vn/van-ban-moi.rss",
+    "https://baochinhphu.vn/chinh-sach-moi.rss"
+   ]
   },
-  "feeds": [
-    { "id": "bcp", "name": "Báo Chính phủ", "discover": ["https://baochinhphu.vn/rss.htm"], "match": ["y-te", "suc-khoe", "chinh-sach", "phap-luat", "van-ban", "home"], "max": 5 },
-    { "id": "skds", "name": "Sức khỏe & Đời sống", "health": true, "discover": ["https://suckhoedoisong.vn/rss.htm"], "match": ["y-te", "thoi-su", "chinh-sach", "home", "tin-tuc"], "max": 4 },
-    { "id": "vne", "name": "VnExpress", "health": true, "urls": ["https://vnexpress.net/rss/suc-khoe.rss"] },
-    { "id": "vne-pl", "name": "VnExpress", "urls": ["https://vnexpress.net/rss/phap-luat.rss", "https://vnexpress.net/rss/thoi-su.rss"] },
-    { "id": "tt", "name": "Tuổi Trẻ", "health": true, "urls": ["https://tuoitre.vn/rss/suc-khoe.rss"] },
-    { "id": "tn", "name": "Thanh Niên", "health": true, "urls": ["https://thanhnien.vn/rss/suc-khoe.rss"] },
-    { "id": "dt", "name": "Dân trí", "health": true, "urls": ["https://dantri.com.vn/rss/suc-khoe.rss"] },
-    { "id": "nd", "name": "Nhân Dân", "discover": ["https://nhandan.vn/rss.html"], "match": ["y-te", "suc-khoe", "phap-luat", "chinh-tri"], "max": 3 },
-    { "id": "vnp", "name": "VietnamPlus", "discover": ["https://www.vietnamplus.vn/rss.html"], "match": ["suckhoe", "suc-khoe", "y-te", "phapluat", "chinhtri"], "max": 3 },
-    { "id": "bdt", "name": "Báo Đấu thầu", "discover": ["https://baodauthau.vn/rss.html", "https://baodauthau.vn/"], "match": ["dau-thau", "mua-sam", "chinh-sach", "home", "rss"], "max": 4 },
-    { "id": "tvpl", "name": "Thư viện Pháp luật", "discover": ["https://thuvienphapluat.vn/rss.aspx", "https://thuvienphapluat.vn/"], "match": ["y-te", "the-thao-y-te", "van-ban-moi", "chinh-sach", "tin-tuc"], "max": 4 },
-    { "id": "gn-moh", "name": "Bộ Y tế", "gnews": "site:moh.gov.vn when:7d" },
-    { "id": "gn-cp", "name": "Văn bản Chính phủ", "gnews": "(\"nghị định\" OR \"thông tư\" OR \"quyết định\") (\"y tế\" OR \"Bộ Y tế\" OR thuốc OR \"bảo hiểm y tế\") when:3d" },
-    { "id": "gn-ttb", "name": "Thiết bị y tế", "gnews": "(\"thiết bị y tế\" OR \"vật tư y tế\" OR \"trang thiết bị y tế\") when:3d" },
-    { "id": "gn-thau", "name": "Đấu thầu y tế", "gnews": "(\"đấu thầu\" OR \"mua sắm\" OR \"lựa chọn nhà thầu\") (\"y tế\" OR thuốc OR \"bệnh viện\") when:3d" },
-    { "id": "gn-bhyt", "name": "Bảo hiểm y tế", "gnews": "\"bảo hiểm y tế\" when:3d" },
-    { "id": "gn-ck", "name": "Nha khoa · Nhãn khoa", "gnews": "(\"nha khoa\" OR \"nhãn khoa\" OR \"bệnh viện mắt\" OR \"răng hàm mặt\") when:7d" },
-    { "id": "gn-luat", "name": "Luật y tế", "gnews": "(\"Luật Khám bệnh\" OR \"Luật Dược\" OR \"Luật Đấu thầu\" OR \"Luật Bảo hiểm y tế\" OR \"Luật Phòng bệnh\") when:7d" }
-  ],
-  "core": ["y tế", "bộ y tế", "sở y tế", "bệnh viện", "bệnh nhân", "người bệnh", "khám bệnh", "chữa bệnh", "khám chữa bệnh", "bác sĩ", "điều dưỡng", "thuốc", "dược", "vắc xin", "vaccine", "bảo hiểm y tế", "bhyt", "thiết bị y tế", "vật tư y tế", "trang thiết bị", "sức khỏe", "nha khoa", "nhãn khoa", "phẫu thuật", "dịch bệnh", "trạm y tế", "y tế cơ sở", "dịch vụ kỹ thuật", "viện phí"],
-  "topics": [
-    { "id": "van-ban", "name": "Văn bản pháp luật", "w": 3, "kw": ["nghị định", "thông tư", "quyết định số", "nghị quyết", "luật ", "dự thảo", "có hiệu lực", "ban hành", "sửa đổi, bổ sung", "công văn", "chỉ thị", "hướng dẫn thi hành", "quy định mới", "chính sách mới"] },
-    { "id": "dau-thau", "name": "Đấu thầu & mua sắm", "w": 3, "kw": ["đấu thầu", "gói thầu", "nhà thầu", "lựa chọn nhà thầu", "chỉ định thầu", "mua sắm", "đàm phán giá", "trúng thầu", "kết quả lựa chọn", "hồ sơ mời thầu", "e-hsmt", "muasamcong", "mạng đấu thầu", "giá trúng thầu", "thầu thuốc", "đấu giá"] },
-    { "id": "ttbyt", "name": "Thiết bị & vật tư y tế", "w": 4, "kw": ["thiết bị y tế", "trang thiết bị", "vật tư y tế", "ttbyt", "số lưu hành", "cấp phép lưu hành", "phân loại trang thiết bị", "kê khai giá", "công khai giá", "máy móc", "hóa chất xét nghiệm", "sinh phẩm chẩn đoán"] },
-    { "id": "bhyt", "name": "BHYT & giá dịch vụ", "w": 2, "kw": ["bảo hiểm y tế", "bhyt", "giá dịch vụ", "viện phí", "quỹ bảo hiểm", "thanh toán chi phí", "danh mục thanh toán", "giám định", "bảo hiểm xã hội", "thẻ bhyt"] },
-    { "id": "duoc", "name": "Dược & đăng ký thuốc", "w": 1, "kw": ["thuốc", "dược", "vắc xin", "vaccine", "đăng ký lưu hành", "cục quản lý dược", "thực phẩm chức năng", "nhà thuốc", "thiếu thuốc"] },
-    { "id": "he-thong", "name": "Bệnh viện & hệ thống y tế", "w": 1, "kw": ["bệnh viện", "tự chủ", "trạm y tế", "y tế cơ sở", "sáp nhập", "nhân lực y tế", "chứng chỉ hành nghề", "giấy phép hành nghề", "khám bệnh, chữa bệnh", "chuyển tuyến", "cấp chuyên môn", "hồ sơ bệnh án điện tử", "chuyển đổi số y tế", "bệnh án điện tử"] },
-    { "id": "chuyen-khoa", "name": "Nha khoa · Nhãn khoa · Ngoại khoa", "w": 3, "kw": ["nha khoa", "nha sĩ", "răng", "răng hàm mặt", "nhãn khoa", "bệnh viện mắt", "đục thủy tinh thể", "glôcôm", "glaucoma", "phaco", "khúc xạ", "võng mạc", "mổ mắt", "phẫu thuật", "ngoại khoa", "khâu vết thương"] },
-    { "id": "dich-benh", "name": "Dịch bệnh & y tế dự phòng", "w": 1, "kw": ["dịch bệnh", "ổ dịch", "ca mắc", "sốt xuất huyết", "tay chân miệng", "cúm", "covid", "sởi", "tiêm chủng", "y tế dự phòng", "cdc", "ngộ độc"] }
-  ],
-  "mmhTopics": ["dau-thau", "ttbyt", "chuyen-khoa"],
-  "highlight": 7
+  {
+   "id": "bcp-yt",
+   "name": "Báo Chính phủ · Y tế",
+   "health": true,
+   "urls": [
+    "https://baochinhphu.vn/y-te.rss"
+   ]
+  },
+  {
+   "id": "bcp",
+   "name": "Báo Chính phủ",
+   "urls": [
+    "https://baochinhphu.vn/chinh-sach-va-cuoc-song.rss",
+    "https://baochinhphu.vn/phap-luat.rss",
+    "https://baochinhphu.vn/home.rss"
+   ]
+  },
+  {
+   "id": "skds",
+   "name": "Sức khỏe & Đời sống",
+   "health": true,
+   "urls": [
+    "https://suckhoedoisong.vn/y-te.rss",
+    "https://suckhoedoisong.vn/chinh-sach.rss",
+    "https://suckhoedoisong.vn/thoi-su.rss"
+   ]
+  },
+  {
+   "id": "nd",
+   "name": "Nhân Dân",
+   "health": true,
+   "urls": [
+    "https://nhandan.vn/rss/y-te-1309.rss"
+   ]
+  },
+  {
+   "id": "nd-pl",
+   "name": "Nhân Dân",
+   "urls": [
+    "https://nhandan.vn/rss/phapluat-1287.rss"
+   ]
+  },
+  {
+   "id": "vnp",
+   "name": "VietnamPlus",
+   "health": true,
+   "urls": [
+    "https://www.vietnamplus.vn/rss/suckhoe-327.rss"
+   ]
+  },
+  {
+   "id": "vtv",
+   "name": "VTV",
+   "urls": [
+    "https://vtv.vn/rss/xa-hoi.rss"
+   ]
+  },
+  {
+   "id": "bdt",
+   "name": "Báo Đấu thầu",
+   "urls": [
+    "https://baodauthau.vn/rss/dau-thau-2.rss",
+    "https://baodauthau.vn/rss/thoi-su-14.rss"
+   ]
+  },
+  {
+   "id": "vne",
+   "name": "VnExpress",
+   "health": true,
+   "urls": [
+    "https://vnexpress.net/rss/suc-khoe.rss"
+   ]
+  },
+  {
+   "id": "vne-pl",
+   "name": "VnExpress",
+   "urls": [
+    "https://vnexpress.net/rss/phap-luat.rss",
+    "https://vnexpress.net/rss/thoi-su.rss"
+   ]
+  },
+  {
+   "id": "tt",
+   "name": "Tuổi Trẻ",
+   "health": true,
+   "urls": [
+    "https://tuoitre.vn/rss/suc-khoe.rss"
+   ]
+  },
+  {
+   "id": "tn",
+   "name": "Thanh Niên",
+   "health": true,
+   "urls": [
+    "https://thanhnien.vn/rss/suc-khoe.rss"
+   ]
+  },
+  {
+   "id": "dt",
+   "name": "Dân trí",
+   "health": true,
+   "urls": [
+    "https://dantri.com.vn/rss/suc-khoe.rss"
+   ]
+  },
+  {
+   "id": "gn-moh",
+   "name": "Bộ Y tế",
+   "gnews": "site:moh.gov.vn when:7d"
+  },
+  {
+   "id": "gn-cp",
+   "name": "Văn bản Chính phủ",
+   "gnews": "(\"nghị định\" OR \"thông tư\" OR \"quyết định\") (\"y tế\" OR \"Bộ Y tế\" OR thuốc OR \"bảo hiểm y tế\") when:3d"
+  },
+  {
+   "id": "gn-ttb",
+   "name": "Thiết bị y tế",
+   "gnews": "(\"thiết bị y tế\" OR \"vật tư y tế\" OR \"trang thiết bị y tế\") when:3d"
+  },
+  {
+   "id": "gn-thau",
+   "name": "Đấu thầu y tế",
+   "gnews": "(\"đấu thầu\" OR \"mua sắm\" OR \"lựa chọn nhà thầu\") (\"y tế\" OR thuốc OR \"bệnh viện\") when:3d"
+  },
+  {
+   "id": "gn-bhyt",
+   "name": "Bảo hiểm y tế",
+   "gnews": "\"bảo hiểm y tế\" when:3d"
+  },
+  {
+   "id": "gn-ck",
+   "name": "Nha khoa · Nhãn khoa",
+   "gnews": "(\"nha khoa\" OR \"nhãn khoa\" OR \"bệnh viện mắt\" OR \"răng hàm mặt\") when:7d"
+  },
+  {
+   "id": "gn-luat",
+   "name": "Luật y tế",
+   "gnews": "(\"Luật Khám bệnh\" OR \"Luật Dược\" OR \"Luật Đấu thầu\" OR \"Luật Bảo hiểm y tế\" OR \"Luật Phòng bệnh\") when:7d"
+  }
+ ],
+ "core": [
+  "y tế",
+  "bộ y tế",
+  "sở y tế",
+  "bệnh viện",
+  "bệnh nhân",
+  "người bệnh",
+  "khám bệnh",
+  "chữa bệnh",
+  "khám chữa bệnh",
+  "bác sĩ",
+  "điều dưỡng",
+  "thuốc",
+  "dược",
+  "vắc xin",
+  "vaccine",
+  "bảo hiểm y tế",
+  "bhyt",
+  "thiết bị y tế",
+  "vật tư y tế",
+  "trang thiết bị",
+  "sức khỏe",
+  "nha khoa",
+  "nhãn khoa",
+  "phẫu thuật",
+  "dịch bệnh",
+  "trạm y tế",
+  "y tế cơ sở",
+  "dịch vụ kỹ thuật",
+  "viện phí"
+ ],
+ "topics": [
+  {
+   "id": "van-ban",
+   "name": "Văn bản pháp luật",
+   "w": 3,
+   "kw": [
+    "nghị định",
+    "thông tư",
+    "quyết định số",
+    "nghị quyết",
+    "dự án luật",
+    "luật sửa đổi",
+    "thông qua luật",
+    "luật khám bệnh",
+    "luật dược",
+    "luật đấu thầu",
+    "luật bảo hiểm y tế",
+    "dự thảo",
+    "có hiệu lực",
+    "ban hành",
+    "sửa đổi, bổ sung",
+    "công văn",
+    "chỉ thị",
+    "hướng dẫn thi hành",
+    "quy định mới",
+    "chính sách mới"
+   ]
+  },
+  {
+   "id": "dau-thau",
+   "name": "Đấu thầu & mua sắm",
+   "w": 3,
+   "kw": [
+    "đấu thầu",
+    "gói thầu",
+    "nhà thầu",
+    "lựa chọn nhà thầu",
+    "chỉ định thầu",
+    "mua sắm",
+    "đàm phán giá",
+    "trúng thầu",
+    "kết quả lựa chọn",
+    "hồ sơ mời thầu",
+    "e-hsmt",
+    "muasamcong",
+    "mạng đấu thầu",
+    "giá trúng thầu",
+    "thầu thuốc",
+    "đấu giá"
+   ]
+  },
+  {
+   "id": "ttbyt",
+   "name": "Thiết bị & vật tư y tế",
+   "w": 4,
+   "kw": [
+    "thiết bị y tế",
+    "trang thiết bị",
+    "vật tư y tế",
+    "ttbyt",
+    "số lưu hành",
+    "cấp phép lưu hành",
+    "phân loại trang thiết bị",
+    "kê khai giá",
+    "công khai giá",
+    "máy móc",
+    "hóa chất xét nghiệm",
+    "sinh phẩm chẩn đoán"
+   ]
+  },
+  {
+   "id": "bhyt",
+   "name": "BHYT & giá dịch vụ",
+   "w": 2,
+   "kw": [
+    "bảo hiểm y tế",
+    "bhyt",
+    "giá dịch vụ",
+    "viện phí",
+    "quỹ bảo hiểm",
+    "thanh toán chi phí",
+    "danh mục thanh toán",
+    "giám định",
+    "bảo hiểm xã hội",
+    "thẻ bhyt"
+   ]
+  },
+  {
+   "id": "duoc",
+   "name": "Dược & đăng ký thuốc",
+   "w": 1,
+   "kw": [
+    "thuốc",
+    "dược",
+    "vắc xin",
+    "vaccine",
+    "đăng ký lưu hành",
+    "cục quản lý dược",
+    "thực phẩm chức năng",
+    "nhà thuốc",
+    "thiếu thuốc"
+   ]
+  },
+  {
+   "id": "he-thong",
+   "name": "Bệnh viện & hệ thống y tế",
+   "w": 1,
+   "kw": [
+    "bệnh viện",
+    "tự chủ",
+    "trạm y tế",
+    "y tế cơ sở",
+    "sáp nhập",
+    "nhân lực y tế",
+    "chứng chỉ hành nghề",
+    "giấy phép hành nghề",
+    "khám bệnh, chữa bệnh",
+    "chuyển tuyến",
+    "cấp chuyên môn",
+    "hồ sơ bệnh án điện tử",
+    "chuyển đổi số y tế",
+    "bệnh án điện tử"
+   ]
+  },
+  {
+   "id": "chuyen-khoa",
+   "name": "Nha khoa · Nhãn khoa · Ngoại khoa",
+   "w": 3,
+   "kw": [
+    "nha khoa",
+    "nha sĩ",
+    "răng",
+    "răng hàm mặt",
+    "nhãn khoa",
+    "bệnh viện mắt",
+    "đục thủy tinh thể",
+    "glôcôm",
+    "glaucoma",
+    "phaco",
+    "khúc xạ",
+    "võng mạc",
+    "mổ mắt",
+    "phẫu thuật",
+    "ngoại khoa",
+    "khâu vết thương"
+   ]
+  },
+  {
+   "id": "dich-benh",
+   "name": "Dịch bệnh & y tế dự phòng",
+   "w": 1,
+   "kw": [
+    "dịch bệnh",
+    "ổ dịch",
+    "ca mắc",
+    "sốt xuất huyết",
+    "tay chân miệng",
+    "cúm",
+    "covid",
+    "sởi",
+    "tiêm chủng",
+    "y tế dự phòng",
+    "cdc",
+    "ngộ độc"
+   ]
+  }
+ ],
+ "mmhTopics": [
+  "dau-thau",
+  "ttbyt",
+  "chuyen-khoa"
+ ],
+ "highlight": 7,
+ "docSites": [
+  {
+   "id": "vbcp",
+   "name": "Hệ thống văn bản Chính phủ",
+   "type": "vbcp",
+   "urls": [
+    "https://vanban.chinhphu.vn/he-thong-van-ban"
+   ]
+  },
+  {
+   "id": "lvn",
+   "name": "Luật Việt Nam",
+   "type": "lvn",
+   "urls": [
+    "https://luatvietnam.vn/van-ban-moi.html",
+    "https://luatvietnam.vn/van-ban-moi.html?PageIndex=2",
+    "https://luatvietnam.vn/van-ban-moi.html?PageIndex=3",
+    "https://luatvietnam.vn/du-thao.html"
+   ],
+   "slugs": [
+    "y-te",
+    "bao-hiem",
+    "dau-thau"
+   ]
+  }
+ ]
 }

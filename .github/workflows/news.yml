@@ -1,0 +1,44 @@
+# Bản tin Y tế & Chính sách (tin-tuc/): lấy tin mỗi ngày 2 lần (06:20 và 12:20 giờ Việt Nam) ⇒ ghi tin-tuc/data/*.json ⇒ GitHub Pages tự đăng.
+# Có secret ANTHROPIC_API_KEY ⇒ tóm tắt tin quan trọng bằng Claude. Chạy tay: Actions ▸ "Lấy tin Bản tin Y tế" ▸ Run workflow.
+name: Lấy tin Bản tin Y tế
+on:
+  schedule:
+    - cron: '20 23 * * *'
+    - cron: '20 5 * * *'
+  workflow_dispatch:
+  push:
+    branches: [main, 'claude/health-policy-news-aggregator-gvxs88']
+    paths: ['tools/news/fetch.mjs', 'tools/news/summarize.mjs', 'tin-tuc/config.json', '.github/workflows/news.yml']
+permissions: { contents: write }
+concurrency:
+  group: news-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      HAS_KEY: ${{ secrets.ANTHROPIC_API_KEY != '' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '22' }
+      - name: Cài thư viện Claude (chỉ khi có khoá)
+        if: env.HAS_KEY == 'true'
+        run: npm i --no-save --no-audit --no-fund @anthropic-ai/sdk >/dev/null
+      - name: Lấy tin
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: node tools/news/fetch.mjs
+      - name: Lưu dữ liệu
+        run: |
+          git config user.name "mmh-news-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add tin-tuc/data
+          if git diff --cached --quiet; then echo "Không có tin mới."; exit 0; fi
+          git commit -m "Bản tin Y tế: cập nhật $(TZ=Asia/Ho_Chi_Minh date '+%d/%m/%Y %H:%M')"
+          for i in 1 2 3 4; do
+            git pull --rebase -X theirs origin "${GITHUB_REF_NAME}" && git push origin "HEAD:${GITHUB_REF_NAME}" && exit 0
+            sleep $((i*4))
+          done
+          exit 1

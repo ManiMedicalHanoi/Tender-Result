@@ -20,12 +20,13 @@ Claude chỉ **viết** (dùng gói thuê bao, không gọi API).
 ## B. Bản tin nội bộ — Claude viết (Routine "MMH Daily · Nội bộ", tối Chủ nhật hoặc bấm Run now)
 Cần: mạng tới `script.google.com` + `script.googleusercontent.com` (môi trường Claude Code), kho này có `data/inbox.pub.json`
 (GitHub tạo khi đã có secret `DAILY_INTERNAL_KEY`). Phiên Claude KHÔNG có khoá — chỉ khoá bản tin bằng khoá công khai.
-1. `WEEKLY_FACTS_ONLY=1 WEEKLY_OUT=/tmp/mmh-in node tools/weekly.mjs` ⇒ `/tmp/mmh-in/<CN>.facts.json` (số liệu Report Hub, CRM, thầu, đào tạo — ngoài repo).
+1. `NODE_USE_ENV_PROXY=1 WEEKLY_FACTS_ONLY=1 WEEKLY_OUT=/tmp/mmh-in node tools/weekly.mjs` (Node phải bật proxy mới ra mạng) ⇒ `/tmp/mmh-in/<CN>.facts.json` (số liệu Report Hub, CRM, thầu, đào tạo — ngoài repo).
    Muốn tuần khác: thêm `WEEK_END=yyyy-mm-dd` (Chủ nhật).
 2. Đọc **WRITING.md** + file số liệu. Viết `/tmp/mmh-in/out.json` theo mẫu đầu `tools/apply_in.mjs`:
    tiêu đề + mở đầu (Việt + Anh), các mục (thầu · địa bàn & bán hàng · phòng ban · sự kiện · đào tạo · tuần tới), kịch bản 600–900 từ, đúng người dẫn trong `show`
    (solo = 1 người; duo = 2 người trao đổi thật), mỗi lượt có `vi`. Mở bằng tin vui nhất (vd. gói thầu trúng); khen đúng người, đúng việc; nói thẳng việc quá hạn nhưng nhẹ nhàng.
-   Chỉ dùng số liệu trong facts. Mở đầu khác các tuần trước (`recentShows`).
+   Chỉ dùng số liệu trong facts. Mở đầu khác các tuần trước (`recentShows`). `overdue` = quá hạn thật; `notUpdated` = dòng việc (thường là việc mẫu
+   của sự kiện) chưa ai cập nhật — nhắc nhẹ "nhớ cập nhật trạng thái", KHÔNG gọi là quá hạn.
 3. `node tools/apply_in.mjs /tmp/mmh-in/<CN>.facts.json /tmp/mmh-in/out.json` (báo lỗi ⇒ sửa ⇒ chạy lại) ⇒ tự khoá vào `data/inbox/<CN>.sealed`, xoá bản rõ.
 4. `git add data/inbox && git commit -m "Bản tin nội bộ <CN> — Claude viết" && git push origin HEAD:main` ⇒ GitHub mở hộp thư, tạo giọng, mã hoá, đăng (≈ 5 phút).
 KHÔNG commit file nào trong /tmp; KHÔNG dán tên người / khách hàng vào commit message hay chat công khai.

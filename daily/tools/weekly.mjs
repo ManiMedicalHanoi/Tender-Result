@@ -44,9 +44,9 @@ async function departments() {
     try {
       const j = await getJson(d.url, { action: 'weekly', fresh: 1 });
       const keys = j.keyTasks || [];
-      const dep = { id: d.id, name: d.name, done: 0, overdue: 0, upcoming: 0, highlights: [], events: [], trips: [], nextWeek: [] };
+      const dep = { id: d.id, name: d.name, done: 0, overdue: 0, notUpdated: 0, upcoming: 0, highlights: [], events: [], trips: [], nextWeek: [] };
       for (const k of keys) {
-        const rows = [k, ...(k.subs || [])];
+        const rows = (k.subs || []).length ? k.subs : [k];        // key có việc con ⇒ chỉ đếm việc con (tránh đếm 2 lần)
         const isEvent = /event|sự kiện/i.test(S(k.type)) || /^E/.test(S(k.vSrc));
         for (const r of rows) {
           const name = S(r.subTask || r.name) || S(r.keyTask);
@@ -58,7 +58,10 @@ async function departments() {
             const res = S(r.result);
             if (res.length > 25) dep.highlights.push({ key: S(k.keyTask), task: name, pic: S(r.pic), result: res.slice(0, 320), priority: !!r.priority });
             if (isEvent) dep.events.push({ name: S(k.keyTask), task: name, pic: S(r.pic), status: 'done' });
-          } else if (due && due >= OD_FROM && due < END && !DONE.test(st) && !act && !/cancel|huỷ|hủy|skip|bỏ qua/i.test(st)) dep.overdue++;
+          } else if (due && due >= OD_FROM && due < END && !DONE.test(st) && !act && !/cancel|huỷ|hủy|skip|bỏ qua/i.test(st)) {
+            // trạng thái trống + 0% ⇒ "chưa cập nhật" (thường là dòng việc mẫu của sự kiện), không gộp vào quá hạn thật
+            if (!st && !(+r.progress > 0)) dep.notUpdated++; else dep.overdue++;
+          }
           if (due > END && due <= NEXT_END && !DONE.test(st)) { dep.upcoming++; if (dep.nextWeek.length < 8) dep.nextWeek.push({ task: name, pic: S(r.pic), due, event: isEvent }); }
           if (isEvent && inWeek(due) && !DONE.test(st)) dep.events.push({ name: S(k.keyTask), task: name, pic: S(r.pic), status: 'open' });
         }
@@ -67,7 +70,7 @@ async function departments() {
       dep.highlights = dep.highlights.slice(0, 6);
       dep.events = dep.events.slice(0, 8);
       out.push(dep);
-      console.log(`Phòng ${d.id}: xong ${dep.done} · quá hạn ${dep.overdue} · tuần sau ${dep.upcoming} · sự kiện ${dep.events.length} · công tác ${dep.trips.length}`);
+      console.log(`Phòng ${d.id}: xong ${dep.done} · quá hạn ${dep.overdue} · chưa cập nhật ${dep.notUpdated} · tuần sau ${dep.upcoming} · sự kiện ${dep.events.length} · công tác ${dep.trips.length}`);
     } catch (e) { console.log(`Phòng ${d.id}: lỗi ${e.message}`); }
   }
   return out;

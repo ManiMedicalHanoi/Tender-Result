@@ -14,7 +14,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;0,800;0,900;1,600&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="app.css?v=1">
+<link rel="stylesheet" href="app.css?v=2">
 </head>
 <body>
 <div id="app">
@@ -22,7 +22,7 @@
     <div class="mast-top">
       <span id="m-date"></span>
       <span class="mast-mid" id="m-no"></span>
-      <span class="mast-r"><button class="lang" id="lang" type="button" aria-label="Đổi ngôn ngữ tiêu đề">EN · VI</button></span>
+      <span class="mast-r"><button class="upd-btn" id="upd-btn" type="button" title="Tổng hợp bản tin mới ngay bây giờ">Tổng hợp ngay</button> <button class="lang" id="lang" type="button" aria-label="Đổi ngôn ngữ tiêu đề">EN · VI</button></span>
     </div>
     <a class="logo" href="#/" aria-label="MMH Daily — trang nhất">MMH Daily</a>
     <div class="tagline">Health · Economy · Politics · Society — Vietnam, every morning</div>
@@ -52,6 +52,24 @@
 </div>
 <audio id="audio" preload="metadata"></audio>
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
-<script src="app.js?v=1"></script>
+<div class="dlg" id="upd-dlg" hidden role="dialog" aria-modal="true" aria-labelledby="upd-h"><div class="dlg-box">
+  <h2 id="upd-h">Tổng hợp bản tin ngay</h2>
+  <p class="dlg-sub">Chạy bất kỳ lúc nào, không cần chờ lịch. Xong việc trang tự hiện số mới.</p>
+  <div class="dlg-opt"><div><b>Claude viết</b><span>Mở phiên Claude Code (dùng gói thuê bao, không tốn API) — bấm <i>Run now</i> trên trang mở ra. Khoảng 10–20 phút.</span></div>
+    <div class="dlg-row"><a class="dlg-a" id="upd-claude-daily" target="_blank" rel="noopener">Tin y tế &amp; thời sự</a><a class="dlg-a" id="upd-claude-week" target="_blank" rel="noopener">Bản tin nội bộ</a></div></div>
+  <div class="dlg-opt"><div><b>Bản tự động miễn phí</b><span>Chạy trên GitHub (bấm <i>Run workflow</i>). Khoảng 5 phút, tin dịch máy + giọng đọc miễn phí.</span></div>
+    <div class="dlg-row"><a class="dlg-a" id="upd-gh" target="_blank" rel="noopener">Chạy trên GitHub</a></div></div>
+  <p class="dlg-wait" id="upd-wait" hidden>Đang chờ số mới… trang tự kiểm tra mỗi phút.</p>
+  <div class="dlg-ft"><button type="button" id="upd-close" class="dlg-x">Đóng</button></div>
+</div></div>
+<script>
+/* Cấu hình: link Routine (claude.ai/code/routines/…) + kho GitHub. demo = bản xem thử (bản tin nội bộ dữ liệu giả, không cần đăng nhập). */
+window.DAILY_CFG = window.DAILY_CFG || {
+  repo: 'ManiMedicalHanoi/MMH-Daily',
+  routines: { daily: 'https://claude.ai/code/routines', weekly: 'https://claude.ai/code/routines' },
+  demo: false
+};
+</script>
+<script src="app.js?v=2"></script>
 </body>
 </html>

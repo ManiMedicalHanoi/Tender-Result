@@ -8,6 +8,9 @@ on:
   schedule:
     - cron: '45 22 * * *'
     - cron: '0 12 * * 0'
+  push:
+    branches: [main]
+    paths: ['data/editions/**']          # phiên Claude Code vừa viết số báo ⇒ tạo lại giọng + đăng trang
   workflow_dispatch:
     inputs:
       kind: { description: 'daily = tin hằng ngày · weekly = bản tin nội bộ · both = cả hai', required: false, default: 'daily' }
@@ -23,6 +26,7 @@ jobs:
       HAS_INKEY: ${{ secrets.DAILY_INTERNAL_KEY != '' }}
       GH_TOKEN: ${{ github.token }}
       DO_DAILY: ${{ github.event.schedule == '45 22 * * *' || (github.event_name == 'workflow_dispatch' && inputs.kind != 'weekly') }}
+      DO_AUDIO: ${{ github.event_name == 'push' }}
       DO_WEEKLY: ${{ github.event.schedule == '0 12 * * 0' || (github.event_name == 'workflow_dispatch' && (inputs.kind == 'weekly' || inputs.kind == 'both')) }}
     steps:
       - uses: actions/checkout@v4
@@ -61,6 +65,17 @@ jobs:
           node -e "const f='data/editions/$D.json',fs=require('fs'),e=JSON.parse(fs.readFileSync(f));if(e.podcast.audio)e.podcast.audio.alt='$URL';fs.writeFileSync(f,JSON.stringify(e))"
           gh release delete "ep-$D" -y --cleanup-tag 2>/dev/null || true
           gh release create "ep-$D" "audio/$D.mp3" --title "MMH Daily $D" --notes "Podcast $D" --latest=false
+
+      # ── số báo do Claude Code viết (push) ⇒ chỉ tạo lại giọng đọc ──
+      - name: Giọng đọc cho số báo Claude Code viết
+        if: env.DO_AUDIO == 'true'
+        run: |
+          D=$(ls data/editions | sort | tail -1 | sed 's/.json//')
+          python3 tools/audio.py "$D"
+          URL="https://github.com/${GITHUB_REPOSITORY}/releases/download/ep-$D/$D.mp3"
+          node -e "const f='data/editions/$D.json',fs=require('fs'),e=JSON.parse(fs.readFileSync(f));e.podcast.audio.alt='$URL';fs.writeFileSync(f,JSON.stringify(e))"
+          gh release delete "ep-$D" -y --cleanup-tag 2>/dev/null || true
+          gh release create "ep-$D" "audio/$D.mp3" --title "MMH Daily $D" --notes "Podcast $D (Claude viết)" --latest=false
 
       # ── bản tin nội bộ Chủ nhật (bản rõ chỉ nằm ở RUNNER_TEMP, xoá ngay sau khi mã hoá) ──
       - name: Bản tin nội bộ — gom + viết

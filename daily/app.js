@@ -369,7 +369,7 @@
     try { await loadIndex(); }
     catch { $('#view').innerHTML = '<div class="empty">Chưa có dữ liệu. Thử tải lại sau ít phút.</div>'; return; }
     await route();
-    if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(() => {});
+    if ('serviceWorker' in navigator && location.protocol === 'https:' && !(window.DAILY_CFG || {}).demo) navigator.serviceWorker.register('sw.js').catch(() => {});
   }
 
   // ══════════ BẢN TIN NỘI BỘ (Chủ nhật) — chỉ người đăng nhập email công ty ══════════
@@ -499,6 +499,20 @@
   }
   async function internalPage() {
     document.body.classList.remove('dark');
+    if ((window.DAILY_CFG || {}).demo) {           // bản demo: dữ liệu giả, không mã hoá, không đăng nhập
+      try {
+        IN.idx = IN.idx || await (await fetch('data/internal/index.json', { cache: 'no-store' })).json();
+        const d = location.hash.split('/')[2] || IN.idx.weeks[0].date;
+        let ed = IN.eds[d];
+        if (!ed) { ed = await (await fetch(`data/internal/${d}.demo.json`, { cache: 'no-store' })).json(); ed.date = 'i-' + ed.date; ed.podcast.audio.blob = true; IN.eds[d] = ed; }
+        S.cur = ed; $('#view').innerHTML = '<p class="demo-note">Bản demo · dữ liệu giả — bản thật chỉ mở được khi đăng nhập email công ty.</p>' + inPage(ed);
+        $('#in-wk').onchange = e => { location.hash = '#/noibo/' + e.target.value; };
+        $('#in-out').onclick = () => toast('Bản demo không cần đăng nhập');
+        $('#ls-play').onclick = () => { if (!setEp(ed)) return; audio.paused ? audio.play() : audio.pause(); };
+        wireListen(ed); syncUi();
+      } catch (e) { $('#view').innerHTML = '<div class="empty">Không tải được bản demo.</div>'; }
+      return;
+    }
     $('#view').innerHTML = '<div class="skel" style="height:40px;width:60%"></div><div class="skel"></div>';
     try { if (!(await inKey())) { $('#view').innerHTML = loginHtml(); wireLogin(); return; } }
     catch (e) { $('#view').innerHTML = loginHtml(e.message); wireLogin(); return; }
@@ -523,6 +537,37 @@
     const c = $('#in-copy');
     if (c) c.onclick = async () => { try { await navigator.clipboard.writeText(IN.key); toast('Đã chép khoá'); } catch { toast('Trình duyệt không cho chép — hãy chọn và chép tay'); } };
   }
+
+
+  // ══════════ TỔNG HỢP NGAY (bất kỳ lúc nào) ══════════
+  const CFG = window.DAILY_CFG || {};
+  (function updWire() {
+    const dlg = $('#upd-dlg'); if (!dlg) return;
+    const gh = `https://github.com/${CFG.repo || 'ManiMedicalHanoi/MMH-Daily'}/actions/workflows/daily.yml`;
+    $('#upd-claude-daily').href = CFG.routines?.daily || 'https://claude.ai/code/routines';
+    $('#upd-claude-week').href = CFG.routines?.weekly || 'https://claude.ai/code/routines';
+    $('#upd-gh').href = gh;
+    let timer = null, since = '';
+    const open = () => { dlg.hidden = false; $('#upd-close').focus(); };
+    const close = () => { dlg.hidden = true; };
+    const watch = () => {
+      since = S.index?.updated || ''; $('#upd-wait').hidden = false; store.set('mmh_daily_wait', Date.now());
+      clearInterval(timer);
+      timer = setInterval(async () => {
+        try {
+          const j = await (await fetch('data/index.json?t=' + Date.now(), { cache: 'no-store' })).json();
+          const ij = await fetch('data/internal/index.json?t=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.json() : null).catch(() => null);
+          const newer = j.updated > since || (ij && IN.idx && ij.updated > (IN.idx.updated || ''));
+          if (newer) { clearInterval(timer); $('#upd-wait').hidden = true; S.index = j; S.eds = {}; IN.idx = ij || IN.idx; IN.eds = {}; toast('Đã có số mới'); route(); }
+        } catch { /* mạng chập chờn — thử lại phút sau */ }
+        if (Date.now() - (store.get('mmh_daily_wait', 0)) > 45 * 60e3) { clearInterval(timer); $('#upd-wait').hidden = true; }
+      }, 60e3);
+    };
+    $('#upd-btn').onclick = open;
+    $('#upd-close').onclick = close;
+    dlg.addEventListener('click', e => { if (e.target === dlg) close(); if (e.target.closest('.dlg-a')) watch(); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape' && !dlg.hidden) close(); });
+  })();
 
   window.DAILY = { S, route, playDate, IN };
   boot();

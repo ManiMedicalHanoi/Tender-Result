@@ -341,3 +341,24 @@ blockquote small{display:block;font:500 12.5px var(--sans);color:var(--ink3);mar
 .in-foot{font:500 12.5px var(--sans);color:var(--ink3);margin-top:20px}
 @media (max-width:980px){ .in-grid{grid-template-columns:1fr} .in-tiles{grid-template-columns:repeat(3,1fr)} .in-tile:nth-child(4){border-left:0} .in-tile{border-top:1px solid var(--hair)} }
 @media (max-width:640px){ .in-tiles{grid-template-columns:1fr 1fr} .in-tile{border-left:0!important} .in-tile b{font-size:28px} .in-head{flex-direction:column;align-items:stretch} }
+
+/* ── Tổng hợp ngay ── */
+.upd-btn{border:1px solid var(--ink);background:var(--ink);color:#fff;border-radius:999px;padding:3px 11px;font:600 11.5px var(--sans);letter-spacing:.3px}
+.upd-btn:hover{background:var(--accent);border-color:var(--accent)}
+body.dark .upd-btn{background:#fff;color:#111;border-color:#fff}
+.dlg{position:fixed;inset:0;z-index:60;background:rgba(10,12,14,.55);display:flex;align-items:center;justify-content:center;padding:16px}
+.dlg[hidden]{display:none}
+.dlg-box{background:var(--paper);color:var(--ink);max-width:460px;width:100%;border-radius:12px;padding:20px 20px 14px;box-shadow:0 20px 60px rgba(0,0,0,.35)}
+.dlg-box h2{font:800 24px var(--display);margin:0 0 4px}
+.dlg-sub{margin:0 0 14px;color:var(--ink2);font-size:15px}
+.dlg-opt{border-top:1px solid var(--hair);padding:12px 0}
+.dlg-opt b{display:block;font:700 15px var(--sans)}
+.dlg-opt span{display:block;font:400 13.5px/1.45 var(--sans);color:var(--ink2);margin:2px 0 10px}
+.dlg-row{display:flex;gap:8px;flex-wrap:wrap}
+.dlg-a{display:inline-block;background:var(--ink);color:#fff;text-decoration:none;border-radius:6px;padding:9px 14px;font:600 14px var(--sans)}
+.dlg-a:hover{background:var(--accent)}
+.dlg-wait{font:500 13.5px var(--sans);color:var(--accent-ink);background:#EEF4F1;border-radius:6px;padding:8px 10px}
+.dlg-ft{display:flex;justify-content:flex-end;border-top:1px solid var(--hair);padding-top:10px}
+.dlg-x{background:none;border:1px solid var(--hair);border-radius:6px;padding:7px 14px;font:600 13.5px var(--sans)}
+.demo-note{font:600 13px var(--sans);background:#FFF4DC;color:#6B4E00;border:1px solid #F0D9A0;border-radius:6px;padding:8px 12px;margin:0 0 14px}
+@media (max-width:640px){ .upd-btn{padding:3px 9px;font-size:11px} .mast-r{white-space:nowrap} }

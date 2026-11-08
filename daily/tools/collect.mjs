@@ -66,7 +66,7 @@ async function main() {
     if (x.kind === 'doc') continue;
     const c = classify({ title: x.t, desc: x.sum || '' }, { sec: x.fsec !== undefined ? x.fsec : (x.sec === 'health' ? 'health' : null) });
     if (!c) { byId.delete(x.id); continue; }
-    Object.assign(x, { sec: c.sec, fsec: f.sec ?? null, tags: c.tags.length ? c.tags : undefined, mmh: c.mmh || undefined, sc: +c.score.toFixed(2) });
+    Object.assign(x, { sec: c.sec, tags: c.tags.length ? c.tags : undefined, mmh: c.mmh || undefined, sc: +c.score.toFixed(2) });
   }
   const byKey = new Map([...byId.values()].map(x => [tkey(x.t), x.id]));
   const status = [];

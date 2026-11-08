@@ -37,16 +37,24 @@ const strip = s => dec(dec(cdata(s)).replace(/<[^>]+>/g, ' ')).replace(/\s+/g, '
 const tag = (x, n) => { const m = x.match(new RegExp(`<${n}(?:\\s[^>]*)?>([\\s\\S]*?)<\\/${n}>`, 'i')); return m ? m[1] : ''; };
 const attr = (x, n, a) => { const m = x.match(new RegExp(`<${n}\\s[^>]*${a}=["']([^"']+)["']`, 'i')); return m ? dec(m[1]) : ''; };
 
-function parseDate(s) {
+// fmt 'mdy' = nguồn ghi tháng/ngày/năm (Báo Chính phủ); mặc định ngày/tháng/năm. Giờ Việt Nam nếu không ghi múi giờ.
+function parseDate(s, fmt) {
   s = strip(s);
   if (!s) return null;
-  const m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:\s+(\d{1,2}):(\d{2}))?/);
-  if (m) return new Date(Date.UTC(+m[3], m[2] - 1, +m[1], (+(m[4] || 0)) - 7, +(m[5] || 0)));
-  const d = new Date(s);
+  const m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:\s+(\d{1,2}):(\d{2})(?::\d{2})?\s*(AM|PM|SA|CH)?)?/i);
+  if (m) {
+    let [dd, mm] = fmt === 'mdy' ? [+m[2], +m[1]] : [+m[1], +m[2]];
+    let h = +(m[4] || 0);
+    const ap = (m[6] || '').toUpperCase();
+    if ((ap === 'PM' || ap === 'CH') && h < 12) h += 12;
+    if ((ap === 'AM' || ap === 'SA') && h === 12) h = 0;
+    return new Date(Date.UTC(+m[3], mm - 1, dd, h - 7, +(m[5] || 0)));
+  }
+  const d = new Date(s.replace(/GMT\+(\d)(?!\d)/, 'GMT+0$100'));
   return isNaN(d) ? null : d;
 }
 
-function parseFeed(xml) {
+function parseFeed(xml, fmt) {
   const out = [];
   const blocks = xml.match(/<item[\s>][\s\S]*?<\/item>/gi) || xml.match(/<entry[\s>][\s\S]*?<\/entry>/gi) || [];
   for (const b of blocks) {
@@ -57,7 +65,7 @@ function parseFeed(xml) {
       title: strip(tag(b, 'title')),
       link: link.trim(),
       desc: strip(rawDesc),
-      date: parseDate(tag(b, 'pubDate') || tag(b, 'published') || tag(b, 'updated') || tag(b, 'dc:date')),
+      date: parseDate(tag(b, 'pubDate') || tag(b, 'published') || tag(b, 'updated') || tag(b, 'dc:date'), fmt),
       img: /^https?:/.test(img) ? img : '',
       src: strip(tag(b, 'source')),
       srcUrl: attr(b, 'source', 'url'),
@@ -234,33 +242,36 @@ async function main() {
 
   for (const f of CFG.feeds) {
     const urls = f.gnews ? [gnUrl(f.gnews)] : await discover(f);
-    const st = { id: f.id, name: f.name, kind: f.gnews ? 'gnews' : 'rss', urls: urls.length, ok: 0, items: 0, kept: 0, err: '' };
+    const st = { id: f.id, name: f.name, kind: f.gnews ? 'gnews' : 'rss', urls: urls.length, ok: 0, items: 0, kept: 0, err: '', why: {} };
+    const why = k => (st.why[k] = (st.why[k] || 0) + 1);
     for (const u of urls) {
       let xml;
       try { xml = await get(u); } catch (e) { st.err = (st.err ? st.err + '; ' : '') + `${u.replace(/^https?:\/\//, '').slice(0, 60)}: ${e.message}`; continue; }
-      const items = parseFeed(xml);
+      const items = parseFeed(xml, f.datefmt);
       if (items.length) st.ok++;
+      if (items[0] && !st.sample) st.sample = { raw: (xml.match(/<pubDate>([\s\S]{0,60}?)<\/pubDate>/i) || [])[1] || '', link: items[0].link.slice(0, 90), date: items[0].date && items[0].date.toISOString() };
       st.items += items.length;
       for (const it of items) {
-        if (!it.title || !it.link) continue;
+        if (!it.title || !it.link) { why('thiếu link'); continue; }
         let srcDom = domainOf(it.link);
         if (f.gnews) {
           srcDom = domainOf(it.srcUrl);
           if (it.src) it.title = it.title.replace(new RegExp('\\s+-\\s+' + it.src.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '$'), '');
           it.desc = it.desc.replace(it.title, '').replace(it.src, '').trim();
         }
-        if (!srcDom) continue;                         // chỉ nhận tên miền chính thống
+        if (!srcDom) { why('ngoài danh sách'); continue; }   // chỉ nhận tên miền chính thống
         const d = it.date || NOW;
-        if (d < since || d - NOW > DAY) continue;
+        if (d < since) { why('cũ'); continue; }
+        if (d - NOW > DAY) { why('ngày lỗi'); continue; }
         const c = classify(it, f);
-        if (!c) continue;
+        if (!c) { why('không phải y tế'); continue; }
         const k = tkey(it.title);
         const id = idOf(it.link);
         const dup = seenKey.get(k);
         if (dup && dup !== id) {                      // trùng tiêu đề ⇒ thêm nguồn
           const x = old.get(dup) || fresh.find(y => y.id === dup);
           if (x) { const nm = CFG.domains[srcDom][0]; if (x.src !== nm && !(x.also || []).includes(nm)) (x.also ||= []).push(nm); }
-          continue;
+          why('trùng'); continue;
         }
         seenKey.set(k, id);
         st.kept++;
@@ -279,7 +290,8 @@ async function main() {
       }
     }
     status.push(st);
-    console.log(`${st.ok ? 'OK ' : 'LỖI'} ${f.id.padEnd(8)} ${st.name.padEnd(22)} kênh ${st.ok}/${st.urls} · tin ${st.items} · nhận ${st.kept}${st.err ? ' · ' + st.err : ''}`);
+    console.log(`${st.ok ? 'OK ' : 'LỖI'} ${f.id.padEnd(8)} ${st.name.padEnd(22)} kênh ${st.ok}/${st.urls} · tin ${st.items} · nhận ${st.kept} · loại ${JSON.stringify(st.why)}${st.err ? ' · ' + st.err : ''}`);
+    if (process.env.NEWS_DEBUG) console.log('   mẫu', JSON.stringify(st.sample));
   }
 
 

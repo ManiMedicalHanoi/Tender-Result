@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bản tin Y tế · MMH</title>
+<meta name="description" content="Tin y tế, đấu thầu, thiết bị y tế và văn bản pháp luật mới — tự cập nhật mỗi ngày từ báo chính thống và cổng văn bản nhà nước.">
+<meta name="theme-color" content="#003047">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23003047'/%3E%3Cpath d='M9 10h14M9 15h14M9 20h9' stroke='%23fff' stroke-width='2.4' stroke-linecap='round'/%3E%3Ccircle cx='23' cy='21' r='3' fill='%23F2B705'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="app.css?v=1">
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="./" aria-label="Bản tin Y tế — trang đầu">
+    <svg class="logo" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="#003047"/><path d="M9 10h14M9 15h14M9 20h9" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/><circle cx="23" cy="21" r="3" fill="#F2B705"/></svg>
+    <span class="bt"><b>Bản tin Y tế &amp; Chính sách</b><span>Tin chính thống · văn bản pháp luật · đấu thầu — tự cập nhật mỗi ngày</span></span>
+  </a>
+  <label class="qs" role="search">
+    <svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="4.6" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M10.6 10.6 14 14" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+    <input id="q" type="search" placeholder="Tìm tin, số văn bản (vd. 98/2021)…" autocomplete="off" spellcheck="false" aria-label="Tìm tin hoặc số văn bản">
+  </label>
+  <span class="upd" id="upd" title="Lần lấy tin gần nhất"></span>
+</header>
+
+<nav class="tabs" id="tabs" aria-label="Mục">
+  <button data-tab="home" class="on">Hôm nay</button>
+  <button data-tab="news">Tin tức <i id="n-news"></i></button>
+  <button data-tab="docs">Văn bản pháp luật <i id="n-docs"></i></button>
+  <button data-tab="src">Nguồn tin</button>
+</nav>
+
+<main id="main">
+  <section id="tab-home" class="tab on" aria-label="Hôm nay">
+    <div class="tiles" id="tiles"></div>
+    <div class="grid2">
+      <div class="col">
+        <div class="card">
+          <div class="ch"><h2>Đáng chú ý</h2><span class="hint" id="hl-hint"></span><button class="lnk" id="copy-brief" type="button">Sao chép bản tin</button></div>
+          <div id="hl"></div>
+        </div>
+      </div>
+      <div class="col">
+        <div class="card">
+          <div class="ch"><h2>Văn bản mới</h2><button class="lnk" data-go="docs" type="button">Xem tất cả</button></div>
+          <div id="dl-mini"></div>
+        </div>
+        <div class="card">
+          <div class="ch"><h2>Tin theo chủ đề</h2><span class="hint">7 ngày qua · bấm để lọc</span></div>
+          <div id="ch-topic" class="hbars"></div>
+        </div>
+        <div class="card">
+          <div class="ch"><h2>Số tin mỗi ngày</h2><span class="hint">14 ngày qua</span></div>
+          <div id="ch-day" class="cols"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="tab-news" class="tab" aria-label="Tin tức">
+    <div class="filters">
+      <div class="chips" id="f-topic" role="group" aria-label="Chủ đề"></div>
+      <div class="frow">
+        <div class="seg" id="f-range" role="group" aria-label="Khoảng thời gian">
+          <button data-v="1">24 giờ</button><button data-v="7" class="on">7 ngày</button><button data-v="30">30 ngày</button><button data-v="45">45 ngày</button>
+        </div>
+        <label class="chk"><input type="checkbox" id="f-mmh"> Chỉ tin liên quan MMH</label>
+        <label class="chk"><input type="checkbox" id="f-gov"> Chỉ cơ quan nhà nước</label>
+        <select class="sel" id="f-src" aria-label="Nguồn"><option value="">Mọi nguồn</option></select>
+        <span class="cnt" id="f-cnt"></span>
+      </div>
+    </div>
+    <div id="feed"></div>
+    <button class="more" id="more" type="button" hidden>Xem thêm</button>
+  </section>
+
+  <section id="tab-docs" class="tab" aria-label="Văn bản pháp luật">
+    <div class="filters">
+      <div class="seg" id="d-kind" role="group" aria-label="Loại văn bản"></div>
+      <span class="cnt" id="d-cnt"></span>
+    </div>
+    <p class="note">Văn bản liên quan y tế, đấu thầu, BHYT đọc thẳng từ <b>Hệ thống văn bản Chính phủ</b> và <b>Luật Việt Nam</b>, cộng số hiệu văn bản được các báo chính thống nhắc tới. Bấm số hiệu để xem văn bản gốc / bài báo.</p>
+    <div id="docs"></div>
+  </section>
+
+  <section id="tab-src" class="tab" aria-label="Nguồn tin">
+    <div class="card">
+      <div class="ch"><h2>Cách bản tin hoạt động</h2></div>
+      <ol class="how">
+        <li>Mỗi ngày 2 lần (06:20 và 12:20) máy chủ GitHub tự đọc kênh RSS của các báo chính thống, cổng văn bản Chính phủ và Luật Việt Nam.</li>
+        <li>Chỉ giữ tin có nội dung y tế, từ tên miền nằm trong danh sách nguồn chính thống bên dưới. Tin trùng ở nhiều báo được gộp làm một.</li>
+        <li>Mỗi tin được gắn chủ đề, số hiệu văn bản và mức độ quan trọng. Tin về đấu thầu, thiết bị y tế, nha khoa / nhãn khoa / ngoại khoa được đánh dấu <b>Liên quan MMH</b>.</li>
+        <li id="how-ai">Khi bật tóm tắt bằng Claude, tin quan trọng có thêm 1–2 câu tóm tắt và “ý nghĩa với MMH”.</li>
+      </ol>
+    </div>
+    <div class="card">
+      <div class="ch"><h2>Tình trạng nguồn — lần lấy tin gần nhất</h2></div>
+      <div id="src-list"></div>
+    </div>
+  </section>
+</main>
+
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+<script src="app.js?v=1"></script>
+</body>
+</html>

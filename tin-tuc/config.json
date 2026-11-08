@@ -167,7 +167,8 @@
    "urls": [
     "https://baochinhphu.vn/van-ban-moi.rss",
     "https://baochinhphu.vn/chinh-sach-moi.rss"
-   ]
+   ],
+   "datefmt": "mdy"
   },
   {
    "id": "bcp-yt",
@@ -175,7 +176,8 @@
    "health": true,
    "urls": [
     "https://baochinhphu.vn/y-te.rss"
-   ]
+   ],
+   "datefmt": "mdy"
   },
   {
    "id": "bcp",
@@ -184,7 +186,8 @@
     "https://baochinhphu.vn/chinh-sach-va-cuoc-song.rss",
     "https://baochinhphu.vn/phap-luat.rss",
     "https://baochinhphu.vn/home.rss"
-   ]
+   ],
+   "datefmt": "mdy"
   },
   {
    "id": "skds",

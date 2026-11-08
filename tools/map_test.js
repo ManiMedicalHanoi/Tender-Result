@@ -82,9 +82,10 @@ async function boot(b, ctxOpt, mopt, urlTail) {
   await page.waitForTimeout(800);
   const zi = await page.evaluate(() => ({ min: document.getElementById('legend').classList.contains('min'), fd: document.querySelectorAll('.fd').length, hm: document.querySelectorAll('.hm').length }));
   ok(zi.min && zi.fd > 0, `Nghệ An: chú giải thu gọn, ${zi.hm} bệnh viện có gói + ${zi.fd} chấm xám cơ sở công lập`);
-  const ps = await page.$eval('.psum', e => e.textContent);
-  ok(/Nghệ An có \d+ bệnh viện công lập, \d+ trung tâm y tế/.test(ps) && /Thầu dao phẫu thuật nhãn khoa: từ tháng \d+\/\d{4} đến tháng \d+\/\d{4}/.test(ps) && /cơ sở trúng thầu dao; nhiều nhất là .+ với \d+ gói/.test(ps) && /chiếm tỉ trọng lớn nhất/.test(ps),
-    'tóm tắt tỉnh: ' + ps.replace(/\s+/g, ' ').slice(0, 260) + '…');
+  const ps = await page.$eval('.facts', e => e.innerText.replace(/\s+/g, ' '));
+  ok(/Cơ sở y tế \d+ BV công lập · \d+ TTYT/.test(ps) && /Thầu dao \d+ cơ sở trúng dao · KQTT \d{2}\/\d{4} – \d{2}\/\d{4}/.test(ps) && /Dẫn đầu .+ · \d+ gói · [\d.]+ dao/.test(ps) && /Hãng dẫn đầu \S+ (<1|\d+)%/.test(ps),
+    'tóm tắt tỉnh (dòng điểm chính, không còn đoạn văn): ' + ps.slice(0, 260));
+  ok(await page.evaluate(() => { const k = document.querySelector('#sb .kpis'), f = document.querySelector('#sb .facts'); return !!k && !!f && (k.compareDocumentPosition(f) & Node.DOCUMENT_POSITION_FOLLOWING) && !document.querySelector('.psum'); }), 'bảng bên tỉnh: ô số ở trên cùng, rồi dòng điểm chính');
   const bm = await page.$$eval('.hcard .bm', e => e.map(x => x.textContent));
   ok(bm.length > 0 && bm.every(t => /MANI/.test(t) && !/KQTT|Hùng Vĩ|iCare/.test(t)), 'thẻ bệnh viện ghi theo hãng (MANI + hãng lớn nhất), không ghi tên nguồn: ' + bm[0]);
   await page.screenshot({ path: path.join(OUT, 'd1d_tinh.png') });
@@ -255,6 +256,10 @@ async function boot(b, ctxOpt, mopt, urlTail) {
   ok(await page.$eval('#sb', e => /Lịch sử chăm sóc/.test(e.textContent) && /Bước tiếp theo/.test(e.textContent)), 'bấm / tìm khách ⇒ lịch sử chăm sóc (kết quả, phản hồi, bước tiếp theo)');
   await page.waitForTimeout(800);
   await page.screenshot({ path: path.join(OUT, 'a2_khach_tunhan.png') });
+  // thẻ lần gặp gần nhất: ảnh + kết quả, hiện ngay (dữ liệu fuVisits v1.1); thông tin & vị trí thu gọn
+  const lv = await page.evaluate(() => ({ card: !!document.querySelector('#sb .lvc .lvh'), ph: document.querySelectorAll('#sb .lvc .phs img').length, info: !!document.querySelector('details[data-sec="acc-info"]:not([open])') }));
+  ok(lv.card && lv.ph > 0 && lv.info, `chi tiết khách: thẻ lần gặp gần nhất (${lv.ph} ảnh) ở đầu, Thông tin & vị trí thu gọn`);
+  await page.click('details[data-sec="acc-info"] > summary');
   // sửa tên chuẩn
   await page.click('[data-act-stdo]');
   await page.fill('#act-std', 'Phòng khám Mắt Sài Gòn (Quận 3)');
@@ -291,6 +296,43 @@ async function boot(b, ctxOpt, mopt, urlTail) {
   await page.waitForFunction(() => /Bệnh viện Mắt Nghệ An/.test(document.getElementById('sh-t').textContent), null, { timeout: 5000 });
   ok(await page.$eval('#sb', e => /Lịch sử thầu/.test(e.textContent)), 'khách công lập (BV Mắt Nghệ An) ⇒ có cả lịch sử thầu');
   await page.screenshot({ path: path.join(OUT, 'a3_khach_conglap.png') });
+  // rê chuột vào khách ⇒ tooltip có ảnh đi địa bàn + lần gặp gần nhất (dữ liệu có sẵn, không gọi máy chủ)
+  await page.evaluate(() => WINMAP.select(WINMAP.provIx('Hồ Chí Minh')));
+  await page.waitForTimeout(900);
+  const hb = await page.evaluate(() => { const g = [...document.querySelectorAll('.hm')].find(e => (WINMAP.act._A().find(a => a.h && a.h.key === e.dataset.h && a.ph) )); if (!g) return null; const r = g.querySelector('circle.c').getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; });
+  if (hb) { await page.mouse.move(hb.x, hb.y); await page.waitForTimeout(400); }
+  const tp = await page.evaluate(() => { const t = document.getElementById('tip'); return { img: !!t.querySelector('.tph img'), lv: /Lần gặp gần nhất/.test(t.textContent), op: getComputedStyle(t).opacity }; });
+  ok(hb && tp.img && tp.lv && +tp.op > 0, 'rê chuột vào khách ⇒ tooltip có ảnh đi địa bàn + lần gặp gần nhất');
+  await page.screenshot({ path: path.join(OUT, 'a4_tooltip_anh.png') });
+  await page.mouse.move(5, 5);
+  // ĐỘ PHỦ: Sales đã chăm sóc các cơ sở MANI từng trúng thầu chưa
+  await page.evaluate(() => { WINMAP.select(-1); WINMAP.act.ensure(); });
+  await page.click('.vsw button[data-cov="mani"]');
+  await page.waitForTimeout(400);
+  const cv = await page.evaluate(() => { const L = [...document.querySelectorAll('.bdg text')].map(t => t.textContent);
+    const k = [...document.querySelectorAll('#sb .kpis .kpi b')].map(b => b.textContent);
+    return { lab: L.filter(t => /^\d+\/\d+$/.test(t)).length, all: L.length, k, un: document.querySelectorAll('details[data-sec="cov-un"] .it').length, prov: document.querySelectorAll('details[data-sec="cov-prov"] .r').length,
+      leg: /được chăm sóc/.test(document.getElementById('legend').textContent), title: document.getElementById('sh-t').textContent }; });
+  ok(cv.lab > 0 && cv.lab === cv.all && cv.k.length === 4 && cv.prov > 0 && cv.leg && /Độ phủ/.test(cv.title),
+    `Độ phủ (MANI đã trúng): ${cv.lab} tỉnh hiện "đã chăm sóc / tổng", ô số ${cv.k.join(' · ')}, ${cv.prov} tỉnh trong bảng, ${cv.un} cơ sở chưa chăm sóc`);
+  const tot1 = +cv.k[0];
+  await page.click('.chips button[data-cov="all"]');
+  await page.waitForTimeout(300);
+  const tot2 = await page.evaluate(() => +document.querySelector('#sb .kpis .kpi b').textContent);
+  ok(tot2 >= tot1, `Độ phủ "có KQTT (mọi hãng)": ${tot2} cơ sở ≥ ${tot1} cơ sở MANI đã trúng`);
+  await page.click('.chips button[data-cov="mani"]');
+  await page.evaluate(() => WINMAP.select(WINMAP.provIx('Nghệ An')));
+  await page.waitForTimeout(900);
+  const dots = await page.evaluate(() => [...document.querySelectorAll('.hm circle.c')].map(c => c.getAttribute('stroke')));
+  ok(dots.length > 0 && dots.some(c => /#B42318/i.test(c)) === (await page.evaluate(() => document.querySelectorAll('details[data-sec="cov-un"] .it').length > 0)), `Độ phủ · Nghệ An: ${dots.length} cơ sở MANI đã trúng trên bản đồ (đỏ = chưa chăm sóc)`);
+  await page.screenshot({ path: path.join(OUT, 'a5_dophu.png') });
+  const ck = await page.evaluate(() => { const it = document.querySelector('details[data-sec="cov-un"] .it, details[data-sec="cov-ok"] .it'); return it ? it.dataset.h : null; });
+  if (ck) { await page.evaluate(k => { const d = document.querySelector('#sb [data-h="' + k + '"]').closest('details'); d.open = true; }, ck); await page.click('#sb [data-h="' + ck + '"]'); await page.waitForTimeout(400); }
+  ok(ck && await page.evaluate(() => /Lịch sử trúng thầu|Gói MANI trúng gần nhất/.test(document.getElementById('sb').textContent) && WINMAP.F.view === 'act'), 'Độ phủ: bấm 1 cơ sở ⇒ xem chi tiết thầu + CRM ngay trong chế độ Hoạt động');
+  await page.evaluate(() => WINMAP.select(-1));
+  await page.click('.vsw button[data-cov=""]');
+  await page.waitForTimeout(300);
+  ok(await page.evaluate(() => !document.querySelector('details[data-sec="cov-un"]') && /Hoạt động Sales/.test(document.getElementById('sh-t').textContent)), 'chuyển lại "Lượt chăm sóc"');
   await page.evaluate(() => { WINMAP.view('win'); });
 
   // tab phân tích (Kết quả thầu)
@@ -380,6 +422,28 @@ async function boot(b, ctxOpt, mopt, urlTail) {
   ok(db.fu.length === 1 && db.fu[0][11] === 'Ghim da + Hook + Micro Forceps' && it9.map(x => x.kind).join() === 'ghim,hook,forcep' && db.fu[0][13] === 90,
     'lưu ⇒ Loại sản phẩm "' + (db.fu[0] || [])[11] + '", từng dòng giữ loại (ghim / hook / forcep), tổng SL ' + (db.fu[0] || [])[13]);
   ok(!errs.length, 'không lỗi JS (loại sản phẩm)' + (errs.length ? ': ' + errs.join(' | ') : ''));
+  await ctx.close();
+
+  /* ── máy chủ chậm (Apps Script 1,5 giây / lần): bấm khách / bệnh viện vẫn hiện ngay ── */
+  ({ ctx, page, errs, db } = await boot(b, { viewport: { width: 1440, height: 900 } }, { lag: 1500 }));
+  await page.evaluate(() => { WINMAP.view('act'); });
+  await page.waitForFunction(() => WINMAP.act._S.loaded, null, { timeout: 20000 });
+  await page.evaluate(() => WINMAP.act.openCode('S-001'));
+  await page.waitForTimeout(250);
+  const inst = await page.evaluate(() => ({ ev: document.querySelectorAll('#actlog .ev').length, cap: (document.querySelector('#actlog .cap') || {}).textContent || '', card: !!document.querySelector('#sb .lvc') }));
+  ok(inst.ev > 0 && inst.card && /đang đọc đủ nhật ký/.test(inst.cap), `máy chủ chậm: bấm khách ⇒ hiện ngay thẻ lần gặp gần nhất + ${inst.ev} lượt gần nhất (nhật ký đủ đọc ở nền)`);
+  await page.waitForFunction(() => !/đang đọc đủ nhật ký/.test((document.querySelector('#actlog') || {}).textContent || ''), null, { timeout: 10000 });
+  ok(true, 'nhật ký đủ về ⇒ thay thế tại chỗ');
+  await page.evaluate(() => { WINMAP.view('win'); WINMAP.hosp('Mắt Nghệ An'); });
+  await page.waitForFunction(() => /Mã/.test((document.getElementById('crmx') || {}).textContent || ''), null, { timeout: 10000 });
+  await page.reload();
+  await page.waitForFunction(() => window.WINMAP && WINMAP.pkgs().length > 0, null, { timeout: 20000 });
+  const t0 = Date.now();
+  await page.evaluate(() => { WINMAP.view('win'); WINMAP.hosp('Mắt Nghệ An'); });
+  await page.waitForFunction(() => /Mã/.test((document.getElementById('crmx') || {}).textContent || ''), null, { timeout: 1300 }).catch(() => {});   // máy chủ giả trả sau 1,5 giây ⇒ có trước đó = bản lưu trên máy
+  const cx = await page.evaluate(() => (document.getElementById('crmx') || {}).textContent || ''), dt = Date.now() - t0;
+  ok((/Mã/.test(cx) && !/Đang đọc CRM/.test(cx)) || !!process.env.THROTTLE, 'mở lại app ⇒ khối CRM của bệnh viện hiện ngay từ bộ nhớ máy (' + dt + ' ms, đọc lại ở nền)');
+  ok(!errs.length, 'không lỗi JS (máy chủ chậm)' + (errs.length ? ': ' + errs.join(' | ') : ''));
   await ctx.close();
 
   /* ── điện thoại ── */

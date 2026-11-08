@@ -16,7 +16,7 @@
   };
   const S = { index: null, eds: {}, cur: null, lang: store.get('mmh_daily_lang', 'vi'), ep: null, tab: '', sub: store.get('mmh_daily_sub', 'both') };
   const toast = t => { const el = $('#toast'); el.textContent = t; el.hidden = false; clearTimeout(toast.t); toast.t = setTimeout(() => (el.hidden = true), 2400); };
-  const viDate = ds => { const d = new Date(ds + 'T00:00:00Z'); return `${WD[d.getUTCDay()]}, ${d.getUTCDate()}/${d.getUTCMonth() + 1}/${d.getUTCFullYear()}`; };
+  const viDate = ds => { ds = String(ds).replace(/^i-/, ''); const d = new Date(ds + 'T00:00:00Z'); return `${WD[d.getUTCDay()]}, ${d.getUTCDate()}/${d.getUTCMonth() + 1}/${d.getUTCFullYear()}`; };
   const enDate = ds => new Date(ds + 'T00:00:00Z').toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
   const mmss = s => { s = Math.max(0, Math.floor(s || 0)); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; };
   const ago = d => { const h = Math.round((Date.now() - new Date(d)) / 36e5); return h < 1 ? 'vừa xong' : h < 24 ? h + ' giờ trước' : Math.round(h / 24) + ' ngày trước'; };
@@ -233,6 +233,7 @@
     $('#mini-play').innerHTML = playing ? ICON.pause : ICON.play;
     $('#mini-play').setAttribute('aria-label', playing ? 'Tạm dừng' : 'Phát');
     document.querySelectorAll('[data-play]').forEach(b => { const on = S.ep && b.dataset.play === S.ep.date && playing; b.innerHTML = on ? ICON.pause : ICON.play; });
+    const ip = document.querySelector('[data-inplay]'); if (ip) ip.innerHTML = (S.ep && S.cur && S.ep.date === S.cur.date && playing) ? ICON.pause : ICON.play;
   }
   let lastSave = 0, lastLine = -1;
   function onTime() {
@@ -277,7 +278,7 @@
   $('#mini-play').onclick = () => { if (!S.ep) return; audio.paused ? audio.play() : audio.pause(); };
   $('#mini-back').onclick = () => seekBy(-15);
   $('#mini-fwd').onclick = () => seekBy(15);
-  $('#mini-open').onclick = () => { if (S.ep) location.hash = '#/listen/' + S.ep.date; };
+  $('#mini-open').onclick = () => { if (S.ep) location.hash = /^i-/.test(S.ep.date) ? '#/noibo/' + S.ep.date.slice(2) : '#/listen/' + S.ep.date; };
   $('#mini-bar').onclick = e => { if (!S.ep) return; const r = e.currentTarget.getBoundingClientRect(); audio.currentTime = (e.clientX - r.left) / r.width * (audio.duration || 0); };
   if ('mediaSession' in navigator) {
     navigator.mediaSession.setActionHandler('play', () => audio.play());
@@ -290,6 +291,7 @@
   async function route() {
     const h = location.hash.replace(/^#\/?/, '');
     const [r, a] = h.split('/');
+    if (r === 'noibo') { if (!$('#m-date').textContent && S.index.editions[0]) $('#m-date').textContent = viDate(S.index.editions[0].date); document.querySelectorAll('#nav a').forEach(x => x.classList.toggle('on', x.dataset.r === 'noibo')); return internalPage(); }
     let date = S.index.editions[0]?.date;
     if ((r === 'e' || r === 'listen') && a) date = a;
     if (!date) { $('#view').innerHTML = '<div class="empty">Chưa có số báo nào. Số đầu tiên sẽ có sau lượt chạy sáng mai.</div>'; return; }
@@ -369,6 +371,159 @@
     await route();
     if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(() => {});
   }
-  window.DAILY = { S, route, playDate };
+
+  // ══════════ BẢN TIN NỘI BỘ (Chủ nhật) — chỉ người đăng nhập email công ty ══════════
+  // Dữ liệu trên trang đã MÃ HOÁ (AES-256-GCM); khoá lấy từ Training Hub ▸ dailyKey bằng phiên `mmh_tk` (dùng chung Report Hub / CRM).
+  const HUB = 'https://script.google.com/macros/s/AKfycbwsX4cQEoH4LNlmcNfe8qWIM9K6EiDEXy7PjhP9bHY2citL6xHn5L1unsAlQJHyL9EP/exec';
+  const IN = { key: null, kid: '', admin: false, idx: null, eds: {} };
+  const tkGet = () => { try { return localStorage.getItem('mmh_tk') || ''; } catch { return ''; } };
+  const tkSet = t => { try { t ? localStorage.setItem('mmh_tk', t) : localStorage.removeItem('mmh_tk'); } catch { /* riêng tư */ } };
+  async function hub(action, params) {
+    const q = new URLSearchParams({ action, ...params });
+    try {
+      const r = await fetch(HUB + '?' + q, { credentials: 'omit' });
+      return await r.json();
+    } catch {
+      return await new Promise((res, rej) => {        // dự phòng JSONP
+        const cb = '__hub' + Date.now() + Math.floor(Math.random() * 1e6), sc = document.createElement('script');
+        const t = setTimeout(() => { clean(); rej(new Error('Máy chủ phản hồi chậm')); }, 30000);
+        const clean = () => { clearTimeout(t); delete window[cb]; sc.remove(); };
+        window[cb] = d => { clean(); res(d); }; sc.onerror = () => { clean(); rej(new Error('Không kết nối được máy chủ')); };
+        q.set('callback', cb); sc.src = HUB + '?' + q; document.body.appendChild(sc);
+      });
+    }
+  }
+  const b64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+  async function decrypt(buf) {
+    const k = await crypto.subtle.importKey('raw', b64(IN.key), 'AES-GCM', false, ['decrypt']);
+    const u = new Uint8Array(buf);
+    return crypto.subtle.decrypt({ name: 'AES-GCM', iv: u.slice(0, 12) }, k, u.slice(12));
+  }
+  async function inKey() {
+    if (IN.key) return true;
+    const tk = tkGet(); if (!tk) return false;
+    const d = await hub('dailyKey', { tk });
+    if (!d.ok) { if (d.code === 'AUTH') tkSet(''); throw new Error(d.error || 'Không lấy được khoá'); }
+    Object.assign(IN, { key: d.key, kid: d.kid, admin: d.admin, pic: d.pic });
+    return true;
+  }
+  function loginHtml(msg) {
+    const st = S.login || {};
+    return `<div class="in-login"><h2>Bản tin nội bộ MMH</h2><p>Tổng kết công việc các phòng ban, đi địa bàn, kết quả thầu, đào tạo — mỗi Chủ nhật. Chỉ dành cho nhân sự MMH: đăng nhập bằng email công ty (giống Report Hub / CRM).</p>
+      ${st.sent ? `<form id="in-f2"><label>Mã 6 số đã gửi tới <b>${esc(st.email)}</b></label><input id="in-code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="••••••" required><button class="in-btn" type="submit">Đăng nhập</button><button class="in-lnk" type="button" id="in-back">Đổi email</button></form>`
+        : `<form id="in-f1"><label for="in-email">Email công ty</label><input id="in-email" type="email" placeholder="ten@manimedicalhanoi.com" value="${esc(st.email || '')}" required><button class="in-btn" type="submit">Gửi mã</button></form>`}
+      ${msg ? `<p class="in-err">${esc(msg)}</p>` : ''}</div>`;
+  }
+  function wireLogin() {
+    const f1 = $('#in-f1'), f2 = $('#in-f2');
+    if (f1) f1.onsubmit = async e => {
+      e.preventDefault(); const email = $('#in-email').value.trim().toLowerCase();
+      f1.querySelector('button').disabled = true;
+      try { const d = await hub('rhAuthStart', { email }); if (!d.ok) throw new Error(d.error); S.login = { email, sent: true }; route(); }
+      catch (er) { $('#view').innerHTML = loginHtml(er.message); wireLogin(); }
+    };
+    if (f2) {
+      $('#in-back').onclick = () => { S.login = { email: S.login.email }; route(); };
+      f2.onsubmit = async e => {
+        e.preventDefault(); f2.querySelector('[type=submit]').disabled = true;
+        try { const d = await hub('rhAuthVerify', { email: S.login.email, code: $('#in-code').value }); if (!d.ok) throw new Error(d.error); tkSet(d.token); S.login = null; route(); }
+        catch (er) { $('#view').innerHTML = loginHtml(er.message); wireLogin(); }
+      };
+    }
+  }
+  async function loadInEd(date) {
+    if (IN.eds[date]) return IN.eds[date];
+    const r = await fetch(`data/internal/${date}.json.enc`, { cache: 'no-cache' });
+    if (!r.ok) throw new Error('Chưa có bản tin tuần này');
+    const ed = JSON.parse(new TextDecoder().decode(await decrypt(await r.arrayBuffer())));
+    ed.date = 'i-' + ed.date;           // tách khỏi số báo hằng ngày cùng ngày
+    return (IN.eds[date] = ed);
+  }
+  async function inAudio(ed) {
+    const a = ed.podcast.audio;
+    if (!a || a.blob) return;
+    const r = await fetch(a.file.replace(/^\/+/, ''), { cache: 'force-cache' });
+    if (!r.ok) throw new Error('Không tải được âm thanh');
+    a.file = URL.createObjectURL(new Blob([await decrypt(await r.arrayBuffer())], { type: 'audio/mpeg' }));
+    a.blob = true;
+  }
+  const num = n => (n || 0).toLocaleString('vi-VN');
+  const vnd = v => v >= 1e9 ? (v / 1e9).toFixed(1).replace('.', ',') + ' tỷ' : v >= 1e6 ? Math.round(v / 1e6) + ' triệu' : num(v);
+  function inPage(ed) {
+    const f = ed.facts, w = ed.week;
+    const visits = f.sales.reduce((s, t) => s + t.visits, 0), acts = f.sales.reduce((s, t) => s + t.activities, 0);
+    const orders = f.sales.reduce((s, t) => s + t.orders, 0), amount = f.sales.reduce((s, t) => s + t.orderAmount, 0);
+    const done = f.departments.reduce((s, d) => s + d.done, 0);
+    const tile = (k, v, s) => `<div class="in-tile"><span>${k}</span><b>${v}</b>${s ? `<em>${s}</em>` : ''}</div>`;
+    const sec = k => (ed.sections || []).find(x => x.key === k);
+    const secTxt = k => { const x = sec(k); return x ? `<div class="in-ai"><p>${esc(S.lang === 'en' ? x.en : x.vi)}</p></div>` : ''; };
+    const p = ed.podcast, turns = (p.turns || []).filter(t => t.text), hosts = Object.fromEntries(p.hosts.map(h => [h.id, h]));
+    const wkStr = `${w.from.slice(8)}/${w.from.slice(5, 7)} – ${w.to.slice(8)}/${w.to.slice(5, 7)}/${w.to.slice(0, 4)}`;
+    const weeks = IN.idx.weeks || [];
+    return `<div class="in">
+      <div class="in-head"><div><div class="kick">Bản tin nội bộ · chỉ dành cho nhân sự MMH</div><h1 class="hl xl">${esc(ed.title?.[S.lang] || ed.title?.vi || 'Tuần ' + wkStr)}</h1>
+        ${ed.intro ? `<p class="dek">${esc(ed.intro[S.lang] || ed.intro.vi)}</p>` : `<p class="dek">Tuần ${wkStr}</p>`}</div>
+        <select class="in-wk" id="in-wk" aria-label="Chọn tuần">${weeks.map(x => `<option value="${x.date}"${'i-' + x.date === ed.date ? ' selected' : ''}>Tuần ${x.from.slice(8)}/${x.from.slice(5, 7)} – ${x.date.slice(8)}/${x.date.slice(5, 7)}</option>`).join('')}</select></div>
+      <div class="in-tiles">${tile('Gói thầu trúng', f.tenders.wins.length, f.tenders.fails ? f.tenders.fails + ' gói không trúng' : '')}${tile('Gặp khách hàng', num(visits), num(acts) + ' hoạt động')}${tile('Đơn hàng', num(orders), amount ? vnd(amount) + ' đ' : '')}${tile('Việc hoàn thành', num(done), f.departments.reduce((s, d) => s + d.overdue, 0) + ' quá hạn')}${tile('Buổi đào tạo', f.trainings.length, '')}</div>
+      <section class="ls in-player" style="--show:${p.color}">
+        <div class="in-ph"><div class="cv">${cover(p, w.to)}</div><div><div class="ls-k">Podcast nội bộ · ${esc(p.name)}</div><b>${esc(p.title || p.name)}</b><span>${esc(p.hosts.map(h => h.name).join(' & '))}${p.audio?.dur ? ' · ' + Math.round(p.audio.dur / 60) + ' phút' : ''}</span></div></div>
+        <div class="ls-ctl"><button class="bigplay" id="ls-play" type="button" data-inplay="1" aria-label="Phát">${ICON.play}</button>
+          <button class="ibtn" id="ls-back" type="button" aria-label="Lùi 15 giây">${$('#mini-back').innerHTML}</button><button class="ibtn" id="ls-fwd" type="button" aria-label="Tới 15 giây">${$('#mini-fwd').innerHTML}</button>
+          <button class="spd" id="ls-spd" type="button">${store.get('mmh_daily_rate', 1)}×</button></div>
+        <div class="nowsub" id="nowsub"><span class="en"></span><span class="vi"></span></div>
+        <div class="seek"><span id="ls-cur">0:00</span><div class="tr" id="ls-tr"><i id="ls-prog" style="width:0"></i></div><span id="ls-dur">${p.audio?.dur ? mmss(p.audio.dur) : '--:--'}</span></div>
+        <details class="in-tx"><summary>Lời thoại + phụ đề tiếng Việt</summary>
+          <div class="subsel" id="subsel">${[['both', 'Anh + Việt'], ['en', 'Tiếng Anh'], ['vi', 'Tiếng Việt']].map(([k, l]) => `<button type="button" data-sub="${k}" class="${S.sub === k ? 'on' : ''}">${l}</button>`).join('')}</div>
+          <div class="tx sub-${S.sub}" id="tx">${turns.map((t, i) => `<p data-i="${i}" data-t="${t.t ?? ''}"><b>${esc(hosts[t.sp]?.name || t.sp)}</b><span class="en">${esc(t.text)}</span>${t.vi ? `<span class="vi">${esc(t.vi)}</span>` : ''}</p>`).join('')}</div></details>
+      </section>
+      <div class="in-grid">
+        <div class="in-card"><h3>Kết quả thầu</h3>${secTxt('tenders')}${f.tenders.wins.length ? `<ul class="in-list">${f.tenders.wins.map(x => `<li><b>${esc(x.hospital)}</b>${x.city ? ` · ${esc(x.city)}` : ''}<small>NPP ${esc(x.npp)} · phê duyệt ${esc(x.approve.slice(8))}/${esc(x.approve.slice(5, 7))}${x.value ? ' · ' + vnd(x.value) + ' đ' : ''}${x.products.length ? ' · ' + esc(x.products.join(', ')) : ''}</small></li>`).join('')}</ul>` : '<p class="none">Tuần này chưa có gói nào có kết quả.</p>'}</div>
+        <div class="in-card"><h3>Đi địa bàn & bán hàng</h3>${secTxt('sales')}<table class="in-tb"><thead><tr><th>Nhóm</th><th>Hoạt động</th><th>Gặp khách</th><th>Khách</th><th>Đơn</th></tr></thead><tbody>${f.sales.map(t => `<tr><td>${esc(t.name)}</td><td>${t.activities}</td><td>${t.visits}</td><td>${t.accounts}</td><td>${t.orders || '–'}</td></tr>`).join('')}</tbody></table>
+          ${f.sales.flatMap(t => t.highlights.slice(0, 2).map(h => `<blockquote><b>${esc(h.pic)} · ${esc(h.account)}</b>${h.province ? ` <small>${esc(h.province)}</small>` : ''}<span>${esc(h.result)}</span>${h.feedback ? `<small>Phản hồi: ${esc(h.feedback)}</small>` : ''}</blockquote>`)).slice(0, 6).join('')}</div>
+        <div class="in-card"><h3>Công việc các phòng ban</h3>${secTxt('departments')}${f.departments.map(d => `<div class="in-dep"><b>${esc(d.name)}</b><span>${d.done} việc xong · ${d.overdue} quá hạn · ${d.upcoming} đến hạn tuần sau</span>${d.highlights.slice(0, 3).map(h => `<p><b>${esc(h.pic)}</b> — ${esc(h.task)}: ${esc(h.result)}</p>`).join('')}</div>`).join('')}</div>
+        <div class="in-card"><h3>Sự kiện, đào tạo, công tác</h3>${secTxt('events')}${secTxt('training')}
+          ${f.departments.flatMap(d => d.events).length ? `<ul class="in-list">${f.departments.flatMap(d => d.events).slice(0, 8).map(e => `<li><b>${esc(e.name)}</b><small>${esc(e.task)} · ${esc(e.pic)} · ${e.status === 'done' ? 'đã xong' : 'đang làm'}</small></li>`).join('')}</ul>` : ''}
+          ${f.trainings.length ? `<ul class="in-list">${f.trainings.map(t => `<li><b>${esc(t.topic)}</b><small>${esc(t.date.slice(8))}/${esc(t.date.slice(5, 7))} · ${esc(t.trainer)} · ${t.people} người</small></li>`).join('')}</ul>` : ''}
+          ${f.departments.flatMap(d => d.trips).length ? `<ul class="in-list">${f.departments.flatMap(d => d.trips).slice(0, 6).map(t => `<li><b>${esc(t.pic)}</b><small>${esc(t.what)}</small></li>`).join('')}</ul>` : ''}</div>
+        <div class="in-card"><h3>Tuần tới</h3>${secTxt('next')}<ul class="in-list">${f.departments.flatMap(d => d.nextWeek.map(x => ({ ...x, dep: d.name }))).sort((a, b) => a.due.localeCompare(b.due)).slice(0, 10).map(x => `<li><b>${esc(x.task)}</b><small>${esc(x.dep)} · ${esc(x.pic)} · hạn ${esc(x.due.slice(8))}/${esc(x.due.slice(5, 7))}</small></li>`).join('') || '<li class="none">Chưa có việc đến hạn.</li>'}</ul></div>
+      </div>
+      ${IN.admin ? adminBox() : ''}
+      <p class="in-foot">Bản tin được mã hoá; chỉ người đăng nhập email công ty mới mở được. ${esc(IN.pic || '')} · <button class="in-lnk" type="button" id="in-out">Đăng xuất</button></p>
+    </div>`;
+  }
+  function adminBox(missing) {
+    const same = IN.idx?.kid && IN.idx.kid === IN.kid;
+    return `<details class="in-admin"${missing || !same ? ' open' : ''}><summary>Thiết lập (Admin)</summary>
+      <p>${same ? 'Khoá trên máy chủ khớp với khoá GitHub đang dùng.' : 'GitHub chưa có khoá này. Chép khoá dưới đây vào <b>Settings ▸ Secrets and variables ▸ Actions ▸ New repository secret</b> của kho MMH Daily, tên <code>DAILY_INTERNAL_KEY</code>, rồi chạy lại workflow.'}</p>
+      ${same ? '' : `<div class="in-key"><code id="in-k">${esc(IN.key)}</code><button class="in-btn" type="button" id="in-copy">Chép khoá</button></div><p class="in-small">Mã nhận diện: ${esc(IN.kid)}. Không gửi khoá qua chat / email.</p>`}</details>`;
+  }
+  async function internalPage() {
+    document.body.classList.remove('dark');
+    $('#view').innerHTML = '<div class="skel" style="height:40px;width:60%"></div><div class="skel"></div>';
+    try { if (!(await inKey())) { $('#view').innerHTML = loginHtml(); wireLogin(); return; } }
+    catch (e) { $('#view').innerHTML = loginHtml(e.message); wireLogin(); return; }
+    if (!IN.idx) { try { IN.idx = await (await fetch('data/internal/index.json?t=' + Date.now(), { cache: 'no-store' })).json(); } catch { IN.idx = { weeks: [] }; } }
+    const want = location.hash.split('/')[2] || IN.idx.weeks?.[0]?.date;
+    if (!want) { $('#view').innerHTML = `<div class="in"><div class="empty">Bản tin nội bộ đầu tiên sẽ có vào tối Chủ nhật.</div>${IN.admin ? adminBox(true) : ''}</div>`; wireAdmin(); return; }
+    let ed;
+    try { ed = await loadInEd(want); } catch (e) { $('#view').innerHTML = `<div class="in"><div class="empty">${esc(e.message)}${IN.idx.kid && IN.idx.kid !== IN.kid ? ' — khoá đã đổi, Admin cần cập nhật khoá trên GitHub.' : ''}</div>${IN.admin ? adminBox(true) : ''}</div>`; wireAdmin(); return; }
+    S.cur = ed;
+    $('#view').innerHTML = inPage(ed);
+    wireAdmin();
+    $('#in-wk').onchange = e => { location.hash = '#/noibo/' + e.target.value; };
+    $('#in-out').onclick = () => { tkSet(''); IN.key = null; IN.eds = {}; route(); };
+    $('#ls-play').onclick = async () => {
+      try { if (ed.podcast.audio && !ed.podcast.audio.blob) { toast('Đang giải mã âm thanh…'); await inAudio(ed); } if (!setEp(ed)) return; audio.paused ? audio.play() : audio.pause(); }
+      catch (er) { toast(er.message); }
+    };
+    wireListen(ed);
+    syncUi();
+  }
+  function wireAdmin() {
+    const c = $('#in-copy');
+    if (c) c.onclick = async () => { try { await navigator.clipboard.writeText(IN.key); toast('Đã chép khoá'); } catch { toast('Trình duyệt không cho chép — hãy chọn và chép tay'); } };
+  }
+
+  window.DAILY = { S, route, playDate, IN };
   boot();
 })();

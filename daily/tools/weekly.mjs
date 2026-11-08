@@ -14,6 +14,7 @@ const ymd = d => vn(d).toISOString().slice(0, 10);
 // tuần kết thúc ở Chủ nhật gần nhất (hôm nay nếu là Chủ nhật)
 const END = process.env.WEEK_END || (() => { const d = vn(NOW); d.setUTCDate(d.getUTCDate() - d.getUTCDay()); return d.toISOString().slice(0, 10); })();
 const START = (() => { const d = new Date(END + 'T00:00:00Z'); d.setUTCDate(d.getUTCDate() - 6); return d.toISOString().slice(0, 10); })();
+const OD_FROM = (() => { const d = new Date(START + 'T00:00:00Z'); d.setUTCDate(d.getUTCDate() - 28); return d.toISOString().slice(0, 10); })();   // quá hạn: chỉ xét 4 tuần gần nhất
 const NEXT_END = (() => { const d = new Date(END + 'T00:00:00Z'); d.setUTCDate(d.getUTCDate() + 7); return d.toISOString().slice(0, 10); })();
 const OUT = process.env.WEEKLY_OUT || path.join(process.env.RUNNER_TEMP || '/tmp', 'mmh-weekly');
 const inWeek = s => s && s >= START && s <= END;
@@ -57,7 +58,7 @@ async function departments() {
             const res = S(r.result);
             if (res.length > 25) dep.highlights.push({ key: S(k.keyTask), task: name, pic: S(r.pic), result: res.slice(0, 320), priority: !!r.priority });
             if (isEvent) dep.events.push({ name: S(k.keyTask), task: name, pic: S(r.pic), status: 'done' });
-          } else if (due && due < END && !DONE.test(st) && !act) dep.overdue++;
+          } else if (due && due >= OD_FROM && due < END && !DONE.test(st) && !act && !/cancel|huỷ|hủy|skip|bỏ qua/i.test(st)) dep.overdue++;
           if (due > END && due <= NEXT_END && !DONE.test(st)) { dep.upcoming++; if (dep.nextWeek.length < 8) dep.nextWeek.push({ task: name, pic: S(r.pic), due, event: isEvent }); }
           if (isEvent && inWeek(due) && !DONE.test(st)) dep.events.push({ name: S(k.keyTask), task: name, pic: S(r.pic), status: 'open' });
         }

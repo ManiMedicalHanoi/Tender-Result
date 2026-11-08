@@ -522,11 +522,6 @@
     "id": "backoffice",
     "name": "Back office",
     "url": "https://script.google.com/macros/s/AKfycbxWT_M07dwPD77zgzouJpJn4R64n6T6l57sVvsU3I2RgtN6JZcMrRR9eoovKE_DuFuN_g/exec"
-   },
-   {
-    "id": "management",
-    "name": "Management",
-    "url": "https://script.google.com/macros/s/AKfycbzKQYH154xD3JQSiNQCNJuReFB2VjH3W1_r6zOqnmkV9cP7__mi0ukTn_hDWxX_WHgs/exec"
    }
   ],
   "crm": [
@@ -577,6 +572,7 @@
    "url": "https://script.google.com/macros/s/AKfycbwsX4cQEoH4LNlmcNfe8qWIM9K6EiDEXy7PjhP9bHY2citL6xHn5L1unsAlQJHyL9EP/exec",
    "rhKey": "mmh-rh-training-2026"
   },
-  "keyUrl": "https://script.google.com/macros/s/AKfycbwsX4cQEoH4LNlmcNfe8qWIM9K6EiDEXy7PjhP9bHY2citL6xHn5L1unsAlQJHyL9EP/exec"
+  "keyUrl": "https://script.google.com/macros/s/AKfycbwsX4cQEoH4LNlmcNfe8qWIM9K6EiDEXy7PjhP9bHY2citL6xHn5L1unsAlQJHyL9EP/exec",
+  "_management": "Management Task Tracker chỉ cho người đăng nhập đọc ⇒ chưa đưa vào bản tin (cần quyền đọc riêng cho máy chủ GitHub)."
  }
 }

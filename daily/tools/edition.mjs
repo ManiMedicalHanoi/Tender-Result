@@ -6,6 +6,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { DAY, vnDay, iso } from './lib.mjs';
 import { SHOWS, showFor, GLOSSARY } from './shows.mjs';
+import { translateStories } from './translate.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const CFG = JSON.parse(fs.readFileSync(path.join(ROOT, 'config.json'), 'utf8'));
@@ -52,55 +53,100 @@ function dateEn(ds) {
 }
 function seedRand(seed) { let h = 2166136261; for (const c of seed) h = Math.imul(h ^ c.charCodeAt(0), 16777619); return () => ((h = Math.imul(h ^ (h >>> 15), 2246822507), h ^= h >>> 13, (h >>> 0) / 4294967296)); }
 
-// ── viết bằng mẫu (không cần AI): chỉ đọc tin tiếng Anh ──
+// ── viết bằng mẫu (miễn phí, không cần AI): tin tiếng Anh + tin tiếng Việt đã dịch máy ──
+const words = s => new Set(String(s || '').toLowerCase().replace(/[^a-z0-9\s]/g, ' ').split(/\s+/).filter(w => w.length > 3));
+const similar = (a, b) => { const A = words(a), B = words(b); if (!A.size || !B.size) return false; let n = 0; for (const w of A) if (B.has(w)) n++; return n / Math.min(A.size, B.size) > 0.5; };
+
 function templateWrite(ed, picked) {
-  const rnd = seedRand(DATE);
-  picked.read = [];
+  const rnd = seedRand(DATE + ed.podcast.show);
   const any = a => a[Math.floor(rnd() * a.length)];
   const show = SHOWS[ed.podcast.show];
   const A = show.hosts[0], B = show.hosts[1] || show.hosts[0];
+  const duo = show.hosts.length > 1;
   const turns = [];
-  const say = (h, text) => turns.push({ sp: h.id, text: speech(text) });
-  const seen = new Set();
-  const en = sec => [...picked.sections[sec], ...picked.cand.filter(x => x.sec === sec)]
-    .filter(x => x.lang === 'en' && (x.sum || '').length > 40 && !seen.has(x.id) && seen.add(x.id));
-  const lines = x => ({ h: x.t.replace(/\s+/g, ' '), s: sentences(x.sum, 2) });
+  const say = (h, text) => { const t = speech(text); if (t) turns.push({ sp: h.id, text: t }); };
+  picked.read = [];
+  const head = x => (x.lang === 'en' ? x.t : x.h_en || '').replace(/\s+/g, ' ').replace(/[.。]$/, '');
+  const body = (x, n) => sentences(x.lang === 'en' ? x.sum : x.s_en, n);
+  const readHeads = [];
+  // lấy tin có tiếng Anh (gốc hoặc dịch), bỏ tin trùng nội dung
+  const take = (sec, n, filter = () => true) => {
+    const pool = [...picked.sections[sec], ...picked.cand.filter(x => x.sec === sec)];
+    const out = [];
+    for (const x of pool) {
+      if (out.length >= n) break;
+      if (picked.read.includes(x) || !filter(x)) continue;
+      const h = head(x), s = body(x, 2);
+      if (!h || s.length < 40 || readHeads.some(r => similar(r, h))) continue;
+      out.push(x); picked.read.push(x); readHeads.push(h);
+    }
+    return out;
+  };
+  const N = {
+    briefing: { health: 6, economy: 5, politics: 3, society: 3 }, healthdesk: { health: 10, economy: 2, politics: 2, society: 1 },
+    twotakes: { health: 5, economy: 4, politics: 3, society: 3 }, markets: { health: 4, economy: 7, politics: 2, society: 2 },
+    editor: { health: 5, economy: 4, politics: 3, society: 2 }, explainer: { health: 5, economy: 3, politics: 2, society: 2 },
+    weekly: { health: 6, economy: 5, politics: 3, society: 3 },
+  }[ed.podcast.show];
   const order = ed.podcast.show === 'markets' ? ['economy', 'health', 'politics', 'society'] : ['health', 'economy', 'politics', 'society'];
-  const secName = { health: 'health', economy: 'the economy', politics: 'politics', society: 'society' };
-  const lim = { health: ed.podcast.show === 'healthdesk' ? 8 : 6, economy: ed.podcast.show === 'markets' ? 8 : 6, politics: 5, society: 5 };
+  const sel = {};
+  for (const sec of order) sel[sec] = take(sec, N[sec]);
+  // y tế: xếp theo nhóm chuyên sâu
+  const TAGS = [['tender', ['On tenders and procurement.', 'First, procurement and bidding.', 'Starting with tenders.']], ['policy', ['On the policy front.', 'Turning to health policy.', 'In regulation news.']],
+    ['invest', ['In public investment.', 'On spending and investment in health care.', 'Following the money in health care.']], ['hospital', ['From the major hospitals.', 'Inside the hospitals.', 'At the big hospitals.']],
+    ['device', ['On medical devices.', 'In the medical device market.', 'For equipment and supplies.']]];
+  const groupOf = x => (TAGS.find(([t]) => x.tags?.includes(t)) || ['other'])[0];
+  sel.health.sort((a, b) => TAGS.findIndex(([t]) => t === groupOf(a)) - TAGS.findIndex(([t]) => t === groupOf(b)));
 
-  say(A, `${any(['Good morning.', 'Hello, and welcome.', 'Good morning, and thanks for joining us.'])} It's ${dateEn(DATE)}. I'm ${A.name}, and this is ${show.name} from MMH Daily${show.style === 'solo' ? ', the stories shaping Vietnam today, with a close eye on health care.' : '.'}`);
-  if (show.style !== 'solo') say(B, `${any(['And I’m', 'Hi everyone, I’m', 'Good to be here. I’m'])} ${B.name}. ${any(['Let’s get into it.', 'We have a busy day.', 'Plenty to cover today.'])}`);
-  let used = 0;
-  for (const sec of order) {
-    const xs = en(sec).slice(0, lim[sec]);
-    if (!xs.length) continue;
-    const lead = { health: ['Let’s start with health.', 'First, the health desk.', 'We begin with health care.'], economy: ['Turning to the economy.', 'Now, business and the economy.', 'On the economic front.'], politics: ['In politics.', 'Turning to politics and government.', 'Now to politics.'], society: ['And in society news.', 'Closer to home, on the society pages.', 'Finally, society.'] }[sec];
-    if (show.style === 'solo') {
-      say(A, any(lead));
-      xs.forEach((x, i) => { const l = lines(x); say(A, `${i ? any(['Also,', 'Meanwhile,', 'In other news,', 'Separately,']) + ' ' : ''}${l.h}. ${l.s}`); });
-    } else if (show.style === 'qa') {
-      say(A, any([`What should listeners know about ${secName[sec]} today?`, `Let’s talk about ${secName[sec]}. What’s the main story?`, `And on ${secName[sec]}, what stood out?`]));
-      xs.forEach((x, i) => { const l = lines(x); if (i) say(A, any(['What else?', 'Anything else on that front?', 'And the next one?'])); say(B, `${l.h}. ${l.s}`); });
-    } else {
-      say(A, any(lead));
+  // mở đầu
+  const greet = any(['Good morning.', 'Hello, and welcome.', 'Good morning, and thanks for joining us.', 'Hi there, and welcome to the show.']);
+  say(A, `${greet} It's ${dateEn(DATE)}. I'm ${A.name}, and this is ${show.name} from MMH Daily${show.style === 'solo' ? ', the stories shaping Vietnam today, with a close eye on health care.' : '.'}`);
+  if (duo) say(B, `${any(['And I’m', 'Hi everyone, I’m', 'Good to be here. I’m'])} ${B.name}${B.role ? `, ${B.role.toLowerCase().replace(/^co-host$/, 'your co-host')}` : ''}. ${any(['Let’s get into it.', 'We have a busy day.', 'Plenty to cover today.', 'There’s a lot going on.'])}`);
+  const top = [sel.health[0], sel.economy[0], sel.politics[0]].filter(Boolean);
+  if (top.length >= 2) say(A, `${any(['Coming up:', 'Here’s what’s on the agenda.', 'On today’s show:'])} ${top.map(head).join('; ')}.`);
+
+  const SEG = { health: ['Let’s start with health.', 'First, the health desk.', 'We begin with health care.'], economy: ['Turning to the economy.', 'Now, business and the economy.', 'On the economic front.'],
+    politics: ['In politics.', 'Turning to politics and government.', 'Now to politics.'], society: ['And in society news.', 'Closer to home, on the society pages.', 'Finally, society.'] };
+  const NEXT = ['Also,', 'Meanwhile,', 'In other news,', 'Separately,', 'At the same time,'];
+
+  if (show.style === 'deep' && sel.health[0]) {         // The Explainer: tin chính kể kỹ, rồi điểm tin
+    const L = sel.health[0];
+    say(A, `Today we take a closer look at one story: ${head(L)}.`);
+    say(B, body(L, 4));
+    const rel = sel.health.slice(1).filter(x => (x.tags || []).some(t => (L.tags || []).includes(t))).slice(0, 2);
+    if (rel.length) { say(A, 'Is this part of a wider trend?'); rel.forEach(x => say(B, `${head(x)}. ${body(x, 2)}`)); }
+    say(A, 'Now the rest of the news, in brief.');
+    for (const sec of order) for (const x of (sec === 'health' ? sel.health.slice(1).filter(x => !rel.includes(x)) : sel[sec]).slice(0, 2)) say(any([A, B]), `${head(x)}.`);
+  } else {
+    for (const sec of order) {
+      const xs = sel[sec];
+      if (!xs.length) continue;
+      if (ed.podcast.show === 'healthdesk' && sec !== 'health') {   // Bàn tin Y tế: tin khác chỉ đọc tiêu đề
+        if (sec === order[1]) say(A, any(['Before we go, a quick look at the other headlines.', 'Now, the other headlines in brief.']));
+        xs.forEach(x => say(A, `${head(x)}.`));
+        continue;
+      }
+      if (show.style === 'qa') say(A, any([`What should listeners know about ${sec === 'economy' ? 'the economy' : sec} today?`, `Let’s talk about ${sec === 'economy' ? 'the economy' : sec}. What’s the main story?`, `And on ${sec === 'economy' ? 'the economy' : sec}, what stood out?`]));
+      else say(A, any(SEG[sec]));
+      let lastTag = '';
       xs.forEach((x, i) => {
-        const l = lines(x);
-        if (i % 2 === 0) { say(A, `${l.h}.`); say(B, l.s); } else { say(B, `${any(['There’s also this:', 'Another one to watch:', 'And this one:'])} ${l.h}.`); say(A, l.s); }
+        if (sec === 'health' && show.style !== 'qa') { const g = groupOf(x); if (g !== lastTag && g !== 'other') { lastTag = g; if (i) say(duo ? A : A, any(TAGS.find(([t]) => t === g)[1])); } }
+        const h = head(x), s = body(x, 2);
+        if (show.style === 'solo') say(A, `${i ? any(NEXT) + ' ' : ''}${h}. ${s}`);
+        else if (show.style === 'qa') { if (i) say(A, any(['What else?', 'Anything else on that front?', 'And the next one?', 'What’s another one to watch?'])); say(B, `${h}. ${s}`); }
+        else if (show.style === 'desk' && sec === 'health') { if (i) say(A, any(['What else is on your list?', 'Tell us more.', 'And next?', 'What about this one?']) ); say(B, `${h}. ${s}`); }
+        else if (i % 2 === 0) { say(A, `${h}.`); say(B, s); }
+        else { say(B, `${any(['There’s also this:', 'Another one to watch:', 'And this one:'])} ${h}.`); say(A, s); }
       });
     }
-    used += xs.length;
-    xs.forEach(x => picked.read.push(x));
   }
-  if (!used) say(A, 'We could not reach our English-language sources this morning. The full Vietnamese coverage is in today’s paper.');
-  const vi = picked.sections.health.filter(x => x.lang === 'vi').length;
-  if (vi) say(A, `In the Vietnamese-language press, ${vi} more health stories are in today’s paper, ${any(['covering', 'including news on'])} tenders, policy and hospitals.`);
-  say(show.style === 'solo' ? A : B, any(['That’s all for today.', 'And that’s our show.', 'That wraps it up for today.']) + ` Every story is in today’s paper, with summaries in Vietnamese. ${show.style === 'solo' ? `I'm ${A.name}.` : `I'm ${B.name}.`} ${any(['See you tomorrow.', 'Have a great day.', 'Talk to you tomorrow.'])}`);
-  if (show.style !== 'solo') say(A, `And I'm ${A.name}. ${any(['Take care.', 'Goodbye for now.', 'Have a good one.'])}`);
+  const total = Object.values(sel).flat().length;
+  if (!total) say(A, 'We could not reach our sources this morning. Today’s paper has everything we found.');
+  say(duo ? B : A, any(['That’s all for today.', 'And that’s our show.', 'That wraps it up for today.']) + ` Every story is in today’s paper, with summaries in Vietnamese and English. ${duo ? `I'm ${B.name}.` : `I'm ${A.name}.`} ${any(['See you tomorrow.', 'Have a great day.', 'Talk to you tomorrow.'])}`);
+  if (duo) say(A, `And I'm ${A.name}. ${any(['Take care.', 'Goodbye for now.', 'Have a good one.'])}`);
   ed.podcast.turns = turns;
   ed.podcast.title = `${show.name} · ${dateEn(DATE)}`;
   ed.podcast.desc = show.desc;
-  // từ vựng: thuật ngữ có xuất hiện trong kịch bản
   const text = turns.map(t => t.text).join(' ').toLowerCase();
   ed.vocab = GLOSSARY.filter(([en]) => text.includes(en.toLowerCase())).slice(0, 10).map(([en, vi]) => ({ en, vi }));
   ed.writer = 'template';
@@ -188,7 +234,7 @@ ${notes ? 'Research notes for the top health stories:\n' + notes.slice(0, 8000) 
 }
 
 const slim = x => x && ({ id: x.id, t: x.t, u: x.u, src: x.src, d: x.d, lang: x.lang, sec: x.sec, tags: x.tags, docs: x.docs, img: x.img, also: x.also, kind: x.kind,
-  sum: x.sum, h_en: x.h_en, h_vi: x.h_vi, dek: x.dek, s_vi: x.s_vi, s_en: x.s_en, why: x.why });
+  sum: x.sum, h_en: x.h_en, h_vi: x.h_vi, dek: x.dek, s_vi: x.s_vi, s_en: x.s_en, why: x.why, mt: x.mt });
 
 async function main() {
   const pool = readJson(path.join(ROOT, 'data', 'pool.json'), null);
@@ -196,7 +242,6 @@ async function main() {
   const picked = pick(pool);
   let showId = process.env.DAILY_SHOW || showFor(DATE);
   const useAI = !!process.env.ANTHROPIC_API_KEY;
-  if (!useAI && showId === 'explainer') showId = 'briefing';            // giải thích sâu cần AI
   const index = readJson(path.join(ROOT, 'data', 'index.json'), { editions: [] });
   const no = (index.editions.find(e => e.date === DATE)?.no) || (index.editions.length ? Math.max(...index.editions.map(e => e.no || 0)) + 1 : 1);
   const ed = {
@@ -205,10 +250,19 @@ async function main() {
     podcast: { show: showId, name: SHOWS[showId].name, hosts: SHOWS[showId].hosts, color: SHOWS[showId].color },
     stories: {}, sources: pool.status.map(s => ({ id: s.id, lang: s.lang, ok: !!s.ok, kept: s.kept })),
   };
+  const freeWrite = async () => {
+    if (process.env.DAILY_MT !== '0') {
+      // dịch: tin của số báo + tin dự phòng cho podcast (y tế nhiều nhất)
+      const extra = ['health', 'economy', 'politics', 'society'].flatMap(sec => picked.cand.filter(x => x.sec === sec).slice(0, sec === 'health' ? 24 : 10));
+      const list = [...new Map([...Object.values(picked.sections).flat(), ...picked.docs, ...Object.values(picked.desk).flat().map(id => picked.cand.find(y => y.id === id)).filter(Boolean), ...extra].map(x => [x.id, x])).values()];
+      try { console.log(`Dịch máy: ${await translateStories(list)}/${list.length} tin`); } catch (e) { console.log('Bỏ qua dịch máy: ' + e.message); }
+    }
+    templateWrite(ed, picked);
+  };
   if (useAI) {
     try { await claudeWrite(ed, picked); }
-    catch (e) { console.log('Claude lỗi, dùng mẫu soạn sẵn: ' + e.message); templateWrite(ed, picked); }
-  } else templateWrite(ed, picked);
+    catch (e) { console.log('Claude lỗi, dùng bản miễn phí: ' + e.message); await freeWrite(); }
+  } else await freeWrite();
 
   const keep = new Map();
   for (const [sec, arr] of Object.entries(picked.sections)) { ed.sections[sec] = arr.map(x => x.id); arr.forEach(x => keep.set(x.id, x)); }

@@ -17,7 +17,7 @@ const FIX = args.includes('--fixtures') ? args[args.indexOf('--fixtures') + 1] :
 const NOW = process.env.NEWS_NOW ? new Date(process.env.NEWS_NOW) : new Date();
 const UA = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124 Safari/537.36 MMH-News/1.0';
 const DAY = 864e5;
-const DOCS_V = 3;
+const DOCS_V = 4;
 
 // ── chữ tiếng Việt: chuẩn hoá dấu (hoà / hòa, khoẻ / khỏe) để so từ khoá ──
 const TONE = { 'oà': 'òa', 'oá': 'óa', 'oả': 'ỏa', 'oã': 'õa', 'oạ': 'ọa', 'oè': 'òe', 'oé': 'óe', 'oẻ': 'ỏe', 'oẽ': 'õe', 'oẹ': 'ọe', 'uỳ': 'ùy', 'uý': 'úy', 'uỷ': 'ủy', 'uỹ': 'ũy', 'uỵ': 'ụy' };
@@ -242,6 +242,7 @@ async function main() {
   const prev = readJson(path.join(DATA, 'news.json'), { items: [] });
   const old = new Map(prev.items.map(x => [x.id, x]));
   const seenKey = new Map(prev.items.map(x => [tkey(x.t), x.id]));
+  const doneIds = new Set();                                   // tin đã nhận trong lượt này (nhiều truy vấn trả cùng 1 bài)
   const status = [];
   const fresh = [];
   const since = NOW - CFG.keepDays * DAY;
@@ -275,12 +276,14 @@ async function main() {
         const k = tkey(it.title);
         const id = idOf(it.link);
         const dup = seenKey.get(k);
+        if (doneIds.has(id)) { why('trùng'); continue; }
         if (dup && dup !== id) {                      // trùng tiêu đề ⇒ thêm nguồn
           const x = old.get(dup) || fresh.find(y => y.id === dup);
           if (x) { const nm = CFG.domains[srcDom][0]; if (x.src !== nm && !(x.also || []).includes(nm)) (x.also ||= []).push(nm); }
           why('trùng'); continue;
         }
         seenKey.set(k, id);
+        doneIds.add(id);
         st.kept++;
         const o = old.get(id);
         const rec = {
@@ -325,7 +328,7 @@ async function main() {
     if (o) old.set(id, { ...o, ...rec }); else fresh.push(rec);
   }
 
-  let items = [...old.values(), ...fresh].filter(x => new Date(x.d) >= since && new Date(x.d) - NOW <= DAY);
+  let items = [...new Map([...old.values(), ...fresh].map(x => [x.id, x])).values()].filter(x => new Date(x.d) >= since && new Date(x.d) - NOW <= DAY);
   items.sort((a, b) => b.d.localeCompare(a.d));
 
   // Tóm tắt bằng Claude (nếu có khoá)
@@ -349,7 +352,7 @@ async function main() {
     let clause = '';
     if (!own.length && it.kind !== 'doc') {                      // không có ở tiêu đề ⇒ văn bản đầu tiên trong mô tả, nếu tin nói nó được ban hành
       const d0 = findDocs(it.sum || '')[0];
-      if (d0 && d0.year >= NOW.getUTCFullYear() - 1 && NEW_DOC.test(nt)) {
+      if (d0 && (d0.year === NOW.getUTCFullYear() || (d0.year === NOW.getUTCFullYear() - 1 && NOW.getUTCMonth() < 2)) && NEW_DOC.test(nt)) {
         own = [d0];
         const i = (it.sum || '').indexOf(d0.no.split('/')[0] + '/' + d0.year);
         const pre = (it.sum || '').slice(Math.max(0, i - 40), i).match(/(Luật|Nghị định|Nghị quyết|Thông tư|Quyết định|Chỉ thị)(\s+số)?\s*$/i);

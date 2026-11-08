@@ -232,6 +232,15 @@ Phong cách MMH: nền sáng, chữ Aptos, navy `#003047`, xanh `#3A5CAA`, viề
 | Khởi động | `CACHE_NPP` / `CACHE_ACT` đọc ngay đầu script; dùng nếu mạng chưa trả (`NETDONE`). Hoạt động từ đệm ⇒ `S.cached` ⇒ `ensure()` vẫn đọc lại nền; đọc xong ở chế độ khác ⇒ `refresh()` (trừ khi đang gõ trong bảng bên) |
 | Chuyển đổi | localStorage `mmh_winmap_v1` cũ ⇒ dùng 1 lần, ghi sang IndexedDB, `removeItem` |
 
+## 8g. Độ phủ · ảnh đi địa bàn · bảng bên gọn (08/11/2026)
+
+| Phần | Cách làm |
+|---|---|
+| Độ phủ | Hoạt động ▸ nút `.vsw` *Lượt chăm sóc · Độ phủ cơ sở trúng thầu* (`ACT.S.cov` = `""` · `mani` · `all`, localStorage `tm_act_cov`). Tập cần phủ (`covIs`): cơ sở trong dữ liệu thầu (mọi năm) có gói trúng của MANI / mọi hãng, trong địa bàn đang xem (`SCOPE.inProv`) + bộ lọc công / tư. Đã chăm sóc = có lượt (`rowsF`: kỳ, PIC, loại, trạng thái) ở khách CRM gắn cơ sở đó (`a.f` = `h.f`). `covStats` ⇒ `STAT.ct/cv`, tỉnh tô `covCol(cv/ct)` (cam ⇄ xanh lá), số trên tỉnh `cv/ct`, chấm đỏ = chưa chăm sóc. Bảng bên `covSide`: 4 ô số · theo tỉnh · chưa chăm sóc (ưu tiên HĐ sắp hết hạn ⇒ đang chạy ⇒ vừa hết, rồi SL) · đã chăm sóc. Bấm cơ sở ⇒ chi tiết thầu ngay trong Hoạt động. |
+| Ảnh + lần gặp gần nhất | backend VisitMap v1.1: `acc.last` (≤ 3 lượt) + `acc.ph` (ảnh của lượt gần nhất có ảnh) ⇒ `a.lv` / `a.ph`. Ảnh = `drive.google.com/thumbnail?id=…` (ảnh CRM chia sẻ "ai có link"). Tooltip khách (`tipH` / `tipVisit`), cơ sở thầu (`tipFac`, khách gắn có lượt mới nhất), thẻ `lastCard` đầu chi tiết khách + chi tiết cơ sở (`CRMX` ▸ `ACT.cardFac`). Tooltip giữ nguyên khi chuột còn trên cùng điểm (`tip._k`) ⇒ ảnh không nháy. |
+| Hiện tức thì | Nhật ký khách: chưa có ⇒ 3 lượt có sẵn + "đang đọc đủ nhật ký", bản lưu IndexedDB `log:<mã>`, luôn đọc lại nền ≤ 2 phút / lần. Khối CRM cơ sở: IndexedDB `crm:<key>`, đọc lại nền ≤ 2 phút / lần, rê chuột ≥ 0,35 s vào cơ sở ⇒ đọc trước (`CRMX.warm`). |
+| Bảng bên | Ô số trên cùng ⇒ `.facts` (dòng điểm chính, thay đoạn văn `psum`) ⇒ mục thu gọn `sec(id, tiêu đề, chú thích, nội dung, mở mặc định)` = `<details class="sec">`, nhớ mở / đóng ở localStorage `tm_secs`. Mở mặc định: Sản phẩm trúng, Thị phần MANI theo tỉnh, Bệnh viện trúng thầu (1 tỉnh), Theo PIC, Khách hàng ở tỉnh, Độ phủ theo tỉnh / chưa chăm sóc. Còn lại (xếp hạng, biểu đồ tháng, hãng, miền, tỉnh dẫn đầu, sắp hết hạn, gần đây…) thu gọn. |
+
 ## 9. Việc có thể làm tiếp
 
 - Danh mục cơ sở đầy đủ có **số giường / hạng** (file Sở Y tế / BHXH ⇒ ghép vào `tools/csyt_build.py`); OSM còn thiếu nhiều TTYT / bệnh viện tuyến huyện.

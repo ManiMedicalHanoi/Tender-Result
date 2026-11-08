@@ -53,6 +53,22 @@ function kqttFake() {
     cols: ['tbmt','buyer','pname','pcode','brand','mfr','country','unit','qty','price','method','pub','decNo','dec','bidders','loc','month','region','tier','prov','ktype','dur','exp','row'], rows, n: rows.length };
 }
 
+/* như backend VisitMap v1.1: mỗi khách thêm last (≤ 3 lượt gần nhất đến hôm nay) + ph (ảnh của lượt gần nhất có ảnh); mã ảnh giả 33 ký tự */
+const RES = ['Gặp trưởng khoa, giới thiệu dao Slit 2.8 mm (MSL28SH) và chỉ Nylon 10-0', 'Demo dao MST15 cho 2 bác sĩ phaco, phản hồi tốt về độ sắc', 'Gọi điện xác nhận danh mục vật tư 2027', 'Gửi catalogue + báo giá, hẹn tuần sau gặp phòng VTYT'];
+function photoId(ai, k) { return ('PH' + ai + 'x' + k + 'abcdefghijklmnopqrstuvwxyz0123456789').slice(0, 33); }
+function addLast(d) {
+  d.accCols = d.accCols.concat(['last', 'ph']);
+  const today = d.today || '2026-11-05', by = {};
+  d.rows.forEach((r, k) => { if (r[0] <= today) (by[r[2]] = by[r[2]] || []).push([r, k]); });
+  d.acc.forEach((a, ai) => {
+    while (a.length < 11) a.push(a.length === 8 ? null : '');
+    const L = (by[ai] || []).slice().sort((x, y) => (x[0][0] < y[0][0] ? 1 : -1));
+    a[11] = L.length ? L.slice(0, 3).map(([r, k]) => [r[0], d.pics[r[1]], d.acts[r[3]], d.sts[r[4]], RES[k % RES.length], k % 2 ? 'Quan tâm giá thầu' : '', k % 3 ? 'Gửi báo giá trước 20/11' : '', r[7] ? [photoId(ai, k), photoId(ai, k + 1)] : []]) : null;
+    const P = L.find(([r]) => r[7]);
+    a[12] = P ? [P[0][0], [photoId(ai, P[1]), photoId(ai, P[1] + 1)]] : null;
+  });
+  return d;
+}
 /* CRM Surgical ▸ fuVisits: khách hàng (công lập + tư nhân) + lượt việc khách hàng của Viet Ha / Khang */
 function visitsFake() {
   const acc = [
@@ -103,12 +119,12 @@ function visitsFromList(txt) {
 }
 async function install(page, opt = {}) {
   seed = 7;
-  const db = { fu: [], locs: [], vis: visitsFake(), saves: 0, failSave: opt.failSave || 0, hv: nppRows('HUNGVI'), ic: nppRows('ICARE'), tk: 'mock.tk.' + 'x'.repeat(20), calls: [] };
+  const db = { fu: [], locs: [], vis: addLast(visitsFake()), saves: 0, failSave: opt.failSave || 0, hv: nppRows('HUNGVI'), ic: nppRows('ICARE'), tk: 'mock.tk.' + 'x'.repeat(20), calls: [] };
   /* dữ liệu thật để rà soát (KHÔNG đưa vào repo): bản xuất winMap của 2 NPP, danh sách khách CRM Surgical "mã|tên|loại|tỉnh|PIC" */
   const hvp = opt.hvJson || process.env.NPP_HV_JSON, icp = opt.icJson || process.env.NPP_IC_JSON, accp = opt.accTxt || process.env.CRM_ACC_TXT;
   if (hvp) db.hv = JSON.parse(fs.readFileSync(hvp, 'utf8')).rows;
   if (icp) db.ic = JSON.parse(fs.readFileSync(icp, 'utf8')).rows;
-  if (accp) db.vis = visitsFromList(fs.readFileSync(accp, 'utf8'));
+  if (accp) db.vis = addLast(visitsFromList(fs.readFileSync(accp, 'utf8')));
   const stdp = opt.stdJson || process.env.CRM_STD_JSON;            // bảng tên chuẩn VM_STD {mã: [tên, cl|tn|npp]} như backend trả
   if (accp && stdp) { const st = JSON.parse(fs.readFileSync(stdp, 'utf8')); db.vis.acc.forEach(a => { const v = st[a[0]]; if (v) { a[9] = v[0]; a[10] = v[1]; } }); }
   const kpath = opt.kqttJson || process.env.KQTT_JSON;
@@ -126,6 +142,11 @@ async function install(page, opt = {}) {
   const xjs = opt.xlsxJs || process.env.XLSX_JS;
   await page.route(/cdnjs\.cloudflare\.com\/ajax\/libs\/xlsx\//, route => xjs && fs.existsSync(xjs)
     ? route.fulfill({ status: 200, contentType: 'application/javascript', body: fs.readFileSync(xjs, 'utf8') }) : route.abort('failed'));
+  db.thumbs = 0;
+  await page.route(/drive\.google\.com\/thumbnail/, route => { db.thumbs++;
+    const id = new URL(route.request().url()).searchParams.get('id') || '', h = [...id].reduce((a, c) => (a * 31 + c.charCodeAt(0)) % 360, 7);
+    route.fulfill({ status: 200, contentType: 'image/svg+xml', body: `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="hsl(${h},35%,72%)"/><stop offset="1" stop-color="hsl(${(h + 40) % 360},40%,42%)"/></linearGradient></defs><rect width="400" height="300" fill="url(#g)"/><rect x="40" y="70" width="320" height="170" rx="6" fill="#fff" fill-opacity=".85"/><g fill="hsl(${h},30%,55%)">${[0, 1, 2, 3].map(i => `<rect x="${64 + i * 76}" y="96" width="48" height="40" rx="3"/><rect x="${64 + i * 76}" y="160" width="48" height="40" rx="3"/>`).join('')}</g><text x="200" y="272" font-family="Arial" font-size="18" fill="#fff" text-anchor="middle">Ảnh đi địa bàn (minh hoạ)</text></svg>` });
+  });
   await page.route(/script\.google\.com/, async route => {
     const req = route.request(), url = new URL(req.url());
     if (req.resourceType && req.resourceType() === 'script' && opt.scriptFail) return route.fulfill({ status: 404, body: '' });
@@ -154,7 +175,7 @@ async function install(page, opt = {}) {
       if (a === 'fuVisits') return reply(route, url, db.vis);
       if (a === 'fuVisitLog') { const ai = db.vis.acc.findIndex(x => x[0] && x[0] === p.code), L = db.vis.rows.filter(rw => rw[2] === ai).reverse();
         return reply(route, url, { ok: true, v: '1.0', acc: ai >= 0 ? { code: p.code, name: db.vis.acc[ai][1] } : null, rows: L.map(rw => ({ no: '1', d: rw[0], f: rw[0], pic: db.vis.pics[rw[1]], task: 'Customer visit', act: db.vis.acts[rw[3]], proc: 'Follow up',
-          prod: 'Dao Slit', plan: 'Giới thiệu MSL28SH', res: 'Gặp trưởng khoa, demo dao Slit 2.8 mm', st: db.vis.sts[rw[4]], fb: 'Hài lòng độ sắc', next: 'Gửi báo giá', stop: '', photo: rw[7] ? 'https://drive.google.com/file/d/x/view' : '', gps: rw[5] ? rw[5] + ',' + rw[6] : '', addr: '' })) }); }
+          prod: 'Dao Slit', plan: 'Giới thiệu MSL28SH', res: 'Gặp trưởng khoa, demo dao Slit 2.8 mm', st: db.vis.sts[rw[4]], fb: 'Hài lòng độ sắc', next: 'Gửi báo giá', stop: '', photo: rw[7] ? 'https://drive.google.com/file/d/' + photoId(ai, db.vis.rows.indexOf(rw)) + '/view' : '', gps: rw[5] ? rw[5] + ',' + rw[6] : '', addr: '' })) }); }
       if (a === 'fuLocSave') { db.locs.push(p); const ai = db.vis.acc.findIndex(x => x[0] === p.code);
         const loc = p.op === 'clear' ? null : p.op === 'name' ? ['', '', '', '', '', 'Viet Ha', '', p.std] : [+p.lat || '', +p.lng || '', p.fid || '', p.fname || '', p.src || 'tay', 'Viet Ha', '2026-11-04 10:00', ''];
         if (ai >= 0) { db.vis.acc[ai][8] = loc; if (p.op === 'name') db.vis.acc[ai][9] = p.std; }

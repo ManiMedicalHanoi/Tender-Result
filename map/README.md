@@ -106,6 +106,14 @@ Trang tĩnh (GitHub Pages): `https://manimedicalhanoi.github.io/Tender-Result/ma
   Sales lưu việc trên CRM ⇒ bản đồ Hoạt động đổi ở lần đọc kế (backend đệm theo dấu của 2 tab CRM).
 - Vòng nhấp nháy cảnh báo hợp đồng sắp hết hiệu lực đổi sang **đỏ hồng `#FF1F5A`** (viền sáng) — màu nâu cũ trùng màu KQTT, khó nhận ra.
 
+## Cập nhật 08/11/2026 — độ phủ địa bàn · ảnh đi địa bàn · hiện tức thì · bảng bên gọn
+
+- **Độ phủ** (Hoạt động ▸ *Độ phủ cơ sở trúng thầu*): các cơ sở **MANI đã trúng thầu** (hoặc **có KQTT dao / chỉ khâu, mọi hãng**) đã được Sales chăm sóc trong kỳ chưa —
+  tỉnh tô cam (ít) ⇄ xanh lá (đủ), số trên tỉnh = đã chăm sóc / tổng, chấm đỏ = chưa chăm sóc; bảng bên: 4 ô số, theo tỉnh, danh sách chưa chăm sóc theo ưu tiên (hợp đồng sắp hết hạn trước).
+- **Ảnh + lần gặp gần nhất**: rê chuột vào khách (Hoạt động) hoặc bệnh viện (Kết quả thầu / Theo dõi thầu) ⇒ ảnh đi địa bàn gần nhất + kết quả, bước tiếp theo; chi tiết khách / cơ sở có thẻ ảnh ở đầu.
+- **Hiện tức thì**: bấm khách / bệnh viện không còn chờ máy chủ — dùng 3 lượt gần nhất có sẵn và bản lưu trên máy, đọc mới ở nền (backend `crm-surgical/MMH_VisitMap.gs` v1.1).
+- **Bảng bên gọn**: số chính ở trên, dòng điểm chính thay đoạn văn, xếp hạng / biểu đồ / danh sách phụ thành mục thu gọn (nhớ mở / đóng).
+
 ## Cập nhật 05/11/2026 (3) — đăng nhập ở màn hình đầu · địa bàn theo PIC · công lập / tư nhân · hãng · tóm tắt tỉnh
 
 - **Đăng nhập ngay khi mở app** (màn hình đầu: bản đồ minh hoạ tô theo địa bàn 2 PIC, 3 tính năng, ô email + mã 6 số, phím Enter). Chỉ email công ty;

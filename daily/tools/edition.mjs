@@ -55,16 +55,19 @@ function seedRand(seed) { let h = 2166136261; for (const c of seed) h = Math.imu
 // ── viết bằng mẫu (không cần AI): chỉ đọc tin tiếng Anh ──
 function templateWrite(ed, picked) {
   const rnd = seedRand(DATE);
+  picked.read = [];
   const any = a => a[Math.floor(rnd() * a.length)];
   const show = SHOWS[ed.podcast.show];
   const A = show.hosts[0], B = show.hosts[1] || show.hosts[0];
   const turns = [];
   const say = (h, text) => turns.push({ sp: h.id, text: speech(text) });
-  const en = sec => picked.sections[sec].filter(x => x.lang === 'en' && (x.sum || '').length > 40);
+  const seen = new Set();
+  const en = sec => [...picked.sections[sec], ...picked.cand.filter(x => x.sec === sec)]
+    .filter(x => x.lang === 'en' && (x.sum || '').length > 40 && !seen.has(x.id) && seen.add(x.id));
   const lines = x => ({ h: x.t.replace(/\s+/g, ' '), s: sentences(x.sum, 2) });
   const order = ed.podcast.show === 'markets' ? ['economy', 'health', 'politics', 'society'] : ['health', 'economy', 'politics', 'society'];
   const secName = { health: 'health', economy: 'the economy', politics: 'politics', society: 'society' };
-  const lim = { health: ed.podcast.show === 'healthdesk' ? 5 : 3, economy: ed.podcast.show === 'markets' ? 5 : 3, politics: 2, society: 2 };
+  const lim = { health: ed.podcast.show === 'healthdesk' ? 8 : 6, economy: ed.podcast.show === 'markets' ? 8 : 6, politics: 5, society: 5 };
 
   say(A, `${any(['Good morning.', 'Hello, and welcome.', 'Good morning, and thanks for joining us.'])} It's ${dateEn(DATE)}. I'm ${A.name}, and this is ${show.name} from MMH Daily${show.style === 'solo' ? ', the stories shaping Vietnam today, with a close eye on health care.' : '.'}`);
   if (show.style !== 'solo') say(B, `${any(['And I’m', 'Hi everyone, I’m', 'Good to be here. I’m'])} ${B.name}. ${any(['Let’s get into it.', 'We have a busy day.', 'Plenty to cover today.'])}`);
@@ -87,6 +90,7 @@ function templateWrite(ed, picked) {
       });
     }
     used += xs.length;
+    xs.forEach(x => picked.read.push(x));
   }
   if (!used) say(A, 'We could not reach our English-language sources this morning. The full Vietnamese coverage is in today’s paper.');
   const vi = picked.sections.health.filter(x => x.lang === 'vi').length;
@@ -107,7 +111,8 @@ async function claudeWrite(ed, picked) {
   const { default: Anthropic } = await import('@anthropic-ai/sdk');
   const client = new Anthropic();
   const show = SHOWS[ed.podcast.show];
-  const all = [...new Map(Object.values(picked.sections).flat().concat(picked.docs).map(x => [x.id, x])).values()];
+  const deskX = Object.values(picked.desk).flat().map(id => picked.cand.find(y => y.id === id)).filter(Boolean);
+  const all = [...new Map(Object.values(picked.sections).flat().concat(picked.docs, deskX).map(x => [x.id, x])).values()];
   const list = all.map(x => ({ id: x.id, sec: x.sec, tags: x.tags, lang: x.lang, source: x.src, also: x.also, date: x.d.slice(0, 10), title: x.t, summary: (x.sum || '').slice(0, 500) }));
   const prev = (readJson(path.join(ROOT, 'data', 'index.json'), { editions: [] }).editions || []).slice(0, 5).map(e => `${e.date}: ${e.show} — ${e.lead}`);
 
@@ -208,6 +213,7 @@ async function main() {
   const keep = new Map();
   for (const [sec, arr] of Object.entries(picked.sections)) { ed.sections[sec] = arr.map(x => x.id); arr.forEach(x => keep.set(x.id, x)); }
   picked.docs.forEach(x => keep.set(x.id, x));
+  (picked.read || []).forEach(x => keep.set(x.id, x));
   for (const ids of Object.values(picked.desk)) ids.forEach(id => { const x = picked.cand.find(y => y.id === id); if (x) keep.set(id, x); });
   for (const [id, x] of keep) ed.stories[id] = slim(x);
   ed.used = [...keep.keys()];

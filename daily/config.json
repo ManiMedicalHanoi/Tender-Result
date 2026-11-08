@@ -255,7 +255,9 @@
     "Vietnam economy when:2d",
     "Vietnam (Reuters OR Bloomberg OR Nikkei) when:3d",
     "Vietnam health OR hospital OR pharmaceutical when:3d",
-    "Vietnam public investment OR infrastructure when:3d"
+    "Vietnam public investment OR infrastructure when:3d",
+    "\"Vietnam\" (\"Ministry of Health\" OR hospital OR hospitals) when:3d",
+    "Vietnam (\"medical equipment\" OR \"medical devices\" OR pharmaceutical OR drug procurement) when:5d"
    ]
   },
   {

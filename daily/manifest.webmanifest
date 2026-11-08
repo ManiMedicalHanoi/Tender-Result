@@ -1,0 +1,2 @@
+{"name":"MMH Daily","short_name":"MMH Daily","description":"Tờ báo buổi sáng + podcast tiếng Anh: y tế, kinh tế, chính trị, xã hội Việt Nam","start_url":"./","scope":"./","display":"standalone","background_color":"#FBF9F4","theme_color":"#FBF9F4","lang":"vi",
+"icons":[{"src":"icons/icon-192.png","sizes":"192x192","type":"image/png"},{"src":"icons/icon-512.png","sizes":"512x512","type":"image/png"},{"src":"icons/icon-512.png","sizes":"512x512","type":"image/png","purpose":"maskable"}]}

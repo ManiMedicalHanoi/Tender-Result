@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>MMH Daily</title>
+<meta name="description" content="Tờ báo buổi sáng của MMH: y tế (đấu thầu, chính sách, đầu tư công, bệnh viện), kinh tế, chính trị, xã hội Việt Nam — kèm podcast tiếng Anh mỗi ngày.">
+<meta name="theme-color" content="#FBF9F4">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="MMH Daily">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;0,800;0,900;1,600&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app.css?v=1">
+</head>
+<body>
+<div id="app">
+  <header class="mast" id="mast">
+    <div class="mast-top">
+      <span id="m-date"></span>
+      <span class="mast-mid" id="m-no"></span>
+      <span class="mast-r"><button class="lang" id="lang" type="button" aria-label="Đổi ngôn ngữ tiêu đề">EN · VI</button></span>
+    </div>
+    <a class="logo" href="#/" aria-label="MMH Daily — trang nhất">MMH Daily</a>
+    <div class="tagline">Health · Economy · Politics · Society — Vietnam, every morning</div>
+    <nav class="nav" id="nav" aria-label="Chuyên mục">
+      <a href="#/" data-r="front">Trang nhất</a>
+      <a href="#/s/health" data-r="health">Y tế</a>
+      <a href="#/s/economy" data-r="economy">Kinh tế</a>
+      <a href="#/s/politics" data-r="politics">Chính trị</a>
+      <a href="#/s/society" data-r="society">Xã hội</a>
+      <a href="#/docs" data-r="docs">Văn bản</a>
+      <a href="#/listen" data-r="listen" class="nav-listen">Nghe podcast</a>
+      <a href="#/archive" data-r="archive">Số cũ</a>
+    </nav>
+  </header>
+  <main id="view" tabindex="-1"></main>
+  <footer class="foot" id="foot"></footer>
+</div>
+
+<div class="mini" id="mini" hidden>
+  <button class="mini-cover" id="mini-open" type="button" aria-label="Mở trang nghe"></button>
+  <div class="mini-meta"><b id="mini-t"></b><span id="mini-s"></span></div>
+  <button class="mini-btn" id="mini-back" type="button" aria-label="Lùi 15 giây"><svg viewBox="0 0 24 24"><path d="M12 5V2L7 6l5 4V7a6 6 0 1 1-6 6H4a8 8 0 1 0 8-8z" fill="currentColor"/><text x="12" y="16.5" font-size="6.5" text-anchor="middle" fill="currentColor" font-family="Inter" font-weight="700">15</text></svg></button>
+  <button class="mini-play" id="mini-play" type="button" aria-label="Phát"></button>
+  <button class="mini-btn" id="mini-fwd" type="button" aria-label="Tới 15 giây"><svg viewBox="0 0 24 24"><path d="M12 5V2l5 4-5 4V7a6 6 0 1 0 6 6h2a8 8 0 1 1-8-8z" fill="currentColor"/><text x="12" y="16.5" font-size="6.5" text-anchor="middle" fill="currentColor" font-family="Inter" font-weight="700">15</text></svg></button>
+  <div class="mini-bar" id="mini-bar"><i id="mini-prog"></i></div>
+</div>
+<audio id="audio" preload="metadata"></audio>
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+<script src="app.js?v=1"></script>
+</body>
+</html>

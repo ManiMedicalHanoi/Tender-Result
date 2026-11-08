@@ -17,6 +17,9 @@ function trustedName(u) {
 }
 const KW = Object.fromEntries(Object.entries(CFG.kw).map(([k, v]) => [k, v]));
 const count = (n, list) => list.reduce((s, k) => s + (hasKw(n, k) ? 1 : 0), 0);
+/** bỏ tiền tố nguồn ở đầu mô tả: "SKĐS - ", "(Chinhphu.vn) - ", "TTO - ", "VTV.vn - "… */
+const dePrefix = s => String(s || '').replace(/^\s*\(?[\p{L}\d&.\s]{2,22}\)?\s*[-–—:]\s+/u, m => (/\s\S+\s\S+\s\S+/.test(m.trim()) ? m : '')).trim();
+const CRIME = ['tạm giữ', 'khởi tố', 'bắt giữ', 'truy nã', 'sàm sỡ', 'cướp', 'trộm', 'giết', 'án mạng', 'lừa đảo', 'arrested', 'murder', 'robbery'];
 
 function classify(it, feed) {
   const n = norm(it.title + ' ' + it.desc), nt = norm(it.title);
@@ -29,15 +32,16 @@ function classify(it, feed) {
   };
   let sec = Object.entries(sc).sort((a, b) => b[1] - a[1])[0];
   if (sec[1] <= 0) return null;
-  if (health >= 1 && sc.health >= 2) sec = ['health', sc.health];       // có nội dung y tế ⇒ ưu tiên mảng Y tế
+  if (health >= 2 || feed.sec === 'health') sec = ['health', Math.max(sc.health, 2)];   // có nội dung y tế rõ ⇒ ưu tiên mảng Y tế
   const tags = [];
-  if (sec[0] === 'health') {
+  const crime = count(n, CRIME) > 0;
+  if (sec[0] === 'health' && !crime) {
     for (const t of ['health_tender', 'health_policy', 'public_invest', 'hospital', 'device']) if (count(n, KW[t])) tags.push(t.replace('health_', ''));
   } else if (count(n, KW.public_invest)) tags.push('invest');
   const docs = findDocs(it.title + ' ' + it.desc, NOW).map(d => d.no);
   if (docs.length && !tags.includes('policy')) tags.push('policy');
   // điểm: mảng + chiều sâu y tế + văn bản + nguồn
-  let score = CFG.sections[sec[0]].w + Math.min(sec[1], 6) * 0.5 + tags.length * 1.5 + (docs.length ? 2 : 0) + (count(nt, KW[sec[0] === 'health' ? 'health_tender' : 'economy']) ? 1 : 0);
+  let score = (crime ? -2 : 0) + CFG.sections[sec[0]].w + Math.min(sec[1], 6) * 0.5 + tags.length * 1.5 + (docs.length ? 2 : 0) + (count(nt, KW[sec[0] === 'health' ? 'health_tender' : 'economy']) ? 1 : 0);
   return { sec: sec[0], tags, docs, score };
 }
 
@@ -74,7 +78,7 @@ async function main() {
         byKey.set(k, id);
         const o = byId.get(id);
         byId.set(id, { ...(o || {}), id, t: it.title, u: it.link, d: iso(d), src: tn[1], dom: tn[0], lang: f.lang,
-          sum: (it.desc || '').replace(it.title, '').trim().slice(0, 400) || undefined, img: it.img || o?.img || undefined,
+          sum: dePrefix((it.desc || '').replace(it.title, '')).slice(0, 400) || undefined, img: it.img || o?.img || undefined,
           sec: c.sec, tags: c.tags.length ? c.tags : undefined, docs: c.docs.length ? c.docs : undefined, sc: +c.score.toFixed(2), first: o?.first || iso(NOW) });
         st.kept++;
       }

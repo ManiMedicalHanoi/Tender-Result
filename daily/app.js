@@ -186,7 +186,7 @@
       <div class="ls-grid">
         <div class="ls-box"><h3>Lời thoại<small>bấm một câu để nghe từ đó</small></h3><div class="tx" id="tx">${turns.map((t, i) => `<p data-i="${i}" data-t="${t.t ?? ''}"><b>${esc(hosts[t.sp]?.name || t.sp)}</b>${esc(t.text)}</p>`).join('')}</div></div>
         <div>
-          <div class="ls-box"><h3>Các số gần đây</h3><div class="eps">${recent.map(e => `<a class="ep${e.date === ed.date ? ' on' : ''}" href="#/listen/${e.date}"><div class="cv">${cover({ name: showName(e.show), color: showColor(e.show) }, e.date)}</div><div><b>${esc(showName(e.show))}</b><span>${esc(viDate(e.date))}</span></div><em>${e.words ? '~' + Math.round(e.words / 150) + ' ph' : ''}</em></a>`).join('')}</div></div>
+          <div class="ls-box"><h3>Các số gần đây</h3><div class="eps">${recent.map(e => `<a class="ep${e.date === ed.date ? ' on' : ''}" href="#/listen/${e.date}"><div class="cv">${cover({ name: showName(e.show), color: showColor(e.show) }, e.date)}</div><div><b>${esc(showName(e.show))}</b><span>${esc(viDate(e.date))}</span></div><em>${e.words ? '~' + Math.round(e.words / 130) + ' ph' : ''}</em></a>`).join('')}</div></div>
           ${ed.vocab?.length ? `<div style="margin-top:20px">${vocabHtml(ed, true)}</div>` : ''}
         </div>
       </div>

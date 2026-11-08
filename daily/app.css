@@ -121,7 +121,7 @@ main{max-width:1240px;margin:0 auto;padding:22px 24px 40px;outline:none}
 
 .vocab{border:1px solid var(--hair);background:#fff;padding:12px 16px}
 .vocab h3{font:800 12px var(--sans);letter-spacing:1.2px;text-transform:uppercase;margin:0 0 6px}
-.vocab dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:4px 12px;font-size:15px}
+.vocab dl{margin:0;display:grid;grid-template-columns:minmax(0,max-content) 1fr;gap:4px 12px;font-size:15px}
 .vocab dt{font-weight:600}
 .vocab dd{margin:0;color:var(--ink2)}
 .vocab .ex{grid-column:1/-1;font:italic 13.5px var(--serif);color:var(--ink3);margin:-2px 0 4px}

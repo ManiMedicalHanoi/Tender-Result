@@ -8,7 +8,34 @@ const HV = 'AKfycbyL5FRVXl0Zr35ndE1PGJMGXzHOYzHjdsyQK7vHwIYhqe5owjSg3o1QtH-i8qGN
 const IC = 'AKfycbx8xuGaBOVgLxb8JtaH25t1pcisacigDecTMLKOVaBucuDWZ7hw2W_W4IngA1nSODg4';
 const CRM = 'AKfycbxxckrqwkfhE0fszm1XVdpYyEHU_PCKQWMKE_2wBnMTgoJCZ-1nRZ_fhOCPXXsVfEE';
 const HUB = 'AKfycbwsX4cQEoH4LNlmcNfe8qWIM9K6EiDEXy7PjhP9bHY2citL6xHn5L1unsAlQJHyL9EP';
-const ST = ['', 'Giới thiệu sản phẩm', 'Lên danh mục', 'Chốt cấu hình', 'Ra báo giá', 'Ra HSMT', 'Đang chấm thầu', 'Đã trúng thầu', 'Đã trượt thầu', 'Huỷ / dừng theo dõi'];
+const ST = ['', 'Chưa tiếp cận', 'Đã giới thiệu tới chuyên môn', 'Đang xây cấu hình', 'Đã gửi báo giá', 'Đang dự thầu', '', 'Đã trúng thầu', 'Trượt thầu', 'Tạm dừng theo dõi', 'Không tham dự',
+  'Giới thiệu', 'Demo', 'Đề xuất từ chuyên môn', 'Ký hợp đồng mua sắm', 'Sử dụng hàng', '', '', 'Không thành công', 'Dừng theo dõi'];   // như backend MMH_TenderFU v1.9
+/* Follow up by Account (backend MMH_FcAccount.gs) — dòng dự báo giả lập, giá NPP giả lập */
+const FA_COLS = ['id','caseId','kenh','grp','pic','npp','hosp','prov','tbmt','now','kind','type','code','qty','dur','start','end','price','n','qtyFy','valFy','inFc','stage','prog','cfg','brand','crit','chance','note','due','others','src','man','at','by','fid','months'];
+/* giá GIẢ để kiểm thử — bảng giá MANI → NPP thật là tài liệu nội bộ, không đưa vào repo công khai này */
+const FA_PRICE = { MSL28SH:[100000,'dao'], MST15MK:[50000,'dao'], MCU26:[90000,'dao'], MSL28:[96000,'dao'], '1406':[80000,'chi'], AZ35WS:[40000,'ghim'] };
+const FA_M0 = 2026 * 12 + 8;
+function faMi(s) { const m = /^(\d{1,2})\/(\d{4})$/.exec(s || ''); return m ? +m[2] * 12 + (+m[1] - 1) : 0; }
+function faMs(i) { return i ? String(i % 12 + 1).padStart(2, '0') + '/' + Math.floor(i / 12) : ''; }
+function faCalc(o) {
+  const s = faMi(o.start), d = +o.dur || 12, per = (+o.qty || 0) / d, a = Math.max(s, FA_M0), b = Math.min(s ? s + d - 1 : 0, FA_M0 + 11), n = s && b >= a ? b - a + 1 : 0, pr = (FA_PRICE[o.code] || [0])[0];
+  o.price = pr; o.n = n; o.qtyFy = Math.round(per * n); o.valFy = Math.round(per * n * pr); o.end = s ? faMs(s + d - 1) : '';
+  o.months = Array.from({ length: 12 }, (_, i) => (s && FA_M0 + i >= a && FA_M0 + i <= b) ? Math.round(per * 10) / 10 : 0);
+  o.inFc = ['Trượt thầu', 'Không tham dự', 'Tạm dừng theo dõi'].includes(o.stage) ? 'Không — Giai đoạn: ' + o.stage : !(+o.qty > 0) ? 'Không — Chưa có SL' : !s ? 'Không — Chưa có tháng bắt đầu' : 'Có';
+  return o;
+}
+function faRow(o) { return FA_COLS.map(c => o[c] == null ? '' : o[c]); }
+function faSeedRows() {
+  return [
+    { id: 'E|IB2500484361|MSL28SH', caseId: 'IB2500484361', kenh: 'Thầu', grp: '① Existing', pic: 'Viet Ha', npp: 'Hùng Vĩ', hosp: 'Bệnh viện Mắt Nghệ An', prov: 'Nghệ An', tbmt: 'IB2500484361', now: 'Mani trúng 2.000 Slit knife\n(Hiệu lực thầu: đến hết T11/2027)', kind: 'dao', type: 'MSL', code: 'MSL28SH', qty: 2000, dur: 24, start: '12/2025', stage: 'Đã trúng thầu', src: 'Hùng Vĩ' },
+    { id: 'D|IB2500484361|MST15MK', caseId: 'D|IB2500484361', kenh: 'Thầu', grp: '② Duy trì', pic: 'Viet Ha', npp: 'Hùng Vĩ', hosp: 'Bệnh viện Mắt Nghệ An', prov: 'Nghệ An', tbmt: 'IB2500484361', kind: 'dao', type: 'MST', code: 'MST15MK', qty: 1200, dur: 12, start: '03/2027', stage: '', src: 'Hùng Vĩ' },
+    { id: 'M|IB2500484361|MCU', caseId: 'M|IB2500484361', kenh: 'Thầu', grp: '③ Mở mới', pic: 'Viet Ha', npp: 'Hùng Vĩ', hosp: 'Bệnh viện Mắt Nghệ An', prov: 'Nghệ An', tbmt: 'IB2500484361', kind: 'dao', type: 'MCU', code: 'MCU26', qty: 0, dur: 12, start: '01/2027', others: 200, stage: '', src: 'KQTT' },
+    { id: 'M|IB2600063266|MSL', caseId: 'M|IB2600063266', kenh: 'Thầu', grp: '③ Mở mới', pic: 'Khang', npp: 'I-Care', hosp: 'Bệnh viện Chợ Rẫy', prov: 'Hồ Chí Minh', tbmt: 'IB2600063266', kind: 'dao', type: 'MSL', code: 'MSL28', qty: 3650, dur: 12, start: '05/2027', others: 3650, stage: 'Đã giới thiệu tới chuyên môn', src: 'KQTT' },
+    { id: 'E|IB2600070000|AZ35WS', caseId: 'IB2600070000', kenh: 'Thầu', grp: '① Existing', pic: 'Khang', npp: 'I-Care', hosp: 'Bệnh viện Chợ Rẫy', prov: 'Hồ Chí Minh', tbmt: 'IB2600070000', kind: 'ghim', type: 'GHIM', code: 'AZ35WS', qty: 600, dur: 12, start: '09/2026', stage: 'Đã trúng thầu', src: 'I-Care' },
+    { id: 'E|IB2600080000|1406', caseId: 'IB2600080000', kenh: 'Thầu', grp: '① Existing', pic: 'Viet Ha', npp: 'Hùng Vĩ', hosp: 'Bệnh viện Bạch Mai', prov: 'Hà Nội', tbmt: 'IB2600080000', kind: 'chi', type: 'CHI', code: '1406', qty: 1200, dur: 12, start: '10/2026', stage: 'Đã trúng thầu', src: 'Hùng Vĩ' },
+    { id: 'S|261109-AB12|MSL28SH', caseId: '261109-AB12', kenh: 'Tư nhân', grp: 'Tư nhân', pic: 'Khang', npp: '', hosp: 'Phòng khám Mắt Sài Gòn', prov: 'Hồ Chí Minh', tbmt: '', kind: 'dao', type: 'MSL', code: 'MSL28SH', qty: 600, dur: 12, start: '10/2026', stage: 'Demo', src: 'Sales (Tender Map)' }
+  ].map(faCalc);
+}
 const COLS = ['at','id','rev','pic','mail','fid','hosp','prov','addr','pkg','tbmt','ptype','itemsTxt','qty','value','stage','stageName','due','note','items','rid','src','ll','own'];
 let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
 const pick = a => a[Math.floor(rnd() * a.length)];
@@ -122,7 +149,7 @@ function visitsFromList(txt) {
 }
 async function install(page, opt = {}) {
   seed = 7;
-  const db = { fu: [], locs: [], vis: addLast(visitsFake()), saves: 0, failSave: opt.failSave || 0, hv: nppRows('HUNGVI'), ic: nppRows('ICARE'), tk: 'mock.tk.' + 'x'.repeat(20), calls: [] };
+  const db = { fu: [], locs: [], vis: addLast(visitsFake()), saves: 0, failSave: opt.failSave || 0, hv: nppRows('HUNGVI'), ic: nppRows('ICARE'), tk: 'mock.tk.' + 'x'.repeat(20), calls: [], fa: faSeedRows(), faSaves: [] };
   /* dữ liệu thật để rà soát (KHÔNG đưa vào repo): bản xuất winMap của 2 NPP, danh sách khách CRM Surgical "mã|tên|loại|tỉnh|PIC" */
   const hvp = opt.hvJson || process.env.NPP_HV_JSON, icp = opt.icJson || process.env.NPP_IC_JSON, accp = opt.accTxt || process.env.CRM_ACC_TXT;
   if (hvp) db.hv = JSON.parse(fs.readFileSync(hvp, 'utf8')).rows;
@@ -183,6 +210,22 @@ async function install(page, opt = {}) {
         const loc = p.op === 'clear' ? null : p.op === 'name' ? ['', '', '', '', '', 'Viet Ha', '', p.std] : [+p.lat || '', +p.lng || '', p.fid || '', p.fname || '', p.src || 'tay', 'Viet Ha', '2026-11-04 10:00', ''];
         if (ai >= 0) { db.vis.acc[ai][8] = loc; if (p.op === 'name') db.vis.acc[ai][9] = p.std; }
         return reply(route, url, { ok: true, code: p.code, loc }); }
+      if (a === 'fuFcList') return reply(route, url, { ok: true, v: '1.0', fy: { fy: 68, m0: FA_M0, from: '09/2026', to: '08/2027' }, cols: FA_COLS, rows: db.fa.map(faRow), prices: FA_PRICE,
+        stages: ST.slice(1, 6).concat(['Đã trúng thầu', 'Trượt thầu', 'Không tham dự', 'Tạm dừng theo dõi']), priv: ['Giới thiệu', 'Demo', 'Đề xuất từ chuyên môn', 'Ký hợp đồng mua sắm', 'Sử dụng hàng', 'Không thành công', 'Dừng theo dõi'],
+        lists: { prog: ['Chưa có thông tin', 'Xây dựng danh mục', 'Yêu cầu báo giá', 'Đã phê duyệt kế hoạch', 'Đã ra HSMT', 'Đang chấm thầu', 'Đã có KQLCNT'], cfg: ['Mở', 'Khóa'], crit: ['Giá thấp', 'Chất lượng cao'], chance: ['Cao', 'Trung bình', 'Thấp'], brand: ['All', 'Mani', 'Feather'] },
+        sync: { at: '2026-11-09 08:00', err: '', n: db.fa.length } });
+      if (a === 'fuFcSave') {
+        db.faSaves.push(p);
+        let o = p.id ? db.fa.find(r => r.id === p.id) : null;
+        if (p.id && !o) return reply(route, url, { ok: false, error: 'Không tìm thấy dòng ' + p.id });
+        if (!o) { o = { id: 'S|261109-' + (1000 + db.fa.length) + '|' + String(p.code || '').toUpperCase(), caseId: '', kenh: p.kenh === 'Tư nhân' ? 'Tư nhân' : 'Thầu', grp: p.kenh === 'Tư nhân' ? 'Tư nhân' : (p.grp || '③ Mở mới'), pic: 'Viet Ha', npp: '', hosp: p.hosp, prov: p.prov, tbmt: '', kind: 'dao', type: '', code: '', qty: 0, dur: 12, start: '', stage: '', src: 'Sales (Tender Map)', fid: p.fid || '' }; db.fa.push(o); }
+        const lock = String(o.grp).charAt(0) === '①';
+        if (!lock) { if (p.code != null) o.code = String(p.code).toUpperCase(); if (p.qty != null) o.qty = +p.qty || 0; if (p.dur != null) o.dur = +p.dur || 12; if (p.start != null) o.start = p.start ? faMs(+p.start.slice(0, 4) * 12 + (+p.start.slice(5, 7) - 1)) : ''; }
+        ['stage', 'prog', 'cfg', 'brand', 'crit', 'chance', 'note', 'due'].forEach(k => { if (p[k] != null) o[k] = p[k]; });
+        o.kind = /^\d/.test(o.code) ? 'chi' : /^(AZ|DS)/.test(o.code) ? 'ghim' : 'dao'; faCalc(o);
+        return reply(route, url, { ok: true, id: o.id, isNew: !p.id });
+      }
+      if (a === 'fuFcDel') { const i = db.fa.findIndex(r => r.id === p.id); if (i < 0 || !/^S\|/.test(p.id)) return reply(route, url, { ok: false, error: 'Chỉ xoá được dòng do Sales thêm.' }); db.fa.splice(i, 1); return reply(route, url, { ok: true, id: p.id }); }
       if (a === 'fuList') return reply(route, url, { ok: true, v: '1.0', me: { pic: 'Viet Ha', local: 'vietha', level: 'pic', admin: false }, stages: ST, cols: COLS, rows: db.fu });
       if (a === 'fuSave') {
         if (db.failSave > 0) { db.failSave--; return route.abort('failed'); }

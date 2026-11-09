@@ -251,6 +251,15 @@ Phong cách MMH: nền sáng, chữ Aptos, navy `#003047`, xanh `#3A5CAA`, viề
 | Ghép công / tư | `locate(a)`: ghim (`fid`) ⇒ đúng tên chính (`fkey`, giữ "thành phố") ⇒ tên phụ cùng loại ⇒ `sameName` cùng loại (`pv0` = loại gốc danh mục). Chỉ `fhow` = `ten` / `ghim` mới ghi đè `f.pv`; `build()` trả `pv` về `pv0` trước mỗi lần dựng. `sameName`: thứ tự từ chung, `NAMEF` (quân y · đại học), "thành phố X" ≠ "X" (trừ 6 TP trực thuộc TW), `tok` bỏ cụm "thành phố" (không bỏ chữ "thanh"). |
 | Danh mục | `tools/csyt_own.py` ▸ `fix_alias` (chạy sau `csyt_build.py`): `alias_bad` = khác chuyên khoa · đơn vị mua sắm · khác công / tư · khác thứ tự tên · thành phố ≠ tỉnh · quân y / đại học · `BAD_ALIAS` soát tay ⇒ bỏ tên phụ, thêm dòng `kqtt` riêng nếu tỉnh chưa có. `csyt_build.same()` cùng luật chuyên khoa. Mô phỏng ghép 292 khách thật: 0 xung đột công / tư. |
 
+## 8i. Doanh số ước tính (09/11/2026, v20)
+
+| Phần | Cách làm |
+|---|---|
+| Dữ liệu | `FA` (app.js) ▸ `fuFcList` (CRM Surgical, phiên `tk`) ⇒ `cols` + `rows` (id · kenh · grp · pic · npp · hosp · prov · code · kind · qty · dur · start · n · qtyFy · valFy · inFc · stage …) + `prices` + danh sách chọn; đệm IndexedDB `fa`. Máy chủ tính doanh số; app chỉ cộng. |
+| Khối bản đồ | `#fabox` trong `.mapcard` (góc phải trên; điện thoại: dưới thanh trên, mặc định thu gọn — `localStorage.tm_fa_min`), kênh `tm_fa_ch` (thau · tn · all); `scoped()` lọc kênh + `sel` + `SCOPE.pic()`; cập nhật ở `refresh()` / `renderSide()`. |
+| Chi tiết cơ sở | `FA.hospHtml(h)` (renderHosp + chi tiết khách Hoạt động): khớp dòng theo `fid` hoặc tỉnh + `hkey` / `sameName` / tên phụ; bấm dòng ⇒ `FA.open(id)` (hộp `#fa-dlg`), `+ Thêm mã` ⇒ dòng Sales mới (`fuFcSave` không id). Ước tính ngay trên máy (`est()`), lưu xong đọc lại `fuFcList`. |
+| Theo dõi thầu | `ST` / `SH` / `SC` theo giai đoạn mới (6 bỏ trống, 10 = Không tham dự), `TEND` = 1 2 3 4 5 7 8 10 9; hộp thêm `fm-start` / `fm-dur` ⇒ `start` / `dur`; lưu xong `FA.load()`. |
+
 ## 9. Việc có thể làm tiếp
 
 - Danh mục cơ sở đầy đủ có **số giường / hạng** (file Sở Y tế / BHXH ⇒ ghép vào `tools/csyt_build.py`); OSM còn thiếu nhiều TTYT / bệnh viện tuyến huyện.

@@ -241,6 +241,16 @@ Phong cách MMH: nền sáng, chữ Aptos, navy `#003047`, xanh `#3A5CAA`, viề
 | Hiện tức thì | Nhật ký khách: chưa có ⇒ 3 lượt có sẵn + "đang đọc đủ nhật ký", bản lưu IndexedDB `log:<mã>`, luôn đọc lại nền ≤ 2 phút / lần. Khối CRM cơ sở: IndexedDB `crm:<key>`, đọc lại nền ≤ 2 phút / lần, rê chuột ≥ 0,35 s vào cơ sở ⇒ đọc trước (`CRMX.warm`). |
 | Bảng bên | Ô số trên cùng ⇒ `.facts` (dòng điểm chính, thay đoạn văn `psum`) ⇒ mục thu gọn `sec(id, tiêu đề, chú thích, nội dung, mở mặc định)` = `<details class="sec">`, nhớ mở / đóng ở localStorage `tm_secs`. Mở mặc định: Sản phẩm trúng, Thị phần MANI theo tỉnh, Bệnh viện trúng thầu (1 tỉnh), Theo PIC, Khách hàng ở tỉnh, Độ phủ theo tỉnh / chưa chăm sóc. Còn lại (xếp hạng, biểu đồ tháng, hãng, miền, tỉnh dẫn đầu, sắp hết hạn, gần đây…) thu gọn. |
 
+## 8h. Kỳ theo ngày · thẻ xem trước · ghép công / tư (09/11/2026, v19)
+
+| Phần | Cách làm |
+|---|---|
+| Kỳ | `ACT.S.per` = `fy68` · `q68-1` · `m202611` · `w<thứ Hai ISO>` · `c<từ>~<đến>` (localStorage `tm_act_per`); `span()` ⇒ `[ngày đầu, ngày cuối, loại]`, `rowsF` lọc `r.d`; `range()` (tháng) chỉ cho biểu đồ / thống kê tháng. `perMv(p, ±1)` = nút ‹ ›, không quá FY đầu (`FY_FROM`) / kỳ hiện tại (tuần: cho tuần sau). |
+| Bảng chọn | `.pick` (thay `<select>` / `.seg`): `perPop()` (tab `S.ptab`), `typePop()`; `popOpen` / `popClose` (bấm ngoài, Esc), tự dịch trái khi tràn màn hình; trong ngăn Bộ lọc (điện thoại) bảng nằm tĩnh. |
+| Thẻ xem trước | `ACT.tipH` / `tipP` trả `.pvc` ⇒ `#tip.card` (nền trắng 360px, ảnh `thumb(id,760)` cao 212px, `pvLast` = kết quả · phản hồi · tiếp theo cắt dòng). `provBest(i)` = ảnh / lượt mới nhất trong kỳ của khách trong tỉnh (lọc PIC, công / tư). `a.lv` chỉ giữ lượt của Sales. |
+| Ghép công / tư | `locate(a)`: ghim (`fid`) ⇒ đúng tên chính (`fkey`, giữ "thành phố") ⇒ tên phụ cùng loại ⇒ `sameName` cùng loại (`pv0` = loại gốc danh mục). Chỉ `fhow` = `ten` / `ghim` mới ghi đè `f.pv`; `build()` trả `pv` về `pv0` trước mỗi lần dựng. `sameName`: thứ tự từ chung, `NAMEF` (quân y · đại học), "thành phố X" ≠ "X" (trừ 6 TP trực thuộc TW), `tok` bỏ cụm "thành phố" (không bỏ chữ "thanh"). |
+| Danh mục | `tools/csyt_own.py` ▸ `fix_alias` (chạy sau `csyt_build.py`): `alias_bad` = khác chuyên khoa · đơn vị mua sắm · khác công / tư · khác thứ tự tên · thành phố ≠ tỉnh · quân y / đại học · `BAD_ALIAS` soát tay ⇒ bỏ tên phụ, thêm dòng `kqtt` riêng nếu tỉnh chưa có. `csyt_build.same()` cùng luật chuyên khoa. Mô phỏng ghép 292 khách thật: 0 xung đột công / tư. |
+
 ## 9. Việc có thể làm tiếp
 
 - Danh mục cơ sở đầy đủ có **số giường / hạng** (file Sở Y tế / BHXH ⇒ ghép vào `tools/csyt_build.py`); OSM còn thiếu nhiều TTYT / bệnh viện tuyến huyện.

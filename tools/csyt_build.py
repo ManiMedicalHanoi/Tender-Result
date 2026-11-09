@@ -164,6 +164,8 @@ def toks(name):
 def same(a, b):
     ta, tb = set(toks(a)), set(toks(b))
     if not ta or not tb: return False
+    ca, cb = classify(a), classify(b)      # 09/11/2026: khác chuyên khoa / đơn vị mua sắm ⇒ khác cơ sở (BV Phổi X ≠ BV ĐK X, Sở Y tế ≠ bệnh viện)
+    if ca[1] != cb[1] or (ca[0] == "dv") != (cb[0] == "dv"): return False
     if ta == tb: return True
     inter = len(ta & tb); small = min(len(ta), len(tb))
     return inter >= 2 and inter == small and abs(len(ta) - len(tb)) <= 2 and (("mat" in ta) == ("mat" in tb))

@@ -114,6 +114,20 @@ Trang tĩnh (GitHub Pages): `https://manimedicalhanoi.github.io/Tender-Result/ma
 - **Hiện tức thì**: bấm khách / bệnh viện không còn chờ máy chủ — dùng 3 lượt gần nhất có sẵn và bản lưu trên máy, đọc mới ở nền (backend `crm-surgical/MMH_VisitMap.gs` v1.1).
 - **Bảng bên gọn**: số chính ở trên, dòng điểm chính thay đoạn văn, xếp hạng / biểu đồ / danh sách phụ thành mục thu gọn (nhớ mở / đóng).
 
+## Cập nhật 09/11/2026 — chọn kỳ tuần / tháng / quý / FY / khoảng ngày · thẻ ảnh khi rê chuột · rà công lập / tư nhân (v19)
+
+- **Hoạt động ▸ kỳ**: thanh `‹ kỳ ▾ ›` (nút ‹ › sang kỳ trước / sau cùng loại) mở bảng chọn **Tuần · Tháng · Quý · FY · Khoảng ngày** (từ ngày – đến ngày, nhanh: 7 / 30 / 90 ngày qua, từ đầu FY).
+  Lượt lọc theo **ngày** của lượt; biểu đồ tự chia cột theo ngày (≤ 14 ngày) · tuần (≤ 10 tuần) · tháng. *Viếng thăm / Mọi việc · Đã làm / Cả kế hoạch* gom vào 1 nút `▾` ⇒ thanh trên còn 1 hàng.
+- **Rê chuột vào địa bàn** (khách CRM) ⇒ thẻ trắng: ảnh đi địa bàn cỡ lớn (ngày chụp, số ảnh) + tên, loại, PIC, công lập / tư nhân, số lượt trong kỳ theo PIC + **kết quả gần nhất**
+  (ngày · PIC · loại việc · kết quả · phản hồi · bước tiếp theo). Rê vào **tỉnh** ⇒ ảnh mới nhất trong kỳ của tỉnh + kết quả gần nhất. Chỉ tính lượt của Sales (Viet Ha, Khang).
+- **Công lập / tư nhân** (người dùng báo BV Mắt tỉnh Ninh Bình hiện tư nhân): khách tư nhân *Bệnh viện Mắt Thanh Bình* bị ghép **gần đúng** vào *BV Mắt tỉnh Ninh Bình* rồi ghi đè
+  loại cơ sở thành tư nhân — cùng lỗi ở ~20 bệnh viện công (Mắt Nam Định / Thái Bình / Phú Thọ / Hải Phòng / TP.HCM, ĐK Bạc Liêu / Long An / Trà Vinh / Cà Mau / Gia Lai…).
+  Nay khách CRM chỉ ghép cơ sở **cùng loại** công / tư (bảng `VM_STD`), chỉ khớp **đúng tên chính** (hoặc Sales đã ghim) mới được đổi loại cơ sở; so tên phân biệt
+  *thành phố X ≠ tỉnh X*, *Tân Bình ≠ Bình Tân*, quân y / bệnh viện đại học ≠ bệnh viện thường. Danh mục `csyt.js` (`tools/csyt_own.py`): bỏ 50 tên phụ gộp nhầm
+  (vd. *BV Phổi Long An ⇐ BV ĐK tỉnh Long An*, *BV Da liễu Bắc Ninh ⇐ Sở Y tế*, *Tâm Trí Sài Gòn (tư) ⇐ BV ĐK Sài Gòn (công)*) ⇒ 37 bên mời thầu KQTT thành cơ sở riêng;
+  thêm tư nhân: ĐH Phenikaa, ĐH Nam Cần Thơ, Thành An – Thăng Long, Việt – Bỉ, Mắt Cao Thắng, Phụ sản Mekong, ĐK 115 Nghệ An, Chuyên khoa Mắt Vĩnh Long (theo CRM).
+  `VM_STD`: *BV Mắt Hà Đông* = công lập (Sở Y tế Hà Nội, nay thuộc BV Mắt Hà Nội).
+
 ## Cập nhật 05/11/2026 (3) — đăng nhập ở màn hình đầu · địa bàn theo PIC · công lập / tư nhân · hãng · tóm tắt tỉnh
 
 - **Đăng nhập ngay khi mở app** (màn hình đầu: bản đồ minh hoạ tô theo địa bàn 2 PIC, 3 tính năng, ô email + mã 6 số, phím Enter). Chỉ email công ty;

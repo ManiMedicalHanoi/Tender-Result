@@ -81,7 +81,10 @@ function visitsFake() {
     ['S-007', 'BV Quốc tế Đồng Nai', 'Hospital', 'Đồng Nai', 'Miền Nam', 'Khang', 'Biên Hòa, Đồng Nai', null, null, '', 'tn'],
     ['', 'BV Mới Toanh', 'Hospital', 'Đồng Nai', 'Miền Nam', 'Khang', '', null, null, '', ''],
     ['S-008', 'BỆNH VIỆN MẮT SÀI GÒN - HÀ NỘI ( CHI NHÁNH SỐ 1)', 'Hospital', 'Ha Noi', 'Miền Bắc', 'Khang', '', null, null, 'Bệnh viện Mắt Sài Gòn - Hà Nội (cơ sở 1)', 'tn'],   // khách của Khang nằm ngoài địa bàn chia theo tỉnh
-    ['T-001', 'TEST Bệnh viện ảo', 'Hospital', 'Hà Nội', 'Miền Bắc', 'Test', 'Hà Nội', null, null, '', '']];   // như dữ liệu thật: khách TEST
+    ['T-001', 'TEST Bệnh viện ảo', 'Hospital', 'Hà Nội', 'Miền Bắc', 'Test', 'Hà Nội', null, null, '', ''],   // như dữ liệu thật: khách TEST
+    /* 09/11/2026: khách tư nhân tên gần giống bệnh viện công (Mắt Thanh Bình ≈ Mắt tỉnh Ninh Bình) — không được ghép / đổi loại cơ sở công lập */
+    ['S-010', 'BỆNH VIỆN MẮT TỈNH NINH BÌNH', 'Hospital', 'Ninh Binh', 'Miền Bắc', 'Viet Ha', '', null, null, 'Bệnh viện Mắt tỉnh Ninh Bình', 'cl'],
+    ['S-011', 'BỆNH VIỆN MẮT THANH BÌNH', '', 'Ninh Binh', 'Miền Bắc', 'Viet Ha', '', null, null, 'Bệnh viện Mắt Thanh Bình', 'tn']];
   const pics = ['Viet Ha', 'Khang', 'Nguyen Ha', 'Test', 'Giang'], acts = ['Visiting', 'Telephone', 'Presentation'], sts = ['Completed', 'Plan', 'Cancel'], tasks = ['Customer visit', 'Other'];
   const rows = []; let r = 11;
   const rnd2 = () => (r = (r * 16807) % 2147483647) / 2147483647;

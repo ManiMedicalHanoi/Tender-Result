@@ -26,6 +26,15 @@ async function boot(b, ctxOpt, mopt, urlTail) {
   return { ctx, page, errs, db: m.db };
 }
 
+/* chọn kỳ ở chế độ Hoạt động: [‹ kỳ ▾ ›] ⇒ bảng chọn Tuần · Tháng · Quý · FY · Khoảng ngày */
+async function pickPer(page, v) {
+  const tab = /^fy/.test(v) ? 'fy' : /^q/.test(v) ? 'q' : /^m/.test(v) ? 'm' : /^w/.test(v) ? 'w' : 'c';
+  await page.click('#va-per .pb'); await page.click('#va-per [data-ptab="' + tab + '"]');
+  const sel = v.endsWith('*') ? '#va-per .pop [data-per^="' + v.slice(0, -1) + '"]' : '#va-per .pop [data-per="' + v + '"]';
+  await page.click(sel);
+  await page.waitForFunction(() => document.querySelector('#va-per .pop').hidden);
+}
+
 (async () => {
   const b = await chromium.launch();
   /* ── máy tính ── */
@@ -225,10 +234,17 @@ async function boot(b, ctxOpt, mopt, urlTail) {
   await page.evaluate(() => WINMAP.select(-1));
   await page.click('#f-view button[data-v="act"]');
   await page.waitForFunction(() => window.WINMAP && WINMAP.act._S.loaded && document.querySelector('#sb .kpis'), null, { timeout: 10000 });
-  const av = await page.evaluate(() => ({ per: document.querySelectorAll('#va-per option').length, pic: document.querySelectorAll('#f-pic button').length,
+  await page.click('#va-per .pb');
+  const pt = await page.evaluate(() => ({ tabs: [...document.querySelectorAll('#va-per .ptab button')].map(b => b.textContent).join('|'), fy: document.querySelectorAll('#va-per .pls button').length }));
+  await page.click('#va-per [data-ptab="w"]');
+  pt.w = await page.$$eval('#va-per .pls button', l => l.map(b => b.textContent));
+  await page.keyboard.press('Escape');
+  ok(pt.tabs === 'Tuần|Tháng|Quý|FY|Khoảng ngày' && pt.fy >= 2 && /^Tuần này/.test(pt.w[0]) && /^Tuần trước/.test(pt.w[1]) && await page.$eval('#va-per .pop', e => e.hidden),
+    `Hoạt động: chọn kỳ Tuần · Tháng · Quý · FY · Khoảng ngày (${pt.w.length} tuần gần nhất, Esc đóng)`);
+  const av = await page.evaluate(() => ({ per: document.querySelectorAll('#va-per > button').length, pic: document.querySelectorAll('#f-pic button').length,
     na: document.querySelector('.prov[data-i="16"]').getAttribute('fill'), leg: /nhiều lượt viếng thăm hơn/.test(document.getElementById('legend').textContent) }));
-  ok(av.per > 5 && av.pic === 3 && av.na !== 'var(--land)' && av.leg, `Hoạt động: chọn kỳ (${av.per} mục FY / quý / tháng), PIC (Cả nhóm · Viet Ha · Khang), tỉnh tô đậm nhạt theo lượt viếng thăm`);
-  await page.selectOption('#va-per', 'fy67');
+  ok(av.per === 3 && av.pic === 3 && av.na !== 'var(--land)' && av.leg, `Hoạt động: thanh kỳ [‹ kỳ ›], PIC (Cả nhóm · Viet Ha · Khang), tỉnh tô đậm nhạt theo lượt viếng thăm`);
+  await pickPer(page, 'fy67');
   const ac = await page.evaluate(() => {
     const L = document.getElementById('legend').textContent, S = document.getElementById('sb').textContent;
     const rgb = n => { const f = document.querySelector('.prov[data-i="' + WINMAP.provIx(n) + '"]').getAttribute('fill'); return [1, 3, 5].map(i => parseInt(f.slice(i, i + 2), 16)); };
@@ -237,12 +253,23 @@ async function boot(b, ctxOpt, mopt, urlTail) {
   });
   ok(ac.leg && ac.sb && ac.pics.every(p => p === 'Viet Ha' || p === 'Khang'), 'Hoạt động chỉ có Viet Ha · Khang (bỏ lượt của Nguyen Ha / Giang / TEST, khách TEST) — PIC trong dữ liệu: ' + ac.pics.join(', ') + (ac.leg && ac.sb ? '' : ' | ' + ac.dbg));
   ok(ac.hn[2] > ac.hn[0] && ac.hcm[0] > ac.hcm[2], `tỉnh tô theo màu PIC: Hà Nội (Viet Ha) rgb(${ac.hn}) · TP.HCM (Khang) rgb(${ac.hcm})`);
-  await page.selectOption('#va-per', 'fy67');
+  await pickPer(page, 'fy67');
   const n67 = await page.$eval('#sb .kpi b', e => +e.textContent);
-  await page.selectOption('#va-per', await page.$eval('#va-per option[value^="m2025"]', e => e.value));
+  await pickPer(page, 'm2025*');
   const nm = await page.$eval('#sb .kpi b', e => +e.textContent);
   ok(n67 > 0 && nm <= n67, `đổi kỳ: FY67 ${n67} lượt ⇒ 1 tháng ${nm} lượt`);
-  await page.selectOption('#va-per', 'fy67');
+  // khoảng ngày tuỳ chọn: cả FY67 theo ngày = đúng số lượt FY67; 1 tuần có lượt ⇒ đếm theo NGÀY
+  await page.click('#va-per .pb'); await page.click('#va-per [data-ptab="c"]');
+  await page.fill('#va-d0', '2025-09-01'); await page.fill('#va-d1', '2026-08-31'); await page.click('#va-per [data-pgo]');
+  const nc = await page.$eval('#sb .kpi b', e => +e.textContent), lcp = await page.$eval("#va-per .pb", e => e.textContent);
+  const wk = await page.evaluate(() => { const R = WINMAP.act.rows().filter(r => r.visit && r.done && r.d < '2026-09-01').map(r => r.d).sort(); const d = new Date(R[R.length - 1] + 'T00:00:00'); d.setDate(d.getDate() - ((d.getDay() + 6) % 7));
+    const p2 = n => (n < 10 ? '0' : '') + n, mon = d.getFullYear() + '-' + p2(d.getMonth() + 1) + '-' + p2(d.getDate()); const e = new Date(d); e.setDate(e.getDate() + 6); const sun = e.getFullYear() + '-' + p2(e.getMonth() + 1) + '-' + p2(e.getDate());
+    return { mon, n: R.filter(x => x >= mon && x <= sun).length }; });
+  await page.evaluate(w => { WINMAP.act._S.per = 'w' + w; }, wk.mon); await page.click('#va-per .pa[data-mv="1"]'); await page.click('#va-per .pa[data-mv="-1"]');
+  const nw = await page.$eval('#sb .kpi b', e => +e.textContent), lw = await page.$eval('#va-per .pb', e => e.textContent), cm = await page.$eval('#sb', e => /Lượt theo ngày/.test(e.textContent));
+  ok(nc === n67 && /01\/09\/2025 – 31\/08\/2026/.test(lcp) && nw === wk.n && nw > 0 && /^Tuần/.test(lw) && cm,
+    `khoảng ngày 01/09/2025 – 31/08/2026 = ${nc} lượt (FY67 ${n67}); tuần ${wk.mon}: ${nw}/${wk.n} lượt, ‹ › chuyển tuần, biểu đồ theo ngày`);
+  await pickPer(page, 'fy67');
   ok(await page.$eval('#sb', e => /Khách gặp nhiều nhất/.test(e.textContent) && /Khách lâu chưa gặp/.test(e.textContent)), 'thống kê: khách được chăm sóc nhiều nhất, khách lâu chưa gặp, theo PIC');
   await page.screenshot({ path: path.join(OUT, 'a1_hoatdong.png') });
   // tìm khách tư nhân (tên chuẩn hoá) ⇒ lịch sử chăm sóc
@@ -301,10 +328,22 @@ async function boot(b, ctxOpt, mopt, urlTail) {
   await page.waitForTimeout(900);
   const hb = await page.evaluate(() => { const g = [...document.querySelectorAll('.hm')].find(e => (WINMAP.act._A().find(a => a.h && a.h.key === e.dataset.h && a.ph) )); if (!g) return null; const r = g.querySelector('circle.c').getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; });
   if (hb) { await page.mouse.move(hb.x, hb.y); await page.waitForTimeout(400); }
-  const tp = await page.evaluate(() => { const t = document.getElementById('tip'); return { img: !!t.querySelector('.tph img'), lv: /Lần gặp gần nhất/.test(t.textContent), op: getComputedStyle(t).opacity }; });
-  ok(hb && tp.img && tp.lv && +tp.op > 0, 'rê chuột vào khách ⇒ tooltip có ảnh đi địa bàn + lần gặp gần nhất');
+  const tp = await page.evaluate(() => { const t = document.getElementById('tip'); const im = t.querySelector('.pvi img'); return { card: t.classList.contains('card'), img: !!im, w: im ? im.getBoundingClientRect().width : 0, lv: /Kết quả gần nhất/.test(t.textContent), op: getComputedStyle(t).opacity }; });
+  ok(hb && tp.card && tp.img && tp.w >= 340 && tp.lv && +tp.op > 0, `rê chuột vào địa bàn ⇒ thẻ xem trước: ảnh đi địa bàn cỡ lớn (${Math.round(tp.w)}px) + kết quả gần nhất`);
   await page.screenshot({ path: path.join(OUT, 'a4_tooltip_anh.png') });
   await page.mouse.move(5, 5);
+  // rê chuột vào tỉnh ⇒ thẻ: ảnh mới nhất trong kỳ + kết quả gần nhất của tỉnh
+  await page.evaluate(() => WINMAP.select(-1)); await pickPer(page, 'fy68'); await page.waitForTimeout(500);
+  const pb = await page.evaluate(() => { const e = document.querySelector('.prov[data-i="' + WINMAP.provIx('Nghệ An') + '"]'); const r = e.getBoundingClientRect(); return { x: r.left + r.width * 0.45, y: r.top + r.height * 0.45 }; });
+  await page.mouse.move(pb.x, pb.y); await page.waitForTimeout(400);
+  const tpp = await page.evaluate(() => { const t = document.getElementById('tip'); return { card: t.classList.contains('card'), img: !!t.querySelector('.pvi img'), t: t.textContent }; });
+  ok(tpp.card && tpp.img && /Nghệ An/.test(tpp.t) && /Kết quả gần nhất · Bệnh viện Mắt Nghệ An/.test(tpp.t), 'rê chuột vào tỉnh (Hoạt động) ⇒ thẻ ảnh mới nhất trong kỳ + kết quả gần nhất của tỉnh');
+  await page.mouse.move(5, 5);
+  // công lập / tư nhân: khách tư nhân "Mắt Thanh Bình" không được ghép vào / đổi loại "BV Mắt tỉnh Ninh Bình" (công lập)
+  const nb = await page.evaluate(() => { const A = WINMAP.act._A(), f = WINMAP.fac().find(x => x.id === 'Ow1220299857'), a10 = A.find(a => a.code === 'S-010'), a11 = A.find(a => a.code === 'S-011');
+    return { pv: f && f.pv, a10: a10 && a10.f && a10.f.id, a11: a11 && a11.f && a11.f.id, a11pub: a11 && a11.pub }; });
+  ok(nb.pv === 0 && nb.a10 === 'Ow1220299857' && nb.a11 !== 'Ow1220299857' && nb.a11pub === false,
+    `BV Mắt tỉnh Ninh Bình vẫn công lập (khách công lập S-010 ghép đúng; khách tư nhân Mắt Thanh Bình ⇒ ${nb.a11})`);
   // ĐỘ PHỦ: Sales đã chăm sóc các cơ sở MANI từng trúng thầu chưa
   await page.evaluate(() => { WINMAP.select(-1); WINMAP.act.ensure(); });
   await page.click('.vsw button[data-cov="mani"]');

@@ -5,7 +5,7 @@ Nguồn (kho riêng tư ManiMedicalHanoi/mmh-library, chỉ lấy MÃ + mô tả
   · Ophthalmic product/Ophthalmic Knives document/Dao nhãn khoa MANI - Hồ sơ sản phẩm.md   (bảng "| Mã | Mô tả |" + dòng liệt kê mã)
   · Ophthalmic product/Ophthalmic Sutures document/Bảng mã chỉ khâu nhãn khoa (catalogue VN 2025-08).csv
   · Surgical product/Manipler Skin Staplers document/Manipler - Hồ sơ sản phẩm.md                (mục 1. Danh mục — catalogue VN)
-  · Ophthalmic product/Micro Forceps document/Kẹp vi phẫu MANI - Hồ sơ sản phẩm.md                (mục 2. Mã đặt hàng — bản dịch flyer S0038)
+  · Ophthalmic product/Micro Forceps document/Kìm vi phẫu MANI - Hồ sơ sản phẩm.md                (mục 2. Mã đặt hàng — bản dịch flyer S0038)
   · Ophthalmic product/Trabeculotomy Hook document/Móc mở vùng bè MANI - Hồ sơ sản phẩm.md         (mục 3. Mã đặt hàng — bản dịch catalogue S0017)
 
 Chạy:  python3 -I tools/codes_build.py <thư mục mmh-library>
@@ -78,8 +78,8 @@ def section(md, head):
     return rows[1:]                                   # bỏ dòng tiêu đề bảng
 
 def forceps(md):
-    """Kẹp vi phẫu MANI (Micro Forceps): | Mã | Mô tả (EN) | Kiểu đầu kẹp | Gauge | Dòng |"""
-    return [[r[0], "Kẹp vi phẫu %s đầu %s · %s" % (r[3], r[2] if r[2].isupper() else r[2].lower(), r[4])] for r in section(md, "2.") if re.match(r"^M[A-Z]{2}\d{2}", r[0])]
+    """Kìm vi phẫu MANI (Micro Forceps): | Mã | Mô tả (EN) | Kiểu đầu kìm | Gauge | Dòng |"""
+    return [[r[0], "Kìm vi phẫu %s đầu %s · %s" % (r[3], r[2] if r[2].isupper() else r[2].lower(), r[4])] for r in section(md, "2.") if re.match(r"^M[A-Z]{2}\d{2}", r[0])]
 
 def hooks(md):
     """Móc mở vùng bè MANI (Trabeculotomy Hook): | Mã | Quy cách | Chiều dài phần móc | Tổng chiều dài |"""
@@ -91,9 +91,9 @@ def main():
     dao = knives(os.path.join(oph, "Ophthalmic Knives document", "Dao nhãn khoa MANI - Hồ sơ sản phẩm.md"))
     chi = sutures(os.path.join(oph, "Ophthalmic Sutures document", "Bảng mã chỉ khâu nhãn khoa (catalogue VN 2025-08).csv"))
     ghim = staplers(os.path.join(lib, "Surgical product", "Manipler Skin Staplers document", "Manipler - Hồ sơ sản phẩm.md"))
-    forcep = forceps(os.path.join(oph, "Micro Forceps document", "Kẹp vi phẫu MANI - Hồ sơ sản phẩm.md"))
+    forcep = forceps(os.path.join(oph, "Micro Forceps document", "Kìm vi phẫu MANI - Hồ sơ sản phẩm.md"))
     hook = hooks(os.path.join(oph, "Trabeculotomy Hook document", "Móc mở vùng bè MANI - Hồ sơ sản phẩm.md"))
-    js = ("/* Mã dao + chỉ khâu nhãn khoa, ghim da Manipler, kẹp vi phẫu (Micro Forceps), móc mở vùng bè (Hook) MANI (MMH Library: hồ sơ dao nhãn khoa, bảng mã chỉ khâu catalogue VN 2025-08, hồ sơ Manipler, hồ sơ kẹp vi phẫu S0038, hồ sơ móc mở vùng bè S0017) — dựng bằng tools/codes_build.py (" +
+    js = ("/* Mã dao + chỉ khâu nhãn khoa, ghim da Manipler, kìm vi phẫu (Micro Forceps), móc mở vùng bè (Hook) MANI (MMH Library: hồ sơ dao nhãn khoa, bảng mã chỉ khâu catalogue VN 2025-08, hồ sơ Manipler, hồ sơ kìm vi phẫu S0038, hồ sơ móc mở vùng bè S0017) — dựng bằng tools/codes_build.py (" +
           datetime.date.today().isoformat() + "). Không sửa tay. */\nwindow.MANI_CODES=" +
           json.dumps({"dao": dao, "chi": chi, "ghim": ghim, "forcep": forcep, "hook": hook}, ensure_ascii=False, separators=(",", ":")) + ";\n")
     open(os.path.join(ROOT, "map", "codes.js"), "w", encoding="utf-8").write(js)

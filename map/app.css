@@ -702,3 +702,44 @@ details.sec>.sb2>h3:first-child{margin-top:0}
 .tip.card .pvl .na{color:var(--t3)}
 .tip.card .pvf{margin-top:8px;color:var(--t3);font-size:11.5px}
 .tip.card b{font-size:inherit}
+
+/* v20 — Doanh số ước tính (sheet Follow up by Account) trong khung bản đồ */
+.fabox{position:absolute;top:12px;right:12px;z-index:4;width:300px;max-width:calc(100% - 92px);background:var(--sf);border:1px solid var(--line2);border-radius:14px;box-shadow:0 10px 28px rgba(0,48,71,.14);padding:11px 12px 10px;font-size:12.5px}
+.fabox[hidden]{display:none}
+.fabox.min{width:auto;padding:0;border-radius:999px;box-shadow:0 6px 18px rgba(0,48,71,.12)}
+.fabox .fapill{border:0;background:none;font:inherit;color:var(--t1);padding:7px 13px;cursor:pointer;display:inline-flex;gap:6px;align-items:center;white-space:nowrap}
+.fabox .fapill b{color:var(--navy)}
+.fabox .fapill i{font-style:normal;color:var(--t3);font-size:11px}
+.fabox .fah{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
+.fabox .fah b{color:var(--navy);font-size:13.5px}
+.fabox .fax{border:1px solid var(--line);background:var(--sf);border-radius:8px;width:26px;height:24px;cursor:pointer;color:var(--t2);line-height:1}
+.fabox .fach{display:flex;border-radius:10px;margin-bottom:9px}
+.fabox .fach button{flex:1 1 auto;padding:5px 6px;font-size:12px}
+.fabox .fav b{display:block;font-size:24px;line-height:1.15;color:var(--navy);letter-spacing:-.01em}
+.fabox .fav span{color:var(--t3);font-size:11.5px}
+.fabox .faq{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:9px 0 8px}
+.fabox .faq div{background:var(--pale);border:1px solid var(--line);border-radius:9px;padding:6px 7px}
+.fabox .faq b{display:block;color:var(--navy);font-size:14px}
+.fabox .faq span{color:var(--t3);font-size:11px}
+.fabox .fabar{display:flex;height:7px;border-radius:4px;overflow:hidden;background:var(--line);margin:2px 0 6px}
+.fabox .fabar i{display:block;height:100%}
+.fabox .fag{display:flex;flex-wrap:wrap;gap:3px 10px;color:var(--t2);font-size:11.5px}
+.fabox .fag span{display:inline-flex;align-items:center;gap:4px}
+.fabox .fag i{width:8px;height:8px;border-radius:2px;display:inline-block}
+.fabox .fag b{color:var(--t1)}
+.fabox .faf{margin-top:7px;padding-top:6px;border-top:1px solid var(--line);color:var(--t3);font-size:11px}
+.fabox .faf .er{color:var(--bad)}
+.fat{width:100%;border-collapse:collapse;font-size:12.5px}
+.fat th{text-align:left;font-weight:600;color:var(--t2);background:var(--pale);padding:5px 6px;border-bottom:1px solid var(--line);white-space:nowrap}
+.fat td{padding:5px 6px;border-bottom:1px solid var(--line);vertical-align:top}
+.fat .r{text-align:right;white-space:nowrap}
+.fat td small{display:block;color:var(--t3);font-size:10.5px}
+.fat tr[data-fa-edit]{cursor:pointer}
+.fat tr[data-fa-edit]:hover td{background:var(--pale)}
+.fat tr.off td{color:var(--t3)}
+.fat .fadot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px;vertical-align:1px}
+.faest{background:var(--pale);border:1px solid var(--line);border-radius:10px;padding:7px 10px;font-size:12.5px;color:var(--t2)}
+.faest b{color:var(--navy)}
+@media (max-width:820px){ .fabox{top:58px;left:64px;right:auto;max-width:calc(100% - 74px)} .fabox:not(.min){width:min(320px, calc(100% - 74px));max-height:calc(100% - 70px);overflow:auto} }
+.fat td.g{white-space:nowrap;font-size:12px}
+.fahint{font-size:11.5px;color:var(--t3);margin:6px 0 4px;line-height:1.45}

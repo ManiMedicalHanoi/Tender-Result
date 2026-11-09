@@ -67,6 +67,40 @@ async function pickPer(page, v) {
   ok(rk.n > 0 && rk.fua === rk.n && rk.cmp, `top bệnh viện: ${rk.n} dòng, có ▲▼ so kỳ trước + nút "+ Theo dõi"`);
   ok(await page.$$eval('.rank li .pv', l => l.every(x => /MANI/.test(x.textContent) && !/KQTT thị trường|Hùng Vĩ|iCare/.test(x.textContent))), 'top bệnh viện: dòng phụ ghi hãng (MANI x% · hãng khác), không ghi nguồn');
   await page.screenshot({ path: path.join(OUT, 'd1_toanquoc.png') });
+  // ── Doanh số ước tính (sheet Follow up by Account) trong khung bản đồ ──
+  await page.waitForFunction(() => window.WINMAP && WINMAP.fa && WINMAP.fa._S.loaded && !document.getElementById('fabox').hidden, null, { timeout: 8000 });
+  await page.evaluate(() => { if (document.querySelector('#fabox.min')) document.querySelector('#fabox [data-fa="min"]').click(); });
+  await page.click('#fabox [data-fa-ch="all"]');
+  const fa1 = await page.evaluate(() => { const b = document.getElementById('fabox'); return { v: b.querySelector('.fav b').textContent, q: [...b.querySelectorAll('.faq b')].map(e => e.textContent), g: b.querySelector('.fag').textContent, inMap: !!b.closest('.mapcard') }; });
+  ok(fa1.inMap && fa1.v === '414 tr' && fa1.q.join('|') === '3.367|1.100|600' && /Existing/.test(fa1.g) && /Tư nhân/.test(fa1.g),
+    `Doanh số ước tính (trong khung bản đồ): Tất cả ${fa1.v} · dao / chỉ / ghim ${fa1.q.join(' / ')} · ${fa1.g}`);
+  await page.click('#fabox [data-fa-ch="tn"]');
+  const fa2 = await page.$eval('#fabox .fav b', e => e.textContent);
+  await page.click('#fabox [data-fa-ch="thau"]');
+  const fa3 = await page.$eval('#fabox .fav b', e => e.textContent);
+  await page.evaluate(() => WINMAP.select(WINMAP.provIx('Nghệ An'))); await page.waitForTimeout(500);
+  const fa4 = await page.$eval('#fabox .fav', e => e.textContent);
+  ok(fa2 === '55 tr' && fa3 === '359 tr' && /^130 tr/.test(fa4) && /Nghệ An/.test(fa4), `kênh Tư nhân ${fa2} · Kênh thầu ${fa3} · chọn tỉnh ⇒ ${fa4}`);
+  await page.evaluate(() => WINMAP.hosp('Mắt Nghệ An')); await page.waitForTimeout(500);
+  const fr = await page.evaluate(() => ({ h: [...document.querySelectorAll('#sb h3')].map(e => e.textContent).filter(t => /Dự báo doanh số/.test(t))[0] || '', n: document.querySelectorAll('#sb .fat tr[data-fa-edit]').length, off: document.querySelectorAll('#sb .fat tr.off').length }));
+  ok(/Dự báo doanh số FY68 · 130 tr/.test(fr.h) && fr.n === 3 && fr.off === 1, `chi tiết cơ sở: mục "${fr.h.replace(/\s+/g, ' ')}" · ${fr.n} mã (${fr.off} chưa tính: ③ chưa có SL)`);
+  await page.click('#sb .fat tr.off');
+  await page.waitForSelector('#fa-dlg:not([hidden]) #fa-qty');
+  await page.fill('#fa-qty', '240'); await page.fill('#fa-start', '2027-01'); await page.selectOption('#fa-st', 'Đã gửi báo giá');
+  const est = await page.$eval('#fa-est', e => e.textContent);
+  await page.screenshot({ path: path.join(OUT, 'd1e_dubao_sua.png') });
+  await page.click('#fa-dlg [data-fd="save"]');
+  await page.waitForFunction(() => document.getElementById('fa-dlg').hidden && !document.querySelector('#sb .fat tr.off'), null, { timeout: 8000 });
+  const sv = db.faSaves[db.faSaves.length - 1] || {};
+  const fa5 = await page.$eval('#fabox .fav b', e => e.textContent);
+  ok(/SL \/ tháng 20/.test(est) && /8 tháng/.test(est) && sv.qty === '240' && sv.start === '2027-01' && sv.stage === 'Đã gửi báo giá' && fa5 === '144 tr',
+    `sửa dòng ③: SL 240, bắt đầu 01/2027 ⇒ ước tính "${est}" · lưu sheet (giai đoạn ${sv.stage}) · tỉnh ${fa5}`);
+  await page.click('#sb [data-fa-add]'); await page.waitForSelector('#fa-dlg:not([hidden]) #fa-code');
+  await page.fill('#fa-code', 'msl28sh'); await page.fill('#fa-qty', '120'); await page.fill('#fa-start', '2026-12'); await page.click('#fa-dlg [data-fd="save"]');
+  await page.waitForFunction(() => document.getElementById('fa-dlg').hidden && document.querySelectorAll('#sb .fat tr[data-fa-edit]').length === 4, null, { timeout: 8000 });
+  ok(db.faSaves[db.faSaves.length - 1].hosp === 'Bệnh viện Mắt Nghệ An' && db.faSaves[db.faSaves.length - 1].code === 'MSL28SH', '+ Thêm mã ⇒ dòng Sales mới (MSL28SH × 120) cho đúng cơ sở');
+  await page.screenshot({ path: path.join(OUT, 'd1f_dubao_tinh.png') });
+  await page.evaluate(() => { WINMAP.select(-1); });
   // bộ lọc: bảng thả xuống ⇒ nhãn có × ⇒ bỏ lọc
   await page.click('#f-more');
   await page.waitForSelector('#fdrw:not([hidden])');
@@ -204,7 +238,7 @@ async function pickPer(page, v) {
   await page.screenshot({ path: path.join(OUT, 'd7_theodoi_toanquoc.png') });
   // tô màu theo tiến độ + cảnh báo hợp đồng sắp hết hiệu lực chưa cập nhật theo dõi
   const pg = await page.evaluate(() => { const s = WINMAP.stat(16); const P = document.querySelector('.prov[data-i="16"]'); return { stg: s.stg, fill: P.getAttribute('fill'), col: WINMAP.fu.pcol(s) }; });
-  ok(pg.stg === 3 && pg.fill !== 'var(--land)', 'bản đồ theo dõi: Nghệ An tô màu giai đoạn "Chốt cấu hình" (' + pg.fill + ')');
+  ok(pg.stg === 3 && pg.fill !== 'var(--land)', 'bản đồ theo dõi: Nghệ An tô màu giai đoạn 3 "Đang xây cấu hình" (' + pg.fill + ')');
   ok(await page.$eval('#legend', e => /Tô màu theo tiến độ/.test(e.textContent) && e.querySelectorAll('.stl')[0].querySelectorAll('span').length === 9 && /Mua sắm cơ sở tư nhân/.test(e.textContent) && /Demo/.test(e.textContent)), 'chú giải: 9 giai đoạn thầu công lập + giai đoạn mua sắm tư nhân, mỗi giai đoạn 1 màu');
   const wn = await page.evaluate(() => ({ n: WINMAP.fu.warnCount(), box: document.querySelectorAll('#sb .wbox .ri').length, badge: (document.querySelector('#f-view .wb') || {}).textContent || '' }));
   ok(wn.n > 0 && wn.box > 0 && wn.badge === String(wn.n), `cảnh báo: ${wn.n} hợp đồng MANI sắp hết hiệu lực chưa cập nhật theo dõi — khối cảnh báo + số trên nút Theo dõi thầu`);
@@ -445,14 +479,14 @@ async function pickPer(page, v) {
   await page.evaluate(() => { const f = WINMAP.fac().find(x => /Bạch Mai/.test(x.name)); WINMAP.fu.open({ f }); });
   await page.waitForSelector('#fm-pkg');
   const kb = await page.$$eval('.kd button', L => L.map(e => e.textContent));
-  ok(kb.join('|') === 'Dao nhãn khoa|Chỉ khâu|Ghim da (Manipler)|Hook (móc mở vùng bè)|Micro Forceps (kẹp vi phẫu)', 'loại sản phẩm: ' + kb.join(' · '));
+  ok(kb.join('|') === 'Dao nhãn khoa|Chỉ khâu|Ghim da (Manipler)|Hook (móc mở vùng bè)|Micro Forceps (kìm vi phẫu)', 'loại sản phẩm: ' + kb.join(' · '));
   for (const k of ['ghim', 'hook', 'forcep', 'dao']) await page.click('.kd button[data-kind="' + k + '"]');   // bật 3 loại mới, bỏ Dao
   await page.fill('#fm-pkg', 'Gói vật tư phẫu thuật 2027');
   const vals = { ghim: ['AZ35WS', '60'], hook: ['MTH-S', '10'], forcep: ['MSQ25A28', '20'] };
   const lk = await page.$$eval('[data-ln="code"]', L => L.map(e => e.getAttribute('list')));
   for (let i = 0; i < lk.length; i++) { const v = vals[lk[i].slice(3)]; await page.fill('[data-ln="code"][data-i="' + i + '"]', v[0]); await page.fill('[data-ln="qty"][data-i="' + i + '"]', v[1]); }
   const ds = await page.$$eval('.ln .dsc', L => L.map(e => e.textContent));
-  ok(lk.join() === 'dl-ghim,dl-hook,dl-forcep' && /Manipler AZ 35W/.test(ds[0]) && /Móc mở vùng bè/.test(ds[1]) && /Kẹp vi phẫu 25G đầu vuông/.test(ds[2]),
+  ok(lk.join() === 'dl-ghim,dl-hook,dl-forcep' && /Manipler AZ 35W/.test(ds[0]) && /Móc mở vùng bè/.test(ds[1]) && /Kìm vi phẫu 25G đầu vuông/.test(ds[2]),
     'chọn Ghim da · Hook · Micro Forceps ⇒ mỗi loại 1 dòng mã, gợi ý mã theo danh mục: ' + ds.join(' | '));
   await page.screenshot({ path: path.join(OUT, 'd9_loai_sp.png') });
   await page.click('[data-fm="save"]');

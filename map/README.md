@@ -38,7 +38,7 @@ Trang tĩnh (GitHub Pages): `https://manimedicalhanoi.github.io/Tender-Result/ma
   — đăng nhập email + mã 6 số qua Training Hub, phiên `localStorage.mmh_tk` dùng chung Report Hub / CRM (đã đăng nhập ở 2 app đó thì vào thẳng). Người cập nhật = tên trong phiên.
   Phần Kết quả thầu (NPP + KQTT) vẫn xem không cần đăng nhập.
   Ghi / đọc sheet ẨN **FOLLOW UP TENDER** của backend CRM Surgical VN (`crm-surgical/MMH_TenderFU.gs`: `fuList` / `fuSave`). Mỗi lần cập nhật = 1 dòng mới (giữ đủ lịch sử, không xoá):
-  cơ sở · tên gói · TBMT · loại SP (Dao nhãn khoa · Chỉ khâu · Ghim da Manipler · Hook = móc mở vùng bè · Micro Forceps = kẹp vi phẫu) · mã + SL ước tính (`codes.js` từ MMH Library: 114 mã dao, 187 mã chỉ, 4 mã ghim da, 10 mã kẹp vi phẫu, mã Hook MTH-S — hồ sơ dịch catalogue S0017 / flyer S0038; `python3 -I tools/codes_build.py <mmh-library>`) ·
+  cơ sở · tên gói · TBMT · loại SP (Dao nhãn khoa · Chỉ khâu · Ghim da Manipler · Hook = móc mở vùng bè · Micro Forceps = kìm vi phẫu) · mã + SL ước tính (`codes.js` từ MMH Library: 114 mã dao, 187 mã chỉ, 4 mã ghim da, 10 mã kìm vi phẫu, mã Hook MTH-S — hồ sơ dịch catalogue S0017 / flyer S0038; `python3 -I tools/codes_build.py <mmh-library>`) ·
   **giai đoạn** 1 Giới thiệu → 2 Lên danh mục → 3 Chốt cấu hình → 4 Ra báo giá → 5 Ra HSMT → 6 Đang chấm thầu → 7 Đã trúng / 8 Đã trượt / 9 Huỷ · mốc dự kiến · giá trị ước tính · tình hình (chữ tự do).
   Bản đồ tô tỉnh theo số gói, chấm cơ sở theo giai đoạn; bảng bên: số gói, theo giai đoạn (bấm để lọc), tỉnh, mốc sắp tới, cập nhật gần đây; lọc Mọi PIC / Của tôi, Đang theo dõi / Đã trúng / Trượt – dừng.
   Ghi không chờ: hiện ngay, gửi nền theo hàng đợi `localStorage.tm_fu_outbox_v1` (cùng `rid`, mất mạng tự thử lại, lỗi ⇒ chip đỏ Thử lại / Bỏ).
@@ -113,6 +113,18 @@ Trang tĩnh (GitHub Pages): `https://manimedicalhanoi.github.io/Tender-Result/ma
 - **Ảnh + lần gặp gần nhất**: rê chuột vào khách (Hoạt động) hoặc bệnh viện (Kết quả thầu / Theo dõi thầu) ⇒ ảnh đi địa bàn gần nhất + kết quả, bước tiếp theo; chi tiết khách / cơ sở có thẻ ảnh ở đầu.
 - **Hiện tức thì**: bấm khách / bệnh viện không còn chờ máy chủ — dùng 3 lượt gần nhất có sẵn và bản lưu trên máy, đọc mới ở nền (backend `crm-surgical/MMH_VisitMap.gs` v1.1).
 - **Bảng bên gọn**: số chính ở trên, dòng điểm chính thay đoạn văn, xếp hạng / biểu đồ / danh sách phụ thành mục thu gọn (nhớ mở / đóng).
+
+## Cập nhật 09/11/2026 (2) — Doanh số ước tính · sheet "Follow up by Account" · giai đoạn bán hàng mới (v20)
+
+- **Doanh số ước tính** (khối trong khung bản đồ, chỉ tài khoản công ty): doanh số FY68 của NPP (T09/2026 – T08/2027) + **SL dao / chỉ khâu / ghim da** trong FY,
+  chọn **Kênh thầu · Tư nhân · Tất cả**, theo tỉnh đang chọn + địa bàn PIC; thanh màu ① Existing · ② Duy trì · ③ Mở mới · Đang dự thầu · Tư nhân. Điện thoại: nút thu gọn dưới thanh trên.
+- Nguồn = sheet **"Follow up by Account"** của CRM Surgical (backend `MMH_FcAccount.gs`, đồng bộ mỗi giờ từ file thầu Hùng Vĩ, I-Care + KQTT toàn quốc; 1 mã / gói = 1 dòng):
+  doanh số = SL ÷ hiệu lực × **giá MANI → NPP theo mã** (bảng giá đại lý 01/01/2025 + ghim da 01/10/2025) × số tháng trong FY.
+- **Chi tiết cơ sở ▸ Dự báo doanh số FY68**: các mã của cơ sở (nhóm, SL / tháng, số tháng, doanh số, giai đoạn) — bấm 1 dòng để Sales sửa SL, tháng bắt đầu, hiệu lực,
+  giai đoạn bán hàng, tiến độ, cơ hội, cấu hình, hãng đề xuất, tiêu chí, ghi chú (dòng ① = hợp đồng đang chạy: không sửa SL); **+ Thêm mã** cho kênh tư nhân / gói mới.
+- **Theo dõi thầu**: giai đoạn = danh sách của file kế hoạch FY68 (Chưa tiếp cận → Đã giới thiệu tới chuyên môn → Đang xây cấu hình → Đã gửi báo giá → Đang dự thầu → Đã trúng thầu ·
+  Trượt thầu · Không tham dự · Tạm dừng theo dõi); hộp cập nhật thêm **Bắt đầu (tháng)** + **Hiệu lực** để gói đang theo dõi vào doanh số ước tính.
+- Tên chuẩn **kìm vi phẫu** (MANI Micro Forceps) theo MMH Library.
 
 ## Cập nhật 09/11/2026 — chọn kỳ tuần / tháng / quý / FY / khoảng ngày · thẻ ảnh khi rê chuột · rà công lập / tư nhân (v19)
 

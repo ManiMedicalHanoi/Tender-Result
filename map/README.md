@@ -114,6 +114,22 @@ Trang tĩnh (GitHub Pages): `https://manimedicalhanoi.github.io/Tender-Result/ma
 - **Hiện tức thì**: bấm khách / bệnh viện không còn chờ máy chủ — dùng 3 lượt gần nhất có sẵn và bản lưu trên máy, đọc mới ở nền (backend `crm-surgical/MMH_VisitMap.gs` v1.1).
 - **Bảng bên gọn**: số chính ở trên, dòng điểm chính thay đoạn văn, xếp hạng / biểu đồ / danh sách phụ thành mục thu gọn (nhớ mở / đóng).
 
+## Cập nhật 11/11/2026 (3) — đăng nhập mật khẩu · điện thoại không che bản đồ · chống nhập trùng · mở nhanh (v23)
+- **Đăng nhập email + mật khẩu**: màn hình đầu có ô Email + Mật khẩu (trình duyệt / app nhớ và tự điền); chưa có / quên mật khẩu ⇒ **Nhận mã qua email** như cũ,
+  đăng nhập bằng mã xong app mời **Đặt mật khẩu cho lần sau**. Chrome / Edge / Android: đã lưu mật khẩu thì phiên hết hạn tự đăng nhập lại (không hỏi).
+  Phiên còn < 25 ngày tự gia hạn 30 ngày. Bấm tên ở thanh trên ⇒ Đặt / đổi mật khẩu · Đăng xuất (bấm 2 lần, không dùng hộp hỏi của trình duyệt).
+  Máy chủ: Training Hub v3.43 (`rhAuthPw` / `rhAuthPwSet` / `rhAuthRenew`, mật khẩu băm + khoá bí mật, sai 5 lần khoá 15 phút; gửi bằng POST, không nằm trên URL).
+- **Điện thoại**: thẻ tỷ lệ / doanh số nằm đầu bảng trượt (không nổi trên bản đồ); bỏ nút +/− (phóng to bằng 2 ngón tay), giữ ⌂.
+- **Chữ dễ hiểu** thay "độ phủ": Kết quả thầu = **Đã trúng thầu ở đâu** (tỉnh đã có gói trúng · bệnh viện đã trúng), Theo dõi thầu = **Đang theo dõi ở đâu**,
+  Hoạt động = **Khách đã gặp trong kỳ** (khách công lập · khách tư nhân, trên tổng khách phụ trách); nút Hoạt động "Cơ sở trúng thầu: đã gặp chưa".
+- **Chống nhập trùng**: thêm gói ở cơ sở đã có gói cùng loại sản phẩm đang theo dõi (hoặc cùng số TBMT) ⇒ báo ngay, nút **Cập nhật gói này** (mang theo ghi chú đang gõ)
+  hoặc tick "Đây là gói khác"; cập nhật giống hệt lần trước ⇒ không lưu lại. 2 máy cùng nhập ⇒ máy chủ báo trùng (crm-surgical MMH_TenderFU v1.10) ⇒ bảng xử lý
+  **Gộp vào gói có sẵn** · Vẫn tạo gói mới · Bỏ (thay hộp confirm).
+- **Form nhập trên điện thoại**: toàn màn hình, ô chữ 16px, nút giai đoạn / loại sản phẩm to, nút Lưu luôn ở chân hộp.
+- **Mở nhanh**: index.html gọi sẵn 7 lệnh dữ liệu ngay khi trang mở (song song với tải app; app dùng lại qua `window.__PRE`); service worker trả bản lưu của tệp có `?v=`
+  (không chờ mạng), trang chờ mạng tối đa 2,5 giây; máy chủ NPP / KQTT đệm kết quả 10 phút (MMH_WinMap v1.1, nút Tải lại bỏ đệm). Đo thật: mỗi lệnh Apps Script 3,3–5,4 giây
+  (≈ 2,7 giây là thời gian khởi động của Google); điện thoại giả lập: lần mở sau có bản đồ + dữ liệu sau ~0,8–1 giây (trước ~2,1 giây).
+
 ## Cập nhật 11/11/2026 (2) — kỳ mặc định · biểu đồ tròn độ phủ · thanh trên gọn (v22)
 - **Kỳ** dùng chung 1 bộ chọn gọn `‹ kỳ ▾ ›` (tab **Tuần · Tháng · Quý · Kỳ (FY)**, Hoạt động thêm **Khoảng ngày**; Kết quả / Theo dõi thêm **Mọi năm**).
   Mặc định: **Kết quả thầu** và **Theo dõi thầu** = kỳ hiện tại (hôm nay thuộc FY68 = T09/2026 – T08/2027; sang 09/2027 tự thành FY69), **Hoạt động** = tháng hiện tại. Vẫn chọn được các kỳ trước.

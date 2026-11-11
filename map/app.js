@@ -1755,31 +1755,71 @@ var FU=(function(){
   var LS_TK="mmh_tk", LS_MAIL="mmh_last_email", LS_DATA="tm_fu_v1", LS_OB="tm_fu_outbox_v1";
   var S={ rows:[], loaded:false, loading:false, err:"", me:null, who:"all", stf:"open", stage:0, at:"", ver:0, q:"", kind:"pub" };
   try{ S.kind=localStorage.getItem("tm_fu_kind")==="pv"?"pv":"pub"; }catch(_){}
-  var CASES=null, BYF=null, OB=[], obBusy=false, obTimer=null, lg={step:"email", email:"", busy:false, err:"", wait:0};
+  var CASES=null, BYF=null, OB=[], obBusy=false, obTimer=null, lg={step:"pw", email:"", busy:false, err:"", wait:0, pwTmp:""};
   try{ OB=JSON.parse(localStorage.getItem(LS_OB)||"[]")||[]; }catch(_){ OB=[]; }
   try{ var c0=JSON.parse(localStorage.getItem(LS_DATA)||"null"); if(c0 && c0.rows){ S.rows=c0.rows; S.at=c0.at; S.me=c0.me||null; } }catch(_){}
 
-  /* ── đăng nhập (Training Hub rhAuthStart / rhAuthVerify, như Report Hub / CRM) ── */
+  /* ── đăng nhập (Training Hub): email + MẬT KHẨU (rhAuthPw, 11/11/2026) hoặc mã 6 số qua email (rhAuthStart / rhAuthVerify, như Report Hub / CRM).
+     Trình duyệt / app nhớ mật khẩu (form có autocomplete username / current-password; Chrome / Android: PasswordCredential ⇒ tự đăng nhập lại khi phiên hết hạn).
+     Đăng nhập bằng mã mà chưa có mật khẩu ⇒ mời đặt mật khẩu (PWD). Phiên còn < 25 ngày ⇒ tự gia hạn (rhAuthRenew) — dùng chung Report Hub / CRM. ── */
   function auth(){ try{ var o=JSON.parse(localStorage.getItem(LS_TK)||"null"); if(!o||!o.tk||!o.user||!o.user.pic) return null; if(o.exp && Date.now()>o.exp) return null; return o; }catch(_){ return null; } }
   function tk(){ var a=auth(); return a?a.tk:""; }
   /* máy chủ từ chối phiên: CHỈ xoá phiên (dùng chung Report Hub / CRM trên trình duyệt này) khi phiên thật sự hết hạn / không hợp lệ / bị khoá;
      lỗi khác ⇒ giữ phiên, hiện lý do (trước đây xoá ngay ⇒ quay lại ô nhập email, không rõ vì sao, và đăng xuất luôn Report Hub / CRM) */
   function authFail(msg){
-    if(/hết hạn|không hợp lệ|đăng xuất|bị khoá|không có trong RH_Users/i.test(String(msg||""))){ try{ localStorage.removeItem(LS_TK); }catch(_){} lg.step="email"; lg.err=msg; if((typeof GATE!=="undefined"&&GATE)) GATE.show(); }
+    if(/hết hạn|không hợp lệ|đăng xuất|bị khoá|không có trong RH_Users/i.test(String(msg||""))){ try{ localStorage.removeItem(LS_TK); }catch(_){} lg.step="pw"; lg.err=msg; if((typeof GATE!=="undefined"&&GATE)) GATE.show(); }
     user();
   }
   function qs(o){ return Object.keys(o).map(function(k){ return encodeURIComponent(k)+"="+encodeURIComponent(o[k]==null?"":o[k]); }).join("&"); }
   /* đọc bằng fetch KHÔNG kèm cookie Google trước (getJSON): Chrome / điện thoại đăng nhập Gmail khác hoặc nhiều tài khoản thì thẻ <script>
      bị Google chuyển sang trang "chọn tài khoản" ⇒ "không tải được" (cùng lỗi Report Hub đã sửa ở v16.7) */
   function hub(action, params){ return getJSON(TRAINING_HUB+"?"+qs(Object.assign({action:action}, params||{}))); }
-  function lgUi(){ side(); if((typeof GATE!=="undefined"&&GATE)) GATE.paint(); }
+  /* lệnh có mật khẩu: POST (form) — mật khẩu không nằm trên URL */
+  function hubPost(action, params){
+    var ctl=window.AbortController?new AbortController():null, to=setTimeout(function(){ if(ctl) ctl.abort(); }, 30000);
+    return fetch(TRAINING_HUB,{ method:"POST", body:new URLSearchParams(Object.assign({action:action}, params||{})), redirect:"follow", credentials:"omit", signal:ctl?ctl.signal:undefined })
+      .then(function(r){ clearTimeout(to); if(!r.ok) throw new Error("HTTP "+r.status); return r.json(); }, function(e){ clearTimeout(to); throw e; });
+  }
+  function cleanEmail(v){ var e=String(v||"").trim().toLowerCase().replace(/\s+/g,""); if(e && e.indexOf("@")<0) e+="@manimedicalhanoi.com"; return e; }
+  function okEmail(e){ return /^[a-z0-9._%+\-]+@(mani\.inc|manimedicalhanoi\.com)$/.test(e); }
+  function pwKey(){ var a=auth(); return "tm_haspw:"+String((a&&a.user&&(a.user.local||a.user.email))||"").split("@")[0]; }
+  function hasPw(){ try{ return localStorage.getItem(pwKey())==="1"; }catch(_){ return false; } }
+  function setHasPw(v){ try{ if(v==null) return; localStorage.setItem(pwKey(), v?"1":"0"); }catch(_){} }
+  function credOk(){ return !!(window.PasswordCredential && navigator.credentials && navigator.credentials.store); }
+  function credStore(email, pw, u){ try{ if(credOk()) navigator.credentials.store(new PasswordCredential({id:email, password:pw, name:(u&&u.pic)||email})).catch(function(){}); }catch(_){} }
+  function lgUi(){
+    side(); if((typeof GATE!=="undefined"&&GATE)) GATE.paint();
+    var pi=document.getElementById("lg-pw"); if(pi && lg.pwTmp && !pi.value) pi.value=lg.pwTmp;      /* vẽ lại khi báo lỗi: giữ mật khẩu vừa gõ */
+  }
+  /* đăng nhập xong (mật khẩu / mã / tự động) */
+  function done(d, how){
+    try{ localStorage.setItem(LS_TK, JSON.stringify({tk:d.token, exp:d.exp, user:d.user, at:Date.now()})); localStorage.setItem(LS_MAIL, lg.email); }catch(_){}
+    setHasPw(how==="pw" ? true : d.hasPw);
+    lg={step:"pw", email:lg.email, busy:false, err:"", wait:0, open:false, pwTmp:""}; user(); load(); obRun();
+    if(PEND){ var o2=PEND; PEND=null; setTimeout(function(){ open(o2); }, 60); }
+    ONL.forEach(function(fn){ try{ fn(); }catch(_){} });
+    if(how==="code" && d.hasPw===false) setTimeout(function(){ PWD.offer(); }, 500);
+  }
+  function lgPw(){
+    if(lg.busy) return;
+    var i=document.getElementById("lg-email"), pi=document.getElementById("lg-pw"), pw=pi?String(pi.value||""):"";
+    if(i) lg.email=cleanEmail(i.value);
+    if(!okEmail(lg.email)){ lg.err="Nhập email công ty: …@manimedicalhanoi.com hoặc …@mani.inc"; lg.pwTmp=pw; lgUi(); return; }
+    if(!pw){ lg.err="Nhập mật khẩu. Chưa có / quên mật khẩu ⇒ bấm \"Nhận mã qua email\"."; lgUi(); var p2=document.getElementById("lg-pw"); if(p2) p2.focus(); return; }
+    try{ localStorage.setItem(LS_MAIL, lg.email); }catch(_){}
+    lg.busy=true; lg.err=""; lg.pwTmp=pw; lgUi();
+    hubPost("rhAuthPw",{email:lg.email, pw:pw}).then(function(d){
+      lg.busy=false;
+      if(d && d.ok && d.token && d.user){ credStore(lg.email, pw, d.user); done(d, "pw"); return; }
+      lg.err=(d&&d.error)||"Chưa đăng nhập được."; if(d && /^(NOPW|PWLOCK)$/.test(d.code)) lg.pwTmp=""; lgUi();
+    },function(e){ lg.busy=false; lg.err="Không kết nối được máy chủ đăng nhập ("+e.message+"). Kiểm tra mạng rồi thử lại."; lgUi(); });
+  }
   function lgSend(again){
     if(lg.busy) return;
-    var i=document.getElementById("lg-email"); if(i) lg.email=String(i.value||"").trim().toLowerCase().replace(/\s+/g,"");
-    if(lg.email && lg.email.indexOf("@")<0) lg.email+="@manimedicalhanoi.com";
-    if(!/^[a-z0-9._%+\-]+@(mani\.inc|manimedicalhanoi\.com)$/.test(lg.email)){ lg.err="Nhập email công ty: …@manimedicalhanoi.com hoặc …@mani.inc"; lgUi(); return; }
+    var i=document.getElementById("lg-email"); if(i) lg.email=cleanEmail(i.value);
+    if(!okEmail(lg.email)){ lg.err="Nhập email công ty (ô Email) rồi bấm Nhận mã: …@manimedicalhanoi.com hoặc …@mani.inc"; lgUi(); return; }
     try{ localStorage.setItem(LS_MAIL, lg.email); }catch(_){}
-    lg.busy=true; lg.err=""; lgUi();
+    lg.busy=true; lg.err=""; lg.pwTmp=""; lgUi();
     hub("rhAuthStart",{email:lg.email}).then(function(d){
       lg.busy=false;
       if(d && (d.ok || d.code==="WAIT")){ lg.step="code"; lg.err=d.ok?(again?"Đã gửi mã mới.":""):(d.error||""); }
@@ -1794,37 +1834,140 @@ var FU=(function(){
     lg.busy=true; lg.err=""; lgUi();
     hub("rhAuthVerify",{email:lg.email, code:code}).then(function(d){
       lg.busy=false;
-      if(d && d.ok && d.token && d.user){
-        try{ localStorage.setItem(LS_TK, JSON.stringify({tk:d.token, exp:d.exp, user:d.user, at:Date.now()})); }catch(_){}
-        lg={step:"email", email:lg.email, busy:false, err:"", wait:0, open:false}; user(); load(); obRun();
-        if(PEND){ var o2=PEND; PEND=null; setTimeout(function(){ open(o2); }, 60); }
-        ONL.forEach(function(fn){ try{ fn(); }catch(_){} });
-        return;
-      }
+      if(d && d.ok && d.token && d.user){ done(d, "code"); return; }
       lg.err=(d&&d.error)||"Mã chưa đúng."; lgUi();
     },function(e){ lg.busy=false; lg.err=e.message; lgUi(); });
   }
+  /* tự đăng nhập bằng mật khẩu trình duyệt đã lưu (Chrome / Edge / Android — 1 lần mỗi lần mở trang, không hỏi) */
+  var autoTried=false;
+  function autoLogin(){
+    if(autoTried || auth() || !(window.PasswordCredential && navigator.credentials && navigator.credentials.get)) return;
+    autoTried=true;
+    navigator.credentials.get({password:true, mediation:"silent"}).then(function(c){
+      if(!c || !c.password || !okEmail(String(c.id||"").toLowerCase()) || auth()) return;
+      lg.email=String(c.id).toLowerCase(); lg.busy=true; lg.auto=true; lg.err=""; lgUi();
+      return hubPost("rhAuthPw",{email:lg.email, pw:c.password}).then(function(d){
+        lg.busy=false; lg.auto=false;
+        if(d && d.ok && d.token && d.user){ done(d, "pw"); return; }
+        lg.err=d && d.code==="PW" ? "Mật khẩu đã lưu trên máy không còn đúng — nhập lại mật khẩu." : ((d&&d.error)||""); lgUi();
+      });
+    }).catch(function(){ lg.busy=false; lg.auto=false; lgUi(); });
+  }
+  /* gia hạn phiên: còn < 25 ngày ⇒ phiên mới 30 ngày (không đăng xuất giữa chừng; Report Hub / CRM dùng chung phiên mới) */
+  var renewing=false;
+  function renew(){
+    var a=auth(); if(!a || renewing || (a.exp||0)-Date.now() > 25*864e5) return;
+    renewing=true;
+    hubPost("rhAuthRenew",{tk:a.tk}).then(function(d){
+      renewing=false; var b=auth();
+      if(d && d.ok && d.token && b && b.tk===a.tk){ try{ localStorage.setItem(LS_TK, JSON.stringify({tk:d.token, exp:d.exp, user:Object.assign({}, d.user, a.user), at:a.at||Date.now()})); }catch(_){} setHasPw(d.hasPw); }
+      else if(d && d.code==="AUTH") authFail(d.error);
+    }, function(){ renewing=false; });
+  }
+  var EYE='<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>';
   function loginHtml(compact){
     var gate=compact==="gate";
     if(!gate && (typeof GATE!=="undefined"&&GATE) && GATE.on()) return '<div class="note">Đăng nhập bằng email công ty ở màn hình đầu để xem.</div>';
     var em=lg.email; if(!em){ try{ em=localStorage.getItem(LS_MAIL)||""; }catch(_){} }
-    return '<div class="lgbox'+(gate?' lgg':'')+'"><h4>'+(gate?'Đăng nhập bằng email công ty':'Đăng nhập để '+(compact?'xem / cập nhật theo dõi thầu':'dùng Theo dõi thầu'))+'</h4>'+
-      (compact?'':'<p>Dành cho nhân sự MMH. Dùng email công ty như Report Hub / CRM — đã đăng nhập ở 2 app đó trên trình duyệt này thì vào thẳng.</p>')+
-      (lg.step==="email"
-        ? '<div class="row"><input class="inp" id="lg-email" type="email" inputmode="email" autocomplete="email" placeholder="ten@manimedicalhanoi.com" value="'+esc(em)+'"><button class="btn pri" data-lg="send" type="button"'+(lg.busy?" disabled":"")+'>'+(lg.busy?"Đang gửi…":"Gửi mã")+'</button></div>'
-        : '<p style="margin-bottom:6px">Mã 6 số đã gửi tới <b>'+esc(lg.email)+'</b>.</p><div class="row"><input class="inp" id="lg-code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="6 số"><button class="btn pri" data-lg="verify" type="button"'+(lg.busy?" disabled":"")+'>'+(lg.busy?"Đang kiểm tra…":"Đăng nhập")+'</button></div>'+
-          '<div style="margin-top:6px;font-size:12.5px"><button class="lnk" data-lg="resend" type="button">Gửi lại mã</button> · <button class="lnk" data-lg="back" type="button">Đổi email</button></div>')+
-      '<div class="lgerr">'+esc(lg.err)+'</div></div>';
+    var h='<div class="lgbox'+(gate?' lgg':'')+'"><h4>'+(gate?'Đăng nhập bằng email công ty':'Đăng nhập để '+(compact?'xem / cập nhật theo dõi thầu':'dùng Theo dõi thầu'))+'</h4>'+
+      (compact?'':'<p>Dành cho nhân sự MMH. Dùng email công ty như Report Hub / CRM — đã đăng nhập ở 2 app đó trên trình duyệt này thì vào thẳng.</p>');
+    if(lg.step==="code"){
+      h+='<form class="lgf" data-lgf="verify" novalidate><p style="margin-bottom:6px">Mã 6 số đã gửi tới <b>'+esc(lg.email)+'</b>.</p>'+
+        '<div class="row"><input class="inp" id="lg-code" name="otp" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="6 số"><button class="btn pri" type="submit"'+(lg.busy?" disabled":"")+'>'+(lg.busy?"Đang kiểm tra…":"Đăng nhập")+'</button></div></form>'+
+        '<div class="lgalt"><button class="lnk" data-lg="resend" type="button">Gửi lại mã</button> · <button class="lnk" data-lg="back" type="button">Đăng nhập bằng mật khẩu</button></div>';
+    } else {
+      h+='<form class="lgf" data-lgf="pw" autocomplete="on" novalidate>'+
+        '<label class="lgl" for="lg-email">Email</label><input class="inp" id="lg-email" name="username" type="email" inputmode="email" autocomplete="username" autocapitalize="off" spellcheck="false" placeholder="ten@manimedicalhanoi.com" value="'+esc(em)+'">'+
+        '<label class="lgl" for="lg-pw">Mật khẩu</label><div class="lgpw"><input class="inp" id="lg-pw" name="password" type="password" autocomplete="current-password" placeholder="Mật khẩu"><button class="lgeye" type="button" data-lg="eye" aria-label="Hiện / ẩn mật khẩu" title="Hiện / ẩn mật khẩu">'+EYE+'</button></div>'+
+        '<button class="btn pri lgsub" type="submit"'+(lg.busy?" disabled":"")+'>'+(lg.busy?(lg.auto?"Đang tự đăng nhập…":"Đang đăng nhập…"):"Đăng nhập")+'</button></form>'+
+        '<div class="lgalt">Chưa có hoặc quên mật khẩu? <button class="lnk" data-lg="send" type="button">Nhận mã qua email</button></div>';
+    }
+    return h+'<div class="lgerr" role="alert">'+esc(lg.err)+'</div></div>';
   }
+  /* chip tên ở thanh trên ⇒ menu nhỏ: đặt / đổi mật khẩu · đăng xuất (xác nhận ngay trong menu, không dùng hộp confirm của trình duyệt) */
+  var UM=null;
+  function umClose(){ if(UM){ UM.remove(); UM=null; } }
   function user(){
     var u=document.getElementById("uchip"), a=auth();
-    if(!a){ u.innerHTML=""; return; }
+    if(!a){ u.innerHTML=""; umClose(); return; }
     var n=a.user.pic||"", ini=n.split(/\s+/).map(function(w){ return w[0]; }).join("").slice(-2).toUpperCase();
-    u.innerHTML='<button class="uchip" type="button" id="uc-b" title="'+esc((a.user.email||"")+" — bấm để đăng xuất khỏi Tender Map")+'"><i>'+esc(ini)+'</i>'+esc(n)+'</button>';
-    document.getElementById("uc-b").onclick=function(){
-      if(window.confirm("Đăng xuất "+n+"? (Report Hub / CRM mở trên trình duyệt này cũng phải đăng nhập lại)")){ try{ localStorage.removeItem(LS_TK); }catch(_){} S.me=null; user(); renderFilters(); refresh(); if((typeof GATE!=="undefined"&&GATE)) GATE.show(); }
+    u.innerHTML='<button class="uchip" type="button" id="uc-b" aria-haspopup="menu" aria-expanded="false" title="'+esc(a.user.email||"")+'"><i>'+esc(ini)+'</i>'+esc(n)+'</button>';
+    document.getElementById("uc-b").onclick=function(e){
+      e.stopPropagation(); if(UM){ umClose(); return; }
+      var b=e.currentTarget, r=b.getBoundingClientRect();
+      UM=document.createElement("div"); UM.className="umenu"; UM.setAttribute("role","menu");
+      UM.innerHTML='<div class="umh"><b>'+esc(n)+'</b><span>'+esc(a.user.email||"")+'</span></div>'+
+        '<button type="button" role="menuitem" data-um="pw">'+(hasPw()?"Đổi mật khẩu":"Đặt mật khẩu đăng nhập")+'</button>'+
+        '<button type="button" role="menuitem" data-um="out">Đăng xuất</button>';
+      document.body.appendChild(UM);
+      UM.style.top=(r.bottom+6)+"px"; UM.style.left=Math.max(8, Math.min(window.innerWidth-UM.offsetWidth-8, r.right-UM.offsetWidth))+"px";
+      b.setAttribute("aria-expanded","true");
+      UM.addEventListener("click",function(ev){
+        var x=ev.target.closest("[data-um]"); if(!x) return; ev.stopPropagation();
+        if(x.dataset.um==="pw"){ umClose(); PWD.open(); return; }
+        if(x.dataset.um==="out"){ x.dataset.um="out2"; x.classList.add("warn"); x.textContent="Bấm lần nữa để đăng xuất (Report Hub / CRM trên máy này cũng đăng xuất)"; return; }
+        if(x.dataset.um==="out2"){
+          umClose(); try{ localStorage.removeItem(LS_TK); }catch(_){}
+          try{ if(navigator.credentials && navigator.credentials.preventSilentAccess) navigator.credentials.preventSilentAccess().catch(function(){}); }catch(_){}
+          S.me=null; user(); renderFilters(); refresh(); if((typeof GATE!=="undefined"&&GATE)) GATE.show();
+        }
+      });
     };
   }
+  document.addEventListener("click",function(e){ if(UM && !UM.contains(e.target)) umClose(); });
+  window.addEventListener("keydown",function(e){ if(e.key==="Escape" && UM) umClose(); });
+  /* hộp đặt / đổi mật khẩu (sau khi đăng nhập bằng mã, hoặc menu tên) */
+  var PWD=(function(){
+    var el=null, st={busy:false, err:"", mode:"set"};
+    function close(){ if(el){ el.remove(); el=null; } }
+    function paint(){
+      var a=auth(); if(!a){ close(); return; }
+      var em=(a.user.email||lg.email||""), chg=hasPw(), offer=st.mode==="offer";
+      if(!el){ el=document.createElement("div"); el.className="pwdlg"; el.setAttribute("role","dialog"); el.setAttribute("aria-modal","true"); el.setAttribute("aria-labelledby","pwd-t"); document.body.appendChild(el);
+        el.addEventListener("click",function(e){ if(e.target===el || e.target.closest("[data-pwd=x]")){ if(offer) try{ localStorage.setItem("tm_pw_later", String(Date.now())); }catch(_){} close(); } });
+        el.addEventListener("submit",function(e){ e.preventDefault(); save(); }); }
+      el.innerHTML='<form class="pwbox" autocomplete="on" novalidate><h3 id="pwd-t">'+(offer?"Đặt mật khẩu cho lần sau":(chg?"Đổi mật khẩu":"Đặt mật khẩu đăng nhập"))+'</h3>'+
+        '<p>'+(offer?'Lần sau chỉ cần <b>email + mật khẩu</b> — trình duyệt / app nhớ giúp, không phải chờ mã qua email.':'Dùng chung cho Tender Map, Report Hub, CRM (cùng tài khoản email công ty).')+'</p>'+
+        '<input class="sr" type="email" name="username" autocomplete="username" value="'+esc(em)+'" readonly tabindex="-1" aria-hidden="true">'+
+        '<div class="pwacc">Tài khoản: <b>'+esc(em)+'</b></div>'+
+        (chg&&!offer?'<label class="lgl" for="pwd-old">Mật khẩu hiện tại</label><input class="inp" id="pwd-old" type="password" autocomplete="current-password">':'')+
+        '<label class="lgl" for="pwd-n1">Mật khẩu mới <span>(ít nhất 8 ký tự)</span></label><input class="inp" id="pwd-n1" type="password" autocomplete="new-password" minlength="8">'+
+        '<label class="lgl" for="pwd-n2">Nhập lại mật khẩu mới</label><input class="inp" id="pwd-n2" type="password" autocomplete="new-password" minlength="8">'+
+        '<label class="pwshow"><input type="checkbox" id="pwd-sh"> Hiện mật khẩu</label>'+
+        '<div class="lgerr" role="alert">'+esc(st.err)+'</div>'+
+        '<div class="pwbtn"><button class="btn" type="button" data-pwd="x">'+(offer?"Để sau":"Đóng")+'</button><button class="btn pri" type="submit"'+(st.busy?" disabled":"")+'>'+(st.busy?"Đang lưu…":"Lưu mật khẩu")+'</button></div></form>';
+      var sh=el.querySelector("#pwd-sh"); sh.onchange=function(){ el.querySelectorAll("input[type=password],input.pwv").forEach(function(i){ i.type=sh.checked?"text":"password"; i.classList.toggle("pwv", sh.checked); }); };
+      var f=el.querySelector(chg&&!offer?"#pwd-old":"#pwd-n1"); if(f) f.focus();
+    }
+    function save(){
+      if(st.busy || !el) return;
+      var a=auth(); if(!a){ close(); return; }
+      var v=function(id){ var i=el.querySelector("#"+id); return i?String(i.value||""):""; };
+      var n1=v("pwd-n1"), n2=v("pwd-n2"), old=v("pwd-old");
+      if(n1.length<8){ st.err="Mật khẩu cần ít nhất 8 ký tự."; return redo(); }
+      if(n1!==n2){ st.err="Hai lần nhập mật khẩu chưa giống nhau."; return redo(); }
+      st.busy=true; st.err=""; redo(true);
+      hubPost("rhAuthPwSet",{tk:a.tk, pw:n1, old:old}).then(function(d){
+        st.busy=false;
+        if(d && d.ok){ setHasPw(true); credStore(a.user.email||lg.email, n1, a.user); close(); toast(d.message||"Đã lưu mật khẩu."); return; }
+        st.err=(d&&d.error)||"Chưa lưu được mật khẩu."; if(d && d.code==="AUTH") authFail(d.error); redo();
+      }, function(e){ st.busy=false; st.err="Không kết nối được máy chủ ("+e.message+")."; redo(); });
+    }
+    function redo(keep){
+      if(!el) return;
+      if(keep){ var b=el.querySelector("button[type=submit]"); if(b){ b.disabled=true; b.textContent="Đang lưu…"; } return; }
+      var e=el.querySelector(".lgerr"); if(e) e.textContent=st.err;
+      var b2=el.querySelector("button[type=submit]"); if(b2){ b2.disabled=st.busy; b2.textContent=st.busy?"Đang lưu…":"Lưu mật khẩu"; }
+    }
+    function open(){ st={busy:false, err:"", mode:"set"}; close(); paint(); }
+    function offer(){
+      if(hasPw()) return;
+      try{ var t=+localStorage.getItem("tm_pw_later")||0; if(Date.now()-t < 7*864e5) return; }catch(_){}
+      st={busy:false, err:"", mode:"offer"}; close(); paint();
+    }
+    return { open:open, offer:offer, close:close, on:function(){ return !!el; } };
+  })();
+  function toast(m){ var t=document.createElement("div"); t.className="tmtoast"; t.setAttribute("role","status"); t.textContent=m; document.body.appendChild(t); setTimeout(function(){ t.classList.add("out"); }, 2600); setTimeout(function(){ t.remove(); }, 3200); }
 
   /* ── đọc dữ liệu ── */
   function rowObj(a){ var o={}; COLS.forEach(function(c,i){ o[c]=a[i]; }); try{ o.it=JSON.parse(o.items||"[]")||[]; }catch(_){ o.it=[]; } o.stage=+o.stage||0; o.rev=+o.rev||1; return o; }
@@ -2224,6 +2367,11 @@ var FU=(function(){
       '<div class="hint"><button class="lnk" type="button" data-fm="pick">‹ Chọn trong danh mục</button></div></div>';
     else html+='<div class="fmq"><label class="l" for="fm-fq">Cơ sở y tế</label><input class="inp" id="fm-fq" type="search" autocomplete="off" placeholder="Gõ tên bệnh viện / TTYT, vd. mat nghe an"><div class="qsr" id="fm-fr" hidden></div>'+
       '<div class="hint">Tìm trong '+FAC.length.toLocaleString("vi-VN")+' cơ sở. Không thấy? Chọn dòng "Thêm cơ sở mới" cuối danh sách.</div></div>';
+    /* 11/11/2026 (người dùng): chống nhập trùng — cơ sở đã có gói cùng loại sản phẩm đang theo dõi / cùng số TBMT ⇒ báo ngay, mời cập nhật gói có sẵn */
+    var DU=!c ? dups(f) : [];
+    if(DU.length) html+='<div class="fdup" id="fm-dup"><b>Cơ sở này đã có '+DU.length+' gói '+(DU.some(function(x){ return isOpen(x.stage); })?'đang theo dõi':'gần đây')+':</b>'+DU.slice(0,4).map(function(x){
+        return '<div class="it"><span>'+esc(x.last.pkg||x.id)+' · <b>'+esc(SH[x.stage]||ST[x.stage]||"")+'</b> · '+esc(String(x.at).slice(8,10)+"/"+String(x.at).slice(5,7)+"/"+String(x.at).slice(0,4))+' · '+esc(x.pic||"")+'</span><button class="btn sm pri" type="button" data-fm-dup="'+esc(x.id)+'">Cập nhật gói này</button></div>'; }).join("")+
+      '<label class="dupok"><input type="checkbox" id="fm-dupok"'+(M.dupOk?" checked":"")+'> Đây là gói khác — vẫn tạo gói mới</label></div>';
     var pv=isPriv(f) || (c && c.stage>=11);
     /* 11/11/2026 (người dùng): số TBMT chỉ hỏi khi gói đã nộp hồ sơ (Đang dự thầu) — bắt buộc — hoặc đã có kết quả (không bắt buộc); các giai đoạn trước không hiện */
     var tbOn=!pv && TBST[M.stage];
@@ -2256,8 +2404,25 @@ var FU=(function(){
     if(fq) QS.wire(fq, document.getElementById("fm-fr"), function(x){ grab(); M.f=x; draw(); var p=document.getElementById("fm-pkg"); if(p) p.focus(); },
       function(q, go){ if(go){ grab(); M.newFac={name:q, ni:M.prov>=0?M.prov:"", addr:""}; draw(); var n=document.getElementById("fm-nn"); if(n) n.focus(); return; } return '+ Thêm cơ sở mới'+(q?' "'+esc(q)+'"':'')+' (chưa có trong danh mục)'; });
   }
+  /* gói có sẵn ở cùng cơ sở: cùng số TBMT, hoặc trùng loại sản phẩm mà đang theo dõi / cập nhật trong 12 tháng */
+  function kindsOf(c){ var k={}; (c.last.it||[]).forEach(function(it){ k[it.kind||"dao"]=1; }); if(!Object.keys(k).length) k.dao=1; return k; }
+  function tbn(v){ return String(v||"").replace(/\s+/g,"").toUpperCase(); }
+  function dups(f){
+    if(!f || !M) return [];
+    var tb=tbn(M.tbmt), yr=Date.now()-365*864e5;
+    return byFac(f).filter(function(x){
+      var ck=kindsOf(x), ov=Object.keys(M.kinds).some(function(k){ return ck[k]; });
+      return (tb && tbn(x.last.tbmt)===tb) || (ov && (isOpen(x.stage) || Date.parse(String(x.at).replace(" ","T"))>yr));
+    });
+  }
+  /* lần cập nhật giống hệt lần trước (giai đoạn, ghi chú, mã + SL) ⇒ không lưu lại (bấm Lưu 2 lần / gửi lại) */
+  function sameAsLast(c, stage, note, lines){
+    var L=c.last, li=(L.it||[]).map(function(x){ return x.code+"×"+(+x.qty||0); }).sort().join(","), ni=lines.map(function(x){ return x.code+"×"+x.qty; }).sort().join(",");
+    return L.stage===stage && String(L.note||"").trim()===note && li===ni;
+  }
   function grab(){
     if(!M) return;
+    var dk=document.getElementById("fm-dupok"); if(dk) M.dupOk=dk.checked;
     var v=function(id){ var e=document.getElementById(id); return e?e.value:null; };
     if(v("fm-pkg")!=null) M.pkg=v("fm-pkg").trim(); if(v("fm-tb")!=null) M.tbmt=v("fm-tb").trim();
     if(v("fm-start")!=null) M.start=v("fm-start"); if(v("fm-dur")!=null) M.dur=v("fm-dur").replace(/[^\d]/g,"");
@@ -2275,6 +2440,8 @@ var FU=(function(){
     if(b.dataset.add){ grab(); M.lines.push({code:"",qty:"",kind:b.dataset.add}); draw(); var ins=FB.querySelectorAll('[data-ln="code"]'); if(ins.length) ins[ins.length-1].focus(); return; }
     if(b.dataset.rm!=null){ grab(); M.lines.splice(+b.dataset.rm,1); if(!M.lines.length) M.lines.push({code:"",qty:"",kind:Object.keys(M.kinds)[0]}); draw(); return; }
     if(b.dataset.st){ grab(); M.stage=+b.dataset.st; draw(); return; }
+    if(b.dataset.fmDup){ grab(); var keep={ note:M.note, due:M.due, value:M.value, tbmt:M.tbmt, lines:M.lines.filter(function(l){ return l.code; }) };
+      if(!keep.lines.length) delete keep.lines; open({caseId:b.dataset.fmDup, pre:keep}); return; }
     var a=b.dataset.fm;
     if(a==="cancel") close();
     else if(a==="chg"){ grab(); M.f=null; draw(); }
@@ -2296,11 +2463,13 @@ var FU=(function(){
     if(lines.some(function(l){ return !l.qty; })){ M.err="Nhập số lượng ước tính cho mọi mã."; draw(); return; }
     var pvS=M.stage>=11, ptype=KD.filter(function(x){ return M.kinds[x.k]; }).map(function(x){ return x.pt; }).join(" + ");
     if(!pvS && M.stage===5 && !M.tbmt){ M.err="Gói đã nộp hồ sơ (Đang dự thầu): nhập số TBMT."; draw(); var tbi=document.getElementById("fm-tb"); if(tbi) tbi.focus(); return; }
+    if(!M.c && f && dups(f).length && !M.dupOk){ M.err="Cơ sở này đã có gói đang theo dõi: bấm \"Cập nhật gói này\", hoặc tick \"Đây là gói khác\" nếu đúng là gói mới."; draw(); var dp=document.getElementById("fm-dup"); if(dp) dp.scrollIntoView({block:"center"}); return; }
+    if(M.c && sameAsLast(M.c, M.stage, M.note.trim(), lines)){ M.err="Nội dung giống hệt lần cập nhật trước ("+String(M.c.at).slice(0,16)+") — không cần lưu lại. Sửa ghi chú / giai đoạn nếu có thay đổi."; draw(); return; }
     if(!M.c && !M.pkg) M.pkg=(pvS?"Mua sắm ":"Gói ")+ptype.toLowerCase()+" "+(M.start?M.start.slice(0,4):new Date().getFullYear());
     var r=rid(), now=new Date(), at=now.getFullYear()+"-"+String(now.getMonth()+1).padStart(2,"0")+"-"+String(now.getDate()).padStart(2,"0")+" "+String(now.getHours()).padStart(2,"0")+":"+String(now.getMinutes()).padStart(2,"0")+":"+String(now.getSeconds()).padStart(2,"0");
     var cid=M.c?M.c.id:"tmp-"+r, rev=M.c?M.c.revs.length+1:1, qty=lines.reduce(function(s2,l){ return s2+l.qty; },0);
     var body={ action:"fuSave", rid:r, "case":M.c?M.c.id:"", fid:fid, hosp:hosp, prov:NEW[ni][0], addr:addr, own:SCOPE.ownerOf(ni, (f&&f.oi) || ((provOf(NEW[ni][0], addr)||{}).o) || ""), pkg:M.pkg, tbmt:M.tbmt, ptype:ptype, items:lines,
-               value:M.value||"", stage:M.stage, due:M.due, note:M.note.trim(), ll:ll, src:"Tender Map", start:M.start||"", dur:M.dur||"" };
+               value:M.value||"", stage:M.stage, due:M.due, note:M.note.trim(), ll:ll, src:"Tender Map", start:M.start||"", dur:M.dur||"", force:(!M.c && M.dupOk)?1:"" };
     var row=[at, cid, rev, a.user.pic, "", fid, hosp, NEW[ni][0], addr, M.pkg, M.tbmt, ptype, lines.map(function(l){ return l.code+" × "+l.qty; }).join("; "), qty, +M.value||0, M.stage, ST[M.stage], M.due, M.note.trim(), JSON.stringify(lines), r, "Tender Map", ll];
     OB.push({rid:r, body:body, row:row, tmp:M.c?"":cid, tries:0, err:""}); obSave();
     var fx=f || null; close(); inval();
@@ -2315,16 +2484,31 @@ var FU=(function(){
   function obChip(){
     var b=document.getElementById("obx"); if(!b) return;
     var err=OB.filter(function(o){ return o.err; }).length, n=OB.length;
-    if(!n){ b.hidden=true; return; }
+    if(!n){ b.hidden=true; obPanel(false); return; }
     b.hidden=false; b.className="obx"+(err?" err":"");
-    b.textContent = err ? err+" cập nhật chưa lưu được — bấm để thử lại" : "Đang lưu "+n+" cập nhật…";
-    b.onclick=function(){
-      if(!err) return;
-      var o=OB.filter(function(x){ return x.err; })[0];
-      if(window.confirm(o.err+"\n\nThử gửi lại? (Bấm Huỷ để chọn bỏ cập nhật này)")){ OB.forEach(function(x){ x.err=""; x.tries=0; }); obSave(); obRun(); }
-      else if(window.confirm("Bỏ cập nhật chưa lưu được của "+o.body.hosp+"?")){ OB=OB.filter(function(x){ return x!==o; }); obSave(); inval(); refresh(); }
-    };
+    b.textContent = err ? err+" cập nhật chưa lưu được — bấm để xử lý" : "Đang lưu "+n+" cập nhật…";
+    b.onclick=function(e){ e.stopPropagation(); if(err) obPanel(true); };
   }
+  /* bảng xử lý cập nhật lỗi (thay hộp confirm của trình duyệt — app cài / điện thoại hay chặn hộp này) */
+  function obPanel(show){
+    var P=document.getElementById("obp"); if(P) P.remove(); if(!show) return;
+    var o=OB.filter(function(x){ return x.err; })[0]; if(!o) return;
+    P=document.createElement("div"); P.id="obp"; P.className="obp"; P.setAttribute("role","dialog"); P.setAttribute("aria-label","Cập nhật chưa lưu được");
+    P.innerHTML='<b>'+esc(o.body.hosp||"")+'</b><p>'+esc(o.err)+'</p><div class="obb">'+
+      (o.dup ? '<button class="btn pri" type="button" data-ob="merge">Gộp vào gói có sẵn</button><button class="btn" type="button" data-ob="force">Vẫn tạo gói mới</button>'
+             : '<button class="btn pri" type="button" data-ob="retry">Thử lại</button>')+
+      '<button class="btn" type="button" data-ob="drop">Bỏ cập nhật này</button><button class="btn" type="button" data-ob="x">Đóng</button></div>';
+    document.body.appendChild(P);
+    P.addEventListener("click",function(e){
+      var k=e.target.closest("[data-ob]"); if(!k) return; e.stopPropagation(); var a=k.dataset.ob;
+      if(a==="merge"){ var old=o.tmp; o.body["case"]=o.dup; o.row[1]=o.dup; o.tmp=""; OB.forEach(function(x){ if(old && x.body["case"]===old){ x.body["case"]=o.dup; x.row[1]=o.dup; } }); o.dup=""; o.err=""; o.tries=0; }
+      else if(a==="force"){ o.body.force=1; o.dup=""; o.err=""; o.tries=0; }
+      else if(a==="retry"){ OB.forEach(function(x){ if(!x.dup){ x.err=""; x.tries=0; } }); }
+      else if(a==="drop"){ OB=OB.filter(function(x){ return x!==o; }); }
+      P.remove(); obSave(); inval(); refresh(); if(a!=="x" && a!=="drop") obRun();
+    });
+  }
+  document.addEventListener("click",function(e){ var P=document.getElementById("obp"); if(P && !P.contains(e.target)) P.remove(); });
   function post(body){
     return fetch(CRM_SURG,{ method:"POST", body:JSON.stringify(body), headers:{"Content-Type":"text/plain;charset=utf-8"}, redirect:"follow", credentials:"omit" })
       .then(function(r){ if(!r.ok) throw new Error("HTTP "+r.status); return r.json(); })
@@ -2354,7 +2538,7 @@ var FU=(function(){
         obSave(); inval(); refresh(); obRun(); if(typeof FA!=="undefined") setTimeout(FA.load, 400); return;
       }
       if(d && d.code==="AUTH"){ o.err=d.error||"Phiên đăng nhập hết hạn."; authFail(o.err); }
-      else o.err=(d&&d.error)||"Máy chủ chưa nhận cập nhật.";
+      else { o.err=(d&&d.error)||"Máy chủ chưa nhận cập nhật."; o.dup = d && d.code==="DUP" && d["case"] ? d["case"] : ""; }
       obSave(); inval(); refresh();
     },function(e){
       obBusy=false; o.tries++;
@@ -2366,7 +2550,7 @@ var FU=(function(){
   SB.addEventListener("click",function(e){
     var b=e.target.closest("[data-lg],[data-fu-up],[data-fu-new],[data-fu-stage],[data-fu-res],[data-fu-warn],[data-fu-wall],[data-fh]"); if(!b) return;
     e.stopPropagation();
-    if(b.dataset.lg){ var k=b.dataset.lg; if(k==="open"){ lg.open=true; side(); var ie=document.getElementById("lg-email"); if(ie) ie.focus(); return; } if(k==="send") lgSend(); else if(k==="resend") lgSend(true); else if(k==="verify") lgVerify(); else if(k==="back"){ lg.step="email"; lg.err=""; side(); } return; }
+    if(b.dataset.lg){ var k=b.dataset.lg; if(k==="open"){ lg.open=true; side(); var ie=document.getElementById("lg-email"); if(ie) ie.focus(); return; } lgAct(k, b); return; }
     if(b.dataset.fuUp){ open({caseId:b.dataset.fuUp}); return; }
     if(b.dataset.fuWarn!=null){ var w0=WL[+b.dataset.fuWarn]; if(w0) open({f:w0.p.h.f, pre:rePre(w0)}); return; }
     if(b.dataset.fuWall){ S.wAll=true; side(); return; }
@@ -2376,15 +2560,19 @@ var FU=(function(){
     if(b.dataset.fuStage!=null){ var s2=+b.dataset.fuStage; S.stage = S.stage===s2 ? 0 : s2; if(s2 && S.stf!=="all" && !pass({stage:s2,pic:""},true)) S.stf="all"; filters(); refresh(); return; }
     if(b.dataset.fh && HK[b.dataset.fh]) selectHosp(HK[b.dataset.fh]);
   }, true);
-  SB.addEventListener("keydown",function(e){
-    if(e.key==="Enter"){ if(e.target.id==="lg-email"){ e.preventDefault(); lgSend(); } else if(e.target.id==="lg-code"){ e.preventDefault(); lgVerify(); } }
-  });
+  /* form đăng nhập (bảng bên + màn hình đầu): Enter / nút Đăng nhập = submit của form ⇒ trình duyệt nhận ra để lưu mật khẩu */
+  document.addEventListener("submit",function(e){ var f=e.target.closest && e.target.closest("form[data-lgf]"); if(!f) return; e.preventDefault(); lgAct(f.dataset.lgf); });
   window.addEventListener("online", obRun);
   setTimeout(obRun, 1500);
   setInterval(function(){ if(F.view==="fu" && auth() && !S.loading && document.visibilityState==="visible") load(); }, 5*60000);
   function ensure(){ if(auth() && !S.loaded && !S.loading) load(); }
-  function lgAct(k){ if(k==="send") lgSend(); else if(k==="resend") lgSend(true); else if(k==="verify") lgVerify(); else if(k==="back"){ lg.step="email"; lg.err=""; lgUi(); } }
-  return { ST:ST, SC:SC, sum:sum, tk:tk, loginHtml:loginHtml, lgAct:lgAct, lgStep:function(){ return lg.step; }, onLogin:function(fn){ ONL.push(fn); }, isPriv:isPriv, mine:mine, pcol:pcol, warns:warns, warnCount:warnCount, ensure:ensure, load:load, filters:filters, stats:stats, col:col, legend:legend, tipP:tipP, tipH:tipH, side:side, hospHtml:hospHtml,
+  function lgAct(k, b){
+    if(k==="pw") lgPw(); else if(k==="send") lgSend(); else if(k==="resend") lgSend(true); else if(k==="verify") lgVerify();
+    else if(k==="back"){ lg.step="pw"; lg.err=""; lgUi(); var ie=document.getElementById("lg-pw"); if(ie) ie.focus(); }
+    else if(k==="eye"){ var pi=document.getElementById("lg-pw"); if(pi){ pi.type = pi.type==="password" ? "text" : "password"; if(b) b.classList.toggle("on", pi.type==="text"); pi.focus(); } }
+  }
+  setTimeout(renew, 4000); setInterval(renew, 6*3600*1000);
+  return { ST:ST, SC:SC, sum:sum, tk:tk, loginHtml:loginHtml, lgAct:lgAct, lgStep:function(){ return lg.step; }, autoLogin:autoLogin, pwd:function(){ return PWD; }, renew:renew, onLogin:function(fn){ ONL.push(fn); }, isPriv:isPriv, mine:mine, pcol:pcol, warns:warns, warnCount:warnCount, ensure:ensure, load:load, filters:filters, stats:stats, col:col, legend:legend, tipP:tipP, tipH:tipH, side:side, hospHtml:hospHtml,
            byFac:byFac, open:open, inval:inval, cases:cases, items:items, plans:plans, bar:bar, auth:auth, color:FUCOL, _S:S, _OB:function(){ return OB; },
            fac:facOfRow, resTxt:resTxt, covData:covData,
            results:function(){ return cases().filter(function(c){ return c.f && SCOPE.inProv(c.f.ni, c.f.oi) && matchRes(c); }).map(function(c){ return {c:c, r:matchRes(c)}; }); },
@@ -2416,18 +2604,22 @@ var FA=(function(){
     S.cols=d.cols||[]; S.rows=d.rows||[]; S.fy=d.fy||null; S.prices=d.prices||{}; S.stages=d.stages||[]; S.priv=d.priv||[]; S.lists=d.lists||{}; S.sync=d.sync||{};
     S.loaded=true; S.cached=!!cached; index();
   }
+  /* đang đọc mà lại cần đọc (vừa lưu / xoá 1 dòng) ⇒ đọc lại ngay khi lượt đang chạy xong — trước đây bỏ qua ⇒ lượt đang chạy (bắt đầu TRƯỚC khi lưu)
+     trả dữ liệu cũ, màn hình vẫn hiện số cũ đến lần tải sau (11/11/2026) */
   function load(){
     var t=FU.tk(); if(!t){ box(); return Promise.resolve(); }
-    if(S.loading) return Promise.resolve();
-    S.loading=true; S.err=""; box();
+    if(S.loading){ S.again=true; return S.lp || Promise.resolve(); }
+    S.loading=true; S.again=false; S.err=""; box();
     if(!S.loaded) IDB.get("fa").then(function(c){ if(c && c.d && !S.loaded){ apply(c.d, true); S.at=c.at; after(); } });
-    return getJSON(CRM_SURG+"?action=fuFcList&tk="+encodeURIComponent(t)).then(function(d){
+    function next(){ if(S.again){ S.again=false; load(); } }
+    S.lp=getJSON(CRM_SURG+"?action=fuFcList&tk="+encodeURIComponent(t)).then(function(d){
       S.loading=false;
       if(d && d.ok){ apply(d); S.at=new Date().toLocaleString("vi-VN"); IDB.set("fa", {at:S.at, d:d}); }
       else if(d && d.code==="AUTH") S.err=d.error||"Phiên đăng nhập hết hạn.";
       else S.err=(d&&d.error)||"Không đọc được dữ liệu dự báo (Follow up by Account).";
-      after();
-    },function(e){ S.loading=false; S.err="Không đọc được dữ liệu dự báo ("+e.message+")."; box(); });
+      after(); next();
+    },function(e){ S.loading=false; S.err="Không đọc được dữ liệu dự báo ("+e.message+")."; box(); next(); });
+    return S.lp;
   }
   function ensure(){ if(FU.auth() && !S.loaded && !S.loading) load(); else box(); }
   /* dữ liệu kế hoạch đổi ⇒ Theo dõi thầu (hàng nút giai đoạn, bản đồ) vẽ lại */
@@ -2463,7 +2655,7 @@ var FA=(function(){
     if(min){
       var pp=[]; if(cv) pp.push(esc(cv.short)+' <b>'+Math.round(cv.main*100)+'%</b>');
       if(!act) pp.push(S.loaded ? 'DS '+fyLbl()+' <b>'+vnd(s.val)+'</b>' : (S.loading?'Đang đọc doanh số…':'Doanh số ước tính'));
-      BOX.innerHTML='<button class="fapill" type="button" data-fa="min" title="Mở độ phủ / doanh số ước tính">'+pp.join(' · ')+'<i>▾</i></button>'; return;
+      BOX.innerHTML='<button class="fapill" type="button" data-fa="min" title="Mở tỷ lệ / doanh số ước tính"><span>'+pp.join(' · ')+'</span><i>▾</i></button>'; return;
     }
     var html='<button class="fax" type="button" data-fa="min" title="Thu gọn" aria-label="Thu gọn">–</button>'+(cv ? COV.html(cv) : '');
     if(!act){
@@ -2488,6 +2680,7 @@ var FA=(function(){
     if(b.dataset.faCh){ S.ch=b.dataset.faCh; lsSet("tm_fa_ch",S.ch); box(); if(selH) renderSide(); return; }
     var mob=MQ.matches, min = S.min==null ? mob : S.min; S.min=!min; lsSet("tm_fa_min", S.min?"1":"0");
     if(!S.loaded && !S.loading) load(); box();
+    if(mob && !S.min && SHEET.state()==="peek") SHEET.to("half");
   });
   /* ── chi tiết cơ sở: các mã dự báo + sửa ── */
   function rowsOf(h){
@@ -2732,27 +2925,27 @@ var COV=(function(){
         else if(p.npp===x.npp){ hM[p.h.key]=1; if(inPeriod(p)){ hW[p.h.key]=1; pW[p.ni]=1; } } });
     });
     var per=periodLabel(), who=L.map(function(x){ return NPPN[x.npp]; }).join(" + ");
-    var it=[]; if(sel<0) it.push({a:n(pW), b:n(pT), l:"tỉnh có kết quả", t:"Tỉnh có ≥ 1 kết quả trúng của "+who+" trong kỳ ÷ tỉnh NPP phụ trách"});
-    it.push({a:n(hW), b:n(hM), l:"bệnh viện trúng", t:"Bệnh viện "+who+" trúng trong kỳ ÷ bệnh viện có kết quả trúng ở KQTT toàn quốc (mọi năm) trong địa bàn"});
-    return { short:"Độ phủ trúng", h:"Độ phủ trúng thầu", sub:who+" · "+per, it:it };
+    var it=[]; if(sel<0) it.push({a:n(pW), b:n(pT), l:"tỉnh đã có gói trúng", sh:"Tỉnh đã trúng", t:"Số tỉnh "+who+" có ít nhất 1 gói trúng trong kỳ / số tỉnh NPP phụ trách"});
+    it.push({a:n(hW), b:n(hM), l:"bệnh viện đã trúng", sh:"BV đã trúng", t:"Số bệnh viện "+who+" trúng trong kỳ / số bệnh viện có mua dao, chỉ khâu qua thầu (KQTT toàn quốc, mọi năm) trong địa bàn"});
+    return { h:"Đã trúng thầu ở đâu", sub:who+" · "+per+" · trên tổng số "+(sel<0?"tỉnh phụ trách / ":"")+"bệnh viện có mua qua thầu", it:it };
   }
   function fu(){
     var d=FU.covData(); if(!d) return null;
-    var it=[]; if(d.pv) it.push({a:d.h[0], b:d.h[1], l:"khách tư nhân", t:"Cơ sở tư nhân có cơ hội mua sắm đang theo dõi ÷ khách tư nhân trong customer list"});
-    else { it.push({a:d.h[0], b:d.h[1], l:"bệnh viện theo dõi", t:"Bệnh viện có gói theo dõi / kế hoạch FY"+FY_NOW+" có giai đoạn ÷ bệnh viện có kết quả trúng (thị trường) trong địa bàn"});
-      if(sel<0) it.push({a:d.p[0], b:d.p[1], l:"tỉnh theo dõi", t:"Tỉnh có gói theo dõi ÷ tỉnh trong địa bàn"}); }
-    return { short:"Độ phủ theo dõi", h:"Độ phủ theo dõi"+(d.pv?" · tư nhân":""), sub:(SCOPE.pic()?"Địa bàn "+SCOPE.pic():"Cả nhóm")+" · "+periodLabel(), it:it };
+    var it=[]; if(d.pv) it.push({a:d.h[0], b:d.h[1], l:"khách tư nhân đang theo dõi", sh:"Khách tư nhân theo dõi", t:"Số cơ sở tư nhân có cơ hội mua sắm đang theo dõi / số khách tư nhân trong danh sách phụ trách"});
+    else { it.push({a:d.h[0], b:d.h[1], l:"bệnh viện đang theo dõi", sh:"BV đang theo dõi", t:"Số bệnh viện có gói đang theo dõi (hoặc kế hoạch FY"+FY_NOW+" đã có giai đoạn) / số bệnh viện có mua qua thầu trong địa bàn"});
+      if(sel<0) it.push({a:d.p[0], b:d.p[1], l:"tỉnh có gói theo dõi", sh:"Tỉnh có gói theo dõi", t:"Số tỉnh có gói đang theo dõi / số tỉnh trong địa bàn"}); }
+    return { h:"Đang theo dõi ở đâu"+(d.pv?" · tư nhân":""), sub:(SCOPE.pic()?"Địa bàn "+SCOPE.pic():"Cả nhóm")+" · "+periodLabel(), it:it };
   }
   function act(){
     var d=ACT.cov2(); if(!d) return null;
-    return { short:"Độ phủ chăm sóc", h:"Độ phủ chăm sóc khách hàng", sub:d.who+" · "+d.per,
-      it:[{a:d.pub[0], b:d.pub[1], l:"công lập", t:"Khách công lập đã chăm sóc trong kỳ ÷ khách công lập trong customer list"}, {a:d.pv[0], b:d.pv[1], l:"tư nhân", t:"Khách tư nhân đã chăm sóc trong kỳ ÷ khách tư nhân trong customer list"}],
+    return { h:"Khách đã gặp trong kỳ", sub:d.who+" · "+d.per, totSh:"Khách đã gặp",
+      it:[{a:d.pub[0], b:d.pub[1], l:"khách công lập", t:"Số khách công lập đã có lượt chăm sóc trong kỳ / số khách công lập trong danh sách phụ trách (CRM)"}, {a:d.pv[0], b:d.pv[1], l:"khách tư nhân", t:"Số khách tư nhân đã có lượt chăm sóc trong kỳ / số khách tư nhân trong danh sách phụ trách (CRM)"}],
       tot:d.all };
   }
   function get(){
     var o = F.view==="act" ? act() : F.view==="fu" ? fu() : (PKGS.length ? win() : null); if(!o) return null;
     var a=0, b=0; (o.tot ? [ {a:o.tot[0], b:o.tot[1]} ] : o.it.slice(0,1)).forEach(function(x){ a+=x.a; b+=x.b; });
-    o.main = b ? a/b : 0; return o;
+    o.main = b ? a/b : 0; o.short = o.tot ? o.totSh : o.it[0].sh; return o;
   }
   function donut(v){
     v=Math.max(0, Math.min(1, v||0)); var c=2*Math.PI*17, col = v>=0.7 ? "#1E7B4F" : v>=0.4 ? "#3A5CAA" : v>=0.2 ? "#C77700" : "#B42318";
@@ -2761,7 +2954,7 @@ var COV=(function(){
       '<text x="22" y="25.5" text-anchor="middle">'+Math.round(v*100)+'%</text></svg>';
   }
   function html(o){
-    return '<div class="cov"><div class="fah"><b>'+esc(o.h)+'</b></div><div class="cvs">'+esc(o.sub)+(o.tot?' · tổng <b>'+o.tot[0]+'/'+o.tot[1]+'</b> khách':'')+'</div><div class="cvr">'+o.it.map(function(x){
+    return '<div class="cov"><div class="fah"><b>'+esc(o.h)+'</b></div><div class="cvs">'+esc(o.sub)+(o.tot?' · tổng <b>'+o.tot[0]+'/'+o.tot[1]+'</b> khách phụ trách':'')+'</div><div class="cvr">'+o.it.map(function(x){
       return '<div class="cvi" title="'+esc(x.t)+'">'+donut(x.b ? x.a/x.b : 0)+'<div><b>'+nfmt(x.a)+'<span>/'+nfmt(x.b)+'</span></b><span>'+esc(x.l)+'</span></div></div>'; }).join("")+'</div></div>';
   }
   return { get:get, html:html, donut:donut };
@@ -2779,16 +2972,19 @@ function jsonp(url, ms){
   });
 }
 function getJSON(url){
+  var pre=window.__PRE && window.__PRE[url];                                 /* đã tải sớm từ index.html ⇒ dùng lại (1 lần) */
+  if(pre){ delete window.__PRE[url]; return pre.catch(function(){ return getJSON(url); }); }
   var ctl = window.AbortController ? new AbortController() : null, to = setTimeout(function(){ if(ctl) ctl.abort(); }, 30000);
   return fetch(url,{redirect:"follow", credentials:"omit", signal: ctl? ctl.signal : undefined}).then(function(r){ clearTimeout(to); if(!r.ok) throw new Error("HTTP "+r.status); return r.json(); })
     .catch(function(){ clearTimeout(to); return jsonp(url, 30000); });
 }
-function loadOne(k){
-  if(k==="KQTT") return getJSON(NPP.KQTT.url+"?action=kqttMap&from=202209").then(function(d){
+function loadOne(k, force){
+  var fr = force ? "&fresh=1" : "";                                         /* nút Tải lại ⇒ máy chủ bỏ bản đệm 10 phút (MMH_WinMap v1.1) */
+  if(k==="KQTT") return getJSON(NPP.KQTT.url+"?action=kqttMap&from=202209"+fr).then(function(d){
     if(d && d.ok && Array.isArray(d.cols) && Array.isArray(d.rows)) return { rows:{cols:d.cols, rows:d.rows}, meta:{exported:d.exported, sheet:d.sheet, n:d.n} };
     throw new Error((d&&d.error)||"máy chủ chưa có bản đọc KQTT");
   });
-  return getJSON(NPP[k].url+"?action=winMap&from=202209").then(function(d){
+  return getJSON(NPP[k].url+"?action=winMap&from=202209"+fr).then(function(d){
     if(d && d.ok && d.v && Array.isArray(d.rows)) return { rows:d.rows, meta:{exported:d.exported, sheet:d.sheet} };
     // máy chủ chưa có action=winMap ⇒ trả feed mặc định (chỉ dao)
     if(d && Array.isArray(d.rows)) return { rows:d.rows, meta:{exported:(d.meta&&d.meta.exported)||"", lite:true} };
@@ -2800,7 +2996,7 @@ function load(force){
   var errs=[];
   if(force && F.view==="fu") FU.load();
   return Promise.all(SRCS.map(function(k){
-    return loadOne(k).then(function(r){ RAW[k]=r.rows; META[k]=r.meta; }).catch(function(e){ errs.push(NPP[k].name+" ("+e.message+")"); });
+    return loadOne(k, force).then(function(r){ RAW[k]=r.rows; META[k]=r.meta; }).catch(function(e){ errs.push(NPP[k].name+" ("+e.message+")"); });
   })).then(function(){
     META.cached=null;
     LOADERR = errs.length ? "Không đọc được: "+errs.join(", ")+"." : "";
@@ -2828,6 +3024,10 @@ function placeCtl(){
   var nb=document.getElementById("news");                                  /* chuông Mới cập nhật luôn ở thanh trên (điện thoại không giấu vào bảng Bộ lọc) */
   if(nb){ if(mob){ if(nb.parentNode!==top) top.insertBefore(nb, document.getElementById("f-more")); } else if(nb.parentNode!==tl) tl.insertBefore(nb, document.getElementById("reload")); }
   document.getElementById("fdrw-t").textContent = mob ? "Chế độ xem · bộ lọc" : "Bộ lọc";
+  /* thẻ tỷ lệ / doanh số: máy tính nổi góc phải bản đồ; điện thoại nằm đầu bảng trượt (không che bản đồ — người dùng 11/11/2026) */
+  var fb=document.getElementById("fabox"), sd=document.querySelector(".side");
+  if(fb && sd){ if(mob){ if(fb.parentNode!==sd) sd.insertBefore(fb, document.getElementById("sb")); }
+    else if(fb.parentNode!==document.querySelector(".mapcard")) document.querySelector(".mapcard").insertBefore(fb, document.getElementById("tip")); }
   fchips(); hdrH(); SHEET.apply();
 }
 var FD=(function(){
@@ -3179,7 +3379,7 @@ var ACT=(function(){
   }
   function days(a,b){ return Math.round((new Date(b+"T00:00:00")-new Date(a+"T00:00:00"))/864e5); }
   function covBar(){
-    return '<div class="vsw" role="group" aria-label="Cách xem bản đồ"><button type="button" data-cov="" class="'+(!S.cov?"on":"")+'">Lượt chăm sóc</button><button type="button" data-cov="'+(S.cov||"mani")+'" class="'+(S.cov?"on":"")+'">Độ phủ cơ sở trúng thầu</button></div>'+
+    return '<div class="vsw" role="group" aria-label="Cách xem bản đồ"><button type="button" data-cov="" class="'+(!S.cov?"on":"")+'">Lượt chăm sóc</button><button type="button" data-cov="'+(S.cov||"mani")+'" class="'+(S.cov?"on":"")+'">Cơ sở trúng thầu: đã gặp chưa</button></div>'+
       (S.cov?'<div class="chips"><button type="button" class="chip'+(S.cov==="mani"?" on":"")+'" data-cov="mani">MANI đã trúng</button><button type="button" class="chip'+(S.cov==="all"?" on":"")+'" data-cov="all">Có KQTT dao / chỉ khâu (mọi hãng)</button></div>':'');
   }
   function side(){
@@ -3225,7 +3425,7 @@ var ACT=(function(){
   /* bảng bên chế độ Độ phủ: số chính ⇒ theo tỉnh ⇒ cơ sở chưa chăm sóc (ưu tiên) ⇒ đã chăm sóc */
   function covSide(){
     var t=document.getElementById("sh-t"), sub=document.getElementById("sh-s");
-    t.textContent="Độ phủ · "+(sel>=0 ? NEW[sel][0] : SCOPE.place());
+    t.textContent="Cơ sở trúng thầu đã gặp · "+(sel>=0 ? NEW[sel][0] : SCOPE.place());
     sub.textContent=perLabel()+" · "+picLabel()+" · lượt "+typeLabel()+(S.st==="done"?" đã thực hiện":" (cả kế hoạch)")+" · "+covWhat()+" (dữ liệu thầu mọi năm)";
     var T=Object.keys(HS).map(function(k){ return HS[k]; }).filter(function(x){ return sel<0 || x.h.ni===sel; });
     var ct=T.length, cv=T.filter(function(x){ return x.cov; }).length, never=T.filter(function(x){ return !x.cov && !x.ever; }).length, pc=ct?Math.round(cv/ct*100):0;
@@ -3619,14 +3819,14 @@ var GATE=(function(){
     var f=document.getElementById("gate-f"); if(!f) return;
     var ae=document.activeElement, keep=ae && f.contains(ae) ? ae.id : "";
     f.innerHTML=FU.loginHtml("gate");
-    var nx=document.getElementById(FU.lgStep()==="email" ? "lg-email" : "lg-code");
-    if(nx && (keep || !ae || ae===document.body)) nx.focus();
+    if(keep){ var k2=document.getElementById(keep); if(k2){ k2.focus(); return; } }
+    var em=document.getElementById("lg-email"), nx = FU.lgStep()==="code" ? document.getElementById("lg-code") : (em && em.value ? document.getElementById("lg-pw") : em);
+    if(nx && (!ae || ae===document.body || keep)) nx.focus();
   }
-  function show(){ on=true; el.hidden=false; document.body.classList.add("gated"); art(); paint(); }
+  function show(){ on=true; el.hidden=false; document.body.classList.add("gated"); art(); paint(); FU.autoLogin(); }
   function hide(){ if(!on) return; on=false; el.hidden=true; document.body.classList.remove("gated"); }
   function check(){ if(FU.auth()) hide(); else show(); }
-  el.addEventListener("click",function(e){ var b=e.target.closest("[data-lg]"); if(!b) return; e.preventDefault(); FU.lgAct(b.dataset.lg); });
-  el.addEventListener("keydown",function(e){ if(e.key!=="Enter") return; var t=e.target; if(t.id==="lg-email"){ e.preventDefault(); FU.lgAct("send"); } else if(t.id==="lg-code"){ e.preventDefault(); FU.lgAct("verify"); } });
+  el.addEventListener("click",function(e){ var b=e.target.closest("[data-lg]"); if(!b) return; e.preventDefault(); FU.lgAct(b.dataset.lg, b); });
   FU.onLogin(function(){ hide(); ACT.ensure(); FA.ensure(); NEWS.load(); SCOPE.apply(); TOUR.auto(); });
   return { show:show, hide:hide, check:check, paint:paint, art:art, on:function(){ return on; } };
 })();

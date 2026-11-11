@@ -114,6 +114,17 @@ Trang tĩnh (GitHub Pages): `https://manimedicalhanoi.github.io/Tender-Result/ma
 - **Hiện tức thì**: bấm khách / bệnh viện không còn chờ máy chủ — dùng 3 lượt gần nhất có sẵn và bản lưu trên máy, đọc mới ở nền (backend `crm-surgical/MMH_VisitMap.gs` v1.1).
 - **Bảng bên gọn**: số chính ở trên, dòng điểm chính thay đoạn văn, xếp hạng / biểu đồ / danh sách phụ thành mục thu gọn (nhớ mở / đóng).
 
+## Cập nhật 11/11/2026 (4) — rà soát theo 3 mục đích: theo dõi thầu · Sales cập nhật · quản lý xem hiệu quả (v24)
+- **So sánh theo Sales** (quản lý; ở Hoạt động và Theo dõi thầu khi xem cả nhóm): cột = Sales, dòng = Lượt viếng thăm · Khách phụ trách đã gặp (% và số) ·
+  Gói đang theo dõi · Lần cập nhật trong kỳ · Gói > 30 ngày chưa cập nhật · NPP trúng ở địa bàn · Doanh số ước tính FY. Theo kỳ đang xem, theo tỉnh đang chọn;
+  bấm tên 1 Sales ⇒ xem riêng địa bàn đó. Sales đăng nhập chỉ thấy cột của mình ("Kết quả của …").
+- **Theo dõi thầu**: bảng bên xếp lại — 3 ô số (gói đang theo dõi · cơ sở · cập nhật 7 ngày) + nút to **+ Thêm gói theo dõi** ⇒ gói đã có kết quả cần cập nhật ⇒ hợp đồng sắp hết hạn
+  ⇒ So sánh theo Sales ⇒ chi tiết. Bỏ ô dao / chỉ ước tính (trùng thẻ doanh số) và nút Thêm gói trùng ở thanh trên. Hàng nút giai đoạn đếm đúng tỉnh đang xem (trước đếm cả nước).
+- **Chi tiết cơ sở**: nút chính to — có 1 gói đang mở ⇒ **Cập nhật gói: <giai đoạn>** + "+ Gói khác"; chưa có ⇒ **+ Thêm gói theo dõi**. Địa chỉ quá dài (file NPP dính tên gói) cắt gọn.
+- **Kết quả thầu**: kỳ hiện tại chưa có gói ở tỉnh / toàn quốc (đầu FY, KQTT cập nhật chậm) ⇒ thông báo ngay đầu bảng "FY68 chưa có gói trúng ở … KQTT toàn quốc mới cập nhật đến mm/yyyy"
+  + nút **Xem FY67** · **Xem mọi năm**.
+- **Hoạt động**: số "khách phụ trách đã gặp" ở bảng bên = thẻ trên bản đồ (cùng bỏ NPP; trước lệch 290 / 292).
+
 ## Cập nhật 11/11/2026 (3) — đăng nhập mật khẩu · điện thoại không che bản đồ · chống nhập trùng · mở nhanh (v23)
 - **Đăng nhập email + mật khẩu**: màn hình đầu có ô Email + Mật khẩu (trình duyệt / app nhớ và tự điền); chưa có / quên mật khẩu ⇒ **Nhận mã qua email** như cũ,
   đăng nhập bằng mã xong app mời **Đặt mật khẩu cho lần sau**. Chrome / Edge / Android: đã lưu mật khẩu thì phiên hết hạn tự đăng nhập lại (không hỏi).

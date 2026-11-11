@@ -873,3 +873,18 @@ html.mob #zin, html.mob #zout{display:none}
   .dlg .box.wide .lines .ln{grid-template-columns:minmax(0,1fr) 92px 34px}
   .fdup .it{flex-direction:column;align-items:flex-start}
 }
+/* rà soát 11/11/2026: nút hành động chính · So sánh theo Sales · thông báo kỳ trống */
+.fuact{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 10px}
+.fuact .btn{padding:8px 14px;border-radius:10px;font-size:13.5px}
+.fuact .btn.pri{flex:1 1 auto}
+.fuaddw{display:block;width:100%;margin:2px 0 12px;padding:9px 14px;border-radius:10px;font-size:14px}
+.kpis.k3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.scb{width:100%}
+.scb th{font-weight:600;color:var(--navy);white-space:nowrap}
+.scb th.click{cursor:pointer}
+.scb th.click:hover{text-decoration:underline}
+.scb tr.g td{background:var(--sf2);color:var(--t3);font-size:11.5px;font-weight:600;text-transform:uppercase;letter-spacing:.3px;padding-top:6px;padding-bottom:4px}
+.scb td small{color:var(--t3);font-size:11px}
+.scb td.r{white-space:nowrap}
+.note.empt{border-color:#F1C27D;background:#FFF8E1}
+.note.empt .eb{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}

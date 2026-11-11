@@ -3,8 +3,8 @@
    Dữ liệu Apps Script (khác tên miền) KHÔNG qua đây — trang tự nhớ bản đọc gần nhất (localStorage).
    Đổi quy tắc lưu ⇒ tăng V. Gỡ khẩn cấp: thay toàn bộ file bằng
    self.addEventListener('install',()=>self.skipWaiting());self.addEventListener('activate',e=>e.waitUntil(self.registration.unregister())); */
-const V = 'tr-map-v21';
-const CORE = ['./', './index.html', './app.css?v=21', './app.js?v=21', './vn-geo.js', './vn-dist.js', './products.js', './csyt.js?v=21', './codes.js?v=21', './manifest.webmanifest', './app/icon-192.png'];
+const V = 'tr-map-v22';
+const CORE = ['./', './index.html', './app.css?v=22', './app.js?v=22', './vn-geo.js', './vn-dist.js', './products.js', './csyt.js?v=22', './codes.js?v=22', './manifest.webmanifest', './app/icon-192.png'];
 self.addEventListener('install', e => {
   self.skipWaiting();
   e.waitUntil(caches.open(V).then(c => c.addAll(CORE)).catch(() => {}));

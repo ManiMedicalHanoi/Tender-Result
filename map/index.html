@@ -13,7 +13,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Tender Map">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="app.css?v=21">
+<link rel="stylesheet" href="app.css?v=22">
 </head>
 <body>
 <header class="top" id="top">
@@ -25,8 +25,7 @@
     <select class="sel" id="f-period" aria-label="Kỳ (năm tài chính / quý)"></select>
     <div class="seg" id="f-m" aria-label="Thống kê theo"></div>
     <div class="seg cur" id="f-cur" aria-label="Đơn vị tiền (VND / USD, tỷ giá cố định 26.400)"></div>
-    <div class="seg" id="fu-st" aria-label="Tình trạng gói theo dõi" hidden></div>
-    <button class="btn pri" id="fu-add" type="button" hidden>+ Thêm gói theo dõi</button>
+    <button class="btn pri" id="fu-add" type="button" hidden title="Thêm gói thầu / cơ hội mua sắm cần theo dõi">+ Thêm gói</button>
     <div class="pick per" id="va-per" hidden aria-label="Kỳ (hoạt động): tuần · tháng · quý · FY · khoảng ngày"></div>
     <div class="pick" id="va-type" hidden aria-label="Loại lượt / trạng thái"></div>
   </div>
@@ -91,6 +90,7 @@
 <div class="fdrw" id="fdrw" hidden><div class="fbox" role="dialog" aria-labelledby="fdrw-t">
   <div class="fhd"><b id="fdrw-t">Bộ lọc</b><button class="ibtn" id="fdrw-x" type="button" aria-label="Đóng">×</button></div>
   <div class="fslot" id="fslot"></div>
+  <div class="fsec w fuo"><span class="lb">Tình trạng gói (Theo dõi thầu)</span><div class="seg" id="fu-st" aria-label="Tình trạng gói theo dõi"></div></div>
   <div class="fsec w"><span class="lb">Cơ sở y tế</span><div class="seg" id="f-own" aria-label="Công lập / tư nhân"></div><div class="hint">Công lập mua qua đấu thầu · tư nhân mua theo hợp đồng mua sắm</div></div>
   <div class="fsec w wo"><span class="lb">Nguồn dữ liệu</span><div class="seg" id="f-npp" aria-label="Nguồn dữ liệu"></div></div>
   <div class="fsec w wo"><span class="lb">Hãng</span><div class="seg" id="f-brand" aria-label="Hãng"></div></div>
@@ -112,8 +112,8 @@
 <script src="vn-geo.js"></script>
 <script src="products.js"></script>
 <script src="vn-dist.js"></script>
-<script src="csyt.js?v=21"></script>
-<script src="codes.js?v=21"></script>
-<script src="app.js?v=21"></script>
+<script src="csyt.js?v=22"></script>
+<script src="codes.js?v=22"></script>
+<script src="app.js?v=22"></script>
 </body>
 </html>

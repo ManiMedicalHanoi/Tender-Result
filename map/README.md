@@ -114,12 +114,22 @@ Trang tĩnh (GitHub Pages): `https://manimedicalhanoi.github.io/Tender-Result/ma
 - **Hiện tức thì**: bấm khách / bệnh viện không còn chờ máy chủ — dùng 3 lượt gần nhất có sẵn và bản lưu trên máy, đọc mới ở nền (backend `crm-surgical/MMH_VisitMap.gs` v1.1).
 - **Bảng bên gọn**: số chính ở trên, dòng điểm chính thay đoạn văn, xếp hạng / biểu đồ / danh sách phụ thành mục thu gọn (nhớ mở / đóng).
 
+## Cập nhật 11/11/2026 (2) — kỳ mặc định · biểu đồ tròn độ phủ · thanh trên gọn (v22)
+- **Kỳ** dùng chung 1 bộ chọn gọn `‹ kỳ ▾ ›` (tab **Tuần · Tháng · Quý · Kỳ (FY)**, Hoạt động thêm **Khoảng ngày**; Kết quả / Theo dõi thêm **Mọi năm**).
+  Mặc định: **Kết quả thầu** và **Theo dõi thầu** = kỳ hiện tại (hôm nay thuộc FY68 = T09/2026 – T08/2027; sang 09/2027 tự thành FY69), **Hoạt động** = tháng hiện tại. Vẫn chọn được các kỳ trước.
+  Theo dõi thầu lọc theo kỳ: gói có cập nhật trong kỳ, hoặc đang mở (kỳ chứa hôm nay); kế hoạch FY hiện tại luôn tính.
+- **Biểu đồ tròn độ phủ** ở thẻ trong bản đồ (thu gọn được, đổi theo tab):
+  Kết quả thầu = **tỉnh có ≥ 1 kết quả trúng của NPP trong kỳ ÷ tỉnh NPP phụ trách** (Hùng Vĩ = địa bàn Viet Ha, iCare = Khang) và **bệnh viện NPP trúng trong kỳ ÷ bệnh viện có kết quả trúng ở KQTT toàn quốc** trong địa bàn;
+  Theo dõi thầu = bệnh viện / tỉnh có gói theo dõi hoặc kế hoạch FY có giai đoạn (tư nhân: khách tư nhân đang theo dõi ÷ khách tư nhân trong customer list);
+  Hoạt động = **khách đã chăm sóc trong kỳ ÷ khách trong customer list của Sales** (CRM Surgical ▸ 1. CUSTOMER CODE), tách công lập · tư nhân + tổng.
+- Thanh trên Theo dõi thầu gọn: lọc tình trạng gói (Đang theo dõi · Thành công · Trượt / dừng · Tất cả) chuyển vào **Bộ lọc**; hàng nút giai đoạn chuyển vào bảng bên (không che bản đồ).
+
 ## Cập nhật 11/11/2026 — Mới cập nhật · nút giai đoạn · VND / USD · số TBMT theo giai đoạn (v21)
 - **Mới cập nhật** (chuông ở thanh trên, có số): ① gói đang theo dõi đã có kết quả (khớp số TBMT / cùng cơ sở sau ngày bắt đầu theo dõi) + nút "Ghi kết quả";
   ② kết quả thầu mới 45 ngày từ sổ **TENDER MAP · GÓI MỚI** của backend (crm-surgical `fuNews`: mỗi giờ ghi gói lần đầu thấy ở file Hùng Vĩ / iCare / KQTT, gói NPP đổi Pending ⇒ Win / Fail),
   theo ngày, lọc MANI trúng · Hãng khác / trượt · NPP dự thầu, đánh dấu "Đang theo dõi"; ③ Sales vừa cập nhật 7 ngày. Link thông báo `?new=1` mở thẳng. Backend còn gửi RH_Notify
   (nút "Nhắc tôi" Report Hub / CRM): gói ở cơ sở đang theo dõi có kết quả ⇒ báo ngay; gói mới khác ⇒ tóm tắt hằng ngày.
-- **Hàng nút giai đoạn** (Theo dõi thầu; máy tính góc dưới trái bản đồ, điện thoại đầu bảng trượt): **Thầu công lập | Tư nhân · mua sắm** + mỗi giai đoạn 1 nút có số ⇒ bấm để bản đồ + danh sách theo tỉnh
+- **Hàng nút giai đoạn** (Theo dõi thầu; đầu bảng bên phải / bảng trượt điện thoại — không che bản đồ): **Thầu công lập | Tư nhân · mua sắm** + mỗi giai đoạn 1 nút có số ⇒ bấm để bản đồ + danh sách theo tỉnh
   chỉ còn giai đoạn đó. Đếm cả gói Theo dõi thầu lẫn **kế hoạch FY68** (dòng ② ③ / Đang dự thầu / tư nhân của Follow up by Account đã có giai đoạn); dòng kế hoạch chưa có giai đoạn chỉ hiện ở nút
   "Chưa có giai đoạn" (không làm rối bản đồ).
 - **VND | USD** ở thanh trên: mọi doanh số / giá đổi sang USD theo **tỷ giá cố định 26.400** (Excel xuất vẫn VND).

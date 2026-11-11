@@ -283,6 +283,13 @@ Phong cách MMH: nền sáng, chữ Aptos, navy `#003047`, xanh `#3A5CAA`, viề
 | Chống trùng | `dups(f)` = gói ở cùng cơ sở có cùng TBMT hoặc trùng loại SP mà đang mở / cập nhật ≤ 12 tháng ⇒ khối `.fdup` (`data-fm-dup` ⇒ `open({caseId, pre})` giữ ghi chú / mã / mốc), `#fm-dupok` ⇒ gửi `force=1`. `sameAsLast(c, …)` chặn cập nhật giống hệt. Máy chủ `DUP` ⇒ `o.dup` ⇒ `obPanel()` (Gộp: đổi `case` + mã tạm của các lệnh sau; Vẫn tạo: `force=1`; Thử lại; Bỏ). |
 | Mở nhanh | `index.html` ▸ script đầu trang: `window.__PRE[url] = fetch(...)` cho winMap ×2, kqttMap, (có phiên) fuList · fuVisits · fuFcList · fuNews — URL phải TRÙNG KHÍT với app.js; `getJSON(url)` lấy `__PRE[url]` 1 lần rồi xoá. `preconnect` script.google.com + googleusercontent. `sw.js` v23: `?v=` ⇒ cache-first; trang ⇒ mạng, quá 2,5 giây ⇒ bản lưu. `loadOne(k, force)` ⇒ `&fresh=1`. |
 
+## 8m. Rà soát 3 mục đích (11/11/2026, v24)
+| Phần | Cách làm |
+|---|---|
+| So sánh theo Sales | `SCORE.html(sp, nhãn kỳ)` (sau `COV`): cột = `TERR[].pic` (lọc `SCOPE.pic()`), số liệu `ACT.picStats(sp)` (lượt Visiting đã làm, khách `a.pic` = PIC đã được chính PIC gặp / khách phụ trách bỏ NPP), `FU.picStats(sp)` (theo `SCOPE.ownerOf` của cơ sở: gói mở gồm kế hoạch có giai đoạn, lần cập nhật trong kỳ, gói mở > 30 ngày chưa cập nhật), `PKGS` Win của NPP theo `pDate` trong kỳ ở địa bàn, `FA.rows()` `valFy` theo `r.pic`. Đầu cột `data-sc-pic` ⇒ `SCOPE.set`. Hoạt động: thay bảng "Theo PIC" (`sec("act-pic")`); Theo dõi thầu: `sec("fu-score")` khi `!SCOPE.pic()`. |
+| Theo dõi thầu | `FU.side`: `.kpis.k3` + `.fuaddw` ⇒ `withRes` ⇒ `warnHtml` ⇒ SCORE ⇒ tỉnh / mốc / danh sách. `barHtml` bỏ mục ngoài `sel`. `#fu-add` luôn ẩn. Chi tiết cơ sở `.fuact` (`data-fu-up` khi đúng 1 gói mở). |
+| Kỳ trống | `emptyPerHtml(nơi)` (`.note.empt`, nút `data-setfy` ⇒ `setPk("fy"+n)`, `data-every` ⇒ `setPk("every")`), đặt ĐẦU bảng bên Kết quả thầu khi kỳ FY không có gói. |
+
 ## 9. Việc có thể làm tiếp
 
 - Danh mục cơ sở đầy đủ có **số giường / hạng** (file Sở Y tế / BHXH ⇒ ghép vào `tools/csyt_build.py`); OSM còn thiếu nhiều TTYT / bệnh viện tuyến huyện.

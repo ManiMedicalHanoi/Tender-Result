@@ -103,6 +103,17 @@ async function pickPer(page, v) {
   ok(/Đã trúng thầu ở đâu/.test(cv1.h) && cv1.n === 2 && cv1.dn === 2 && cv1.t.every(t => /^\d+\/\d+$/.test(t.replace(/\./g, ''))), `độ phủ trúng thầu (biểu đồ tròn trong thẻ bản đồ): tỉnh ${cv1.t[0]} · bệnh viện ${cv1.t[1]}`);
   const bars = await page.$$eval('.mon .c', e => e.length);
   ok(bars >= 36, `Mọi năm: biểu đồ tháng ${bars} cột (từ 2023)`);
+  /* kỳ hiện tại chưa có gói ở 1 tỉnh (đầu FY, KQTT cập nhật chậm) ⇒ nói rõ + nút xem kỳ trước (rà soát 11/11/2026) */
+  const pk0 = await page.evaluate(() => WINMAP.F.pk);
+  await page.evaluate(n => { WINMAP.setF({ period: 'fy' + n }); }, fyNow);
+  const ep = await page.evaluate(n => { for (let i = 0; i < 34; i++) { if (WINMAP.stat(i).n === 0 && WINMAP.pkgs().some(p => p.ni === i && p.res === 'Win' && p.fy === n - 1)) return i; } return -1; }, fyNow);
+  if (ep >= 0) {
+    await page.evaluate(i => WINMAP.select(i), ep); await page.waitForTimeout(300);
+    ok(await page.$eval('#sb', e => { const n = e.querySelector('.note.empt'); return !!n && e.firstElementChild === n && !!n.querySelector('[data-setfy]') && !!n.querySelector('[data-every]'); }), 'kỳ hiện tại chưa có gói ở tỉnh ⇒ thông báo ngay đầu bảng + nút "Xem FY trước" · "Xem mọi năm"');
+    await page.click('#sb .note.empt [data-setfy]');
+    ok(await page.evaluate(n => WINMAP.F.pk === 'fy' + (n - 1) && !document.querySelector('#sb .note.empt'), fyNow), 'bấm "Xem FY trước" ⇒ chuyển kỳ, có số liệu');
+  }
+  await page.evaluate(p => { WINMAP.setF({ period: p }); WINMAP.select(-1); }, pk0);
   ok(await page.$eval('#f-view', e => /^Kết quả thầuTheo dõi thầu\d*Hoạt động$/.test(e.textContent)), 'chế độ: Kết quả thầu | Theo dõi thầu | Hoạt động');
   ok(!(await page.$eval('#sb', e => /trùng số TBMT/.test(e.textContent))), 'không còn ghi chú kỹ thuật bỏ trùng TBMT');
   const rk = await page.$$eval('.rank li', l => ({ n: l.length, fua: l.filter(x => x.querySelector('.fua')).length, cmp: !!document.querySelector('.cmpn') }));
@@ -133,7 +144,12 @@ async function pickPer(page, v) {
   const est = await page.$eval('#fa-est', e => e.textContent);
   await page.screenshot({ path: path.join(OUT, 'd1e_dubao_sua.png') });
   await page.click('#fa-dlg [data-fd="save"]');
-  await page.waitForFunction(() => document.getElementById('fa-dlg').hidden && !document.querySelector('#sb .fat tr.off'), null, { timeout: 8000 });
+  try { await page.waitForFunction(() => document.getElementById('fa-dlg').hidden && !document.querySelector('#sb .fat tr.off'), null, { timeout: 15000 }); }
+  catch (e) {   /* chẩn đoán khi chỉ lỗi trên máy CI */
+    console.log('CHẨN ĐOÁN lưu dự báo:', JSON.stringify(await page.evaluate(() => ({ dlg: document.getElementById('fa-dlg').hidden, er: (document.getElementById('fa-er') || {}).textContent, off: [...document.querySelectorAll('#sb .fat tr.off')].map(t => t.textContent.slice(0, 60)),
+      S: (({ loading, loaded, saving, again, err }) => ({ loading, loaded, saving, again, err }))(WINMAP.fa._S), sb: (document.getElementById('sh-t') || {}).textContent, tk: !!localStorage.getItem('mmh_tk') }))), 'faSaves', db.faSaves.length, JSON.stringify(db.faSaves.slice(-1)), 'calls', db.calls.slice(-12).join(','));
+    throw e;
+  }
   const sv = db.faSaves[db.faSaves.length - 1] || {};
   const fa5 = await page.$eval('#fabox .fav b', e => e.textContent);
   ok(/SL \/ tháng 20/.test(est) && /8 tháng/.test(est) && sv.qty === '240' && sv.start === '2027-01' && sv.stage === 'Đã gửi báo giá' && fa5 === '144 tr',
@@ -268,7 +284,7 @@ async function pickPer(page, v) {
   // theo dõi thầu
   await page.click('#f-view button[data-v="fu"]');
   await page.waitForFunction(() => WINMAP.fu._S.loaded);
-  await page.click('#fu-add');
+  await page.click('#sb .fuaddw');
   await page.waitForSelector('#fm-fq');
   await page.fill('#fm-fq', 'mat nghe an');
   await page.waitForSelector('#fm-fr .it');
@@ -323,9 +339,15 @@ async function pickPer(page, v) {
   await page.click('#sb .stbar [data-stk="pv"]');
   ok(await page.evaluate(() => { const c = [...document.querySelectorAll('#sb .stbar [data-stc]')].map(x => x.textContent); return /Demo/.test(c.join('|')) && /Ký HĐ mua sắm/.test(c.join('|')) && !/Đang dự thầu/.test(c.join('|')); }), 'tab Tư nhân ⇒ nút giai đoạn mua sắm (Giới thiệu · Demo · … · Ký HĐ mua sắm)');
   await page.click('#sb .stbar [data-stk="pub"]'); await page.click('#sb .stbar [data-stc="0"]');
+  await page.evaluate(() => WINMAP.select(WINMAP.provIx('Nghệ An')));
+  const sp1 = await page.evaluate(() => ({ chip: +document.querySelector('#sb .stbar [data-stc="0"] b').textContent, kpi: +document.querySelector('#sb .kpis .kpi b').textContent, add: /Thêm gói theo dõi ở Nghệ An/.test(document.querySelector('#sb .fuaddw').textContent) }));
+  ok(sp1.chip === sp1.kpi && sp1.add, `Theo dõi thầu · Nghệ An: nút "Tất cả" (${sp1.chip}) = số gói đang theo dõi của tỉnh (${sp1.kpi}) — hàng nút chỉ đếm tỉnh đang xem; nút "+ Thêm gói theo dõi ở Nghệ An"`);
+  await page.evaluate(() => WINMAP.select(-1));
+  ok(await page.evaluate(() => { const t = document.querySelector('#sb .scb'); return !!t && /So sánh theo Sales/.test(document.getElementById('sb').textContent) && t.querySelectorAll('thead th[data-sc-pic]').length === 2 && /Gói đang theo dõi/.test(t.textContent); }), 'Theo dõi thầu (cả nhóm): bảng So sánh theo Sales (Viet Ha · Khang)');
   await page.evaluate(() => WINMAP.hosp('Mắt Nghệ An'));
   await page.waitForFunction(() => /S-NA-001/.test((document.getElementById('crmx') || {}).textContent || ''), null, { timeout: 10000 });
   ok(await page.$eval('#crmx', e => /Lượt gặp 12 tháng/.test(e.textContent) && /Trưởng khoa/.test(e.textContent)), 'đã đăng nhập ⇒ khối CRM Surgical: mã địa bàn, lượt gặp, người liên hệ, đơn hàng');
+  ok(await page.$eval('#sb .fuact', e => /Cập nhật gói: /.test(e.querySelector('.btn.pri').textContent) && !!e.querySelector('[data-fu-new]')), 'chi tiết cơ sở có 1 gói đang mở ⇒ nút to "Cập nhật gói: <giai đoạn>" + nút nhỏ "+ Gói khác"');
   await page.click('[data-fu-up]');
   await page.click('.stg button[data-st="3"]');
   await page.fill('#fm-note', 'Khoa đã chốt cấu hình theo MSL28SH, chờ báo giá.');
@@ -397,11 +419,19 @@ async function pickPer(page, v) {
   const ac = await page.evaluate(() => {
     const L = document.getElementById('legend').textContent, S = document.getElementById('sb').textContent;
     const rgb = n => { const f = document.querySelector('.prov[data-i="' + WINMAP.provIx(n) + '"]').getAttribute('fill'); return [1, 3, 5].map(i => parseInt(f.slice(i, i + 2), 16)); };
-    return { leg: /Viet Ha/.test(L) && /Khang/.test(L) && !/Nguyen Ha|Giang|Test/.test(L), sb: !/Nguyen Ha|TEST Bệnh viện/.test(S) && [...document.querySelectorAll('#sb [data-act-pic]')].map(e => e.dataset.actPic).join() === 'Viet Ha,Khang', hn: rgb('Hà Nội'), hcm: rgb('Hồ Chí Minh'),
+    return { leg: /Viet Ha/.test(L) && /Khang/.test(L) && !/Nguyen Ha|Giang|Test/.test(L), sb: !/Nguyen Ha|TEST Bệnh viện/.test(S) && [...document.querySelectorAll('#sb [data-sc-pic]')].map(e => e.dataset.scPic).join() === 'Viet Ha,Khang', hn: rgb('Hà Nội'), hcm: rgb('Hồ Chí Minh'),
       pics: [...new Set(WINMAP.act.rows().map(r => r.pic))], dbg: (L.match(/.{0,40}(Nguyen Ha|Giang|Test).{0,40}/) || [''])[0] + ' || ' + (S.match(/.{0,60}(Nguyen Ha|Giang|TEST|\bTest\b).{0,40}/) || [''])[0] };
   });
   ok(ac.leg && ac.sb && ac.pics.every(p => p === 'Viet Ha' || p === 'Khang'), 'Hoạt động chỉ có Viet Ha · Khang (bỏ lượt của Nguyen Ha / Giang / TEST, khách TEST) — PIC trong dữ liệu: ' + ac.pics.join(', ') + (ac.leg && ac.sb ? '' : ' | ' + ac.dbg));
   ok(ac.hn[2] > ac.hn[0] && ac.hcm[0] > ac.hcm[2], `tỉnh tô theo màu PIC: Hà Nội (Viet Ha) rgb(${ac.hn}) · TP.HCM (Khang) rgb(${ac.hcm})`);
+  const sc = await page.evaluate(() => { const t = document.querySelector('#sb .scb'); if (!t) return null; const tr = [...t.querySelectorAll('tbody tr')];
+    return { h: [...t.querySelectorAll('thead th[data-sc-pic]')].map(e => e.textContent.trim()), rows: tr.filter(r => !r.classList.contains('g')).map(r => r.firstElementChild.textContent), vis: (tr.find(r => /Lượt viếng thăm/.test(r.textContent)) || {}).textContent || '',
+      k: document.querySelectorAll('#sb .kpis .kpi b')[1].textContent.replace(/\s/g, ''), t: ((document.querySelector('#fabox .cvs b') || {}).textContent || '').replace(/\s/g, '') }; });
+  ok(sc && sc.h.length === 2 && sc.rows.length === 7 && /\d/.test(sc.vis), `So sánh theo Sales (Hoạt động): ${sc && sc.h.join(' · ')} — ${sc && sc.rows.join(' | ')}`);
+  ok(sc && sc.k === sc.t, `số khách phụ trách đã gặp ở bảng bên (${sc && sc.k}) = thẻ trên bản đồ (${sc && sc.t}) — cùng cách tính (bỏ NPP)`);
+  await page.click('#sb .scb th[data-sc-pic="Khang"]');
+  ok(await page.evaluate(() => WINMAP.scope.pic() === 'Khang' && document.querySelectorAll('#sb .scb th[data-sc-pic]').length === 1), 'bấm tên Khang trong bảng so sánh ⇒ xem riêng địa bàn Khang');
+  await page.click('#sb .scb th[data-sc-pic="Khang"]');
   await pickPer(page, 'fy67');
   const n67 = await page.$eval('#sb .kpi b', e => +e.textContent);
   await pickPer(page, 'm2025*');
@@ -700,9 +730,9 @@ async function pickPer(page, v) {
     `tỉnh Đà Nẵng mới chia theo tỉnh cũ: Viet Ha thấy ${dnv.dn} cơ sở Đà Nẵng cũ, không thấy ${dnv.qn} cơ sở Quảng Nam cũ (thuộc Khang)`);
   await page.screenshot({ path: path.join(OUT, 's1_vietha.png') });
   await page.evaluate(f => { WINMAP.act._S.per = 'fy' + f; WINMAP.view('act'); }, (() => { const d = new Date(); return (d.getMonth() >= 8 ? d.getFullYear() + 1 : d.getFullYear()) - 1959; })());
-  await page.waitForFunction(() => WINMAP.act._S.loaded && document.querySelector('#sb .tb2'), null, { timeout: 10000 });
-  const vr = await page.$$eval('#sb .tb2 tbody tr', l => l.map(x => x.textContent.trim().split(/\s+/)[0]));
-  ok(vr.length === 1 && /Viet/.test(vr[0]), 'Viet Ha ⇒ Hoạt động chỉ có lượt của Viet Ha');
+  await page.waitForFunction(() => WINMAP.act._S.loaded && document.querySelector('#sb .scb'), null, { timeout: 10000 });
+  const vr = await page.$$eval('#sb .scb thead th[data-sc-pic]', l => l.map(x => x.textContent.trim()));
+  ok(vr.length === 1 && /Viet Ha/.test(vr[0]) && /Kết quả của Viet Ha/.test(await page.$eval('#sb', e => e.textContent)), 'Viet Ha ⇒ Hoạt động chỉ có số của Viet Ha ("Kết quả của Viet Ha")');
   await page.waitForTimeout(600);
   await page.screenshot({ path: path.join(OUT, 's2_vietha_hoatdong.png') });
   const cnt = a => db.calls.filter(x => x === a).length;

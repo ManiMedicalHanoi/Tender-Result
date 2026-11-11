@@ -4,8 +4,8 @@
    Ảnh biểu tượng: bản lưu trước rồi tải mới. Dữ liệu Apps Script (khác tên miền) KHÔNG qua đây — trang tự nhớ bản đọc gần nhất (IndexedDB).
    Phát hành bản mới = tăng ?v= trong index.html (+ CORE dưới đây) và V. Gỡ khẩn cấp: thay toàn bộ file bằng
    self.addEventListener('install',()=>self.skipWaiting());self.addEventListener('activate',e=>e.waitUntil(self.registration.unregister())); */
-const V = 'tr-map-v23';
-const CORE = ['./', './index.html', './app.css?v=23', './app.js?v=23', './vn-geo.js?v=23', './vn-dist.js?v=23', './products.js?v=23', './csyt.js?v=23', './codes.js?v=23', './manifest.webmanifest', './app/icon-192.png'];
+const V = 'tr-map-v24';
+const CORE = ['./', './index.html', './app.css?v=24', './app.js?v=24', './vn-geo.js?v=24', './vn-dist.js?v=24', './products.js?v=24', './csyt.js?v=24', './codes.js?v=24', './manifest.webmanifest', './app/icon-192.png'];
 self.addEventListener('install', e => {
   self.skipWaiting();
   e.waitUntil(caches.open(V).then(c => c.addAll(CORE)).catch(() => {}));

@@ -13,7 +13,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Tender Map">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="app.css?v=20">
+<link rel="stylesheet" href="app.css?v=21">
 </head>
 <body>
 <header class="top" id="top">
@@ -24,6 +24,7 @@
     <div class="seg psg" id="f-pic" aria-label="Xem theo PIC / địa bàn" hidden></div>
     <select class="sel" id="f-period" aria-label="Kỳ (năm tài chính / quý)"></select>
     <div class="seg" id="f-m" aria-label="Thống kê theo"></div>
+    <div class="seg cur" id="f-cur" aria-label="Đơn vị tiền (VND / USD, tỷ giá cố định 26.400)"></div>
     <div class="seg" id="fu-st" aria-label="Tình trạng gói theo dõi" hidden></div>
     <button class="btn pri" id="fu-add" type="button" hidden>+ Thêm gói theo dõi</button>
     <div class="pick per" id="va-per" hidden aria-label="Kỳ (hoạt động): tuần · tháng · quý · FY · khoảng ngày"></div>
@@ -33,6 +34,7 @@
   <button class="obx" id="obx" type="button" hidden></button>
   <div class="tools" id="tools">
     <span id="uchip"></span>
+    <button class="ibtn nb" id="news" type="button" hidden aria-pressed="false" aria-label="Mới cập nhật: gói thầu mới, gói đang theo dõi có kết quả"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6.6a4 4 0 0 1 8 0c0 3.2 1.3 4.4 1.3 4.4H2.7S4 9.8 4 6.6"/><path d="M6.6 13.2a1.5 1.5 0 0 0 2.8 0"/></svg><span class="n" hidden></span></button>
     <button class="ibtn" id="reload" type="button" title="Đọc lại dữ liệu (2 file NPP, file KQTT tổng, theo dõi thầu)" aria-label="Tải lại dữ liệu"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13.5 8a5.5 5.5 0 1 1-1.6-3.9"/><path d="M13.6 2.4v3.3h-3.3"/></svg></button>
     <button class="ibtn" id="xbtn" type="button" title="Xuất Excel / ảnh bản đồ" aria-label="Xuất Excel hoặc ảnh bản đồ" aria-haspopup="menu"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2.5v7.5M5 7l3 3 3-3"/><path d="M2.8 11v2.2h10.4V11"/></svg></button>
     <button class="ibtn" id="help" type="button" title="Hướng dẫn sử dụng" aria-label="Hướng dẫn sử dụng"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><circle cx="8" cy="8" r="6.2"/><path d="M6.3 6.3a1.8 1.8 0 1 1 2.5 1.7c-.5.2-.8.6-.8 1.1v.4"/><circle cx="8" cy="11.5" r=".5" fill="currentColor" stroke="none"/></svg></button>
@@ -50,6 +52,7 @@
       <button class="zbtn" id="zhome" title="Toàn quốc" aria-label="Toàn quốc">⌂</button>
     </div>
     <div class="crumb" id="crumb"><b>Toàn quốc</b></div>
+    <div class="stbar" id="stbar" hidden aria-label="Xem nhanh theo giai đoạn"></div>
     <div class="legend" id="legend"></div>
     <div class="fabox" id="fabox" hidden aria-label="Doanh số ước tính"></div>
     <div class="tip" id="tip"></div>
@@ -109,8 +112,8 @@
 <script src="vn-geo.js"></script>
 <script src="products.js"></script>
 <script src="vn-dist.js"></script>
-<script src="csyt.js?v=20"></script>
-<script src="codes.js?v=20"></script>
-<script src="app.js?v=20"></script>
+<script src="csyt.js?v=21"></script>
+<script src="codes.js?v=21"></script>
+<script src="app.js?v=21"></script>
 </body>
 </html>

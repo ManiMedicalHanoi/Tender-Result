@@ -114,6 +114,20 @@ Trang tĩnh (GitHub Pages): `https://manimedicalhanoi.github.io/Tender-Result/ma
 - **Hiện tức thì**: bấm khách / bệnh viện không còn chờ máy chủ — dùng 3 lượt gần nhất có sẵn và bản lưu trên máy, đọc mới ở nền (backend `crm-surgical/MMH_VisitMap.gs` v1.1).
 - **Bảng bên gọn**: số chính ở trên, dòng điểm chính thay đoạn văn, xếp hạng / biểu đồ / danh sách phụ thành mục thu gọn (nhớ mở / đóng).
 
+## Cập nhật 11/11/2026 — Mới cập nhật · nút giai đoạn · VND / USD · số TBMT theo giai đoạn (v21)
+- **Mới cập nhật** (chuông ở thanh trên, có số): ① gói đang theo dõi đã có kết quả (khớp số TBMT / cùng cơ sở sau ngày bắt đầu theo dõi) + nút "Ghi kết quả";
+  ② kết quả thầu mới 45 ngày từ sổ **TENDER MAP · GÓI MỚI** của backend (crm-surgical `fuNews`: mỗi giờ ghi gói lần đầu thấy ở file Hùng Vĩ / iCare / KQTT, gói NPP đổi Pending ⇒ Win / Fail),
+  theo ngày, lọc MANI trúng · Hãng khác / trượt · NPP dự thầu, đánh dấu "Đang theo dõi"; ③ Sales vừa cập nhật 7 ngày. Link thông báo `?new=1` mở thẳng. Backend còn gửi RH_Notify
+  (nút "Nhắc tôi" Report Hub / CRM): gói ở cơ sở đang theo dõi có kết quả ⇒ báo ngay; gói mới khác ⇒ tóm tắt hằng ngày.
+- **Hàng nút giai đoạn** (Theo dõi thầu; máy tính góc dưới trái bản đồ, điện thoại đầu bảng trượt): **Thầu công lập | Tư nhân · mua sắm** + mỗi giai đoạn 1 nút có số ⇒ bấm để bản đồ + danh sách theo tỉnh
+  chỉ còn giai đoạn đó. Đếm cả gói Theo dõi thầu lẫn **kế hoạch FY68** (dòng ② ③ / Đang dự thầu / tư nhân của Follow up by Account đã có giai đoạn); dòng kế hoạch chưa có giai đoạn chỉ hiện ở nút
+  "Chưa có giai đoạn" (không làm rối bản đồ).
+- **VND | USD** ở thanh trên: mọi doanh số / giá đổi sang USD theo **tỷ giá cố định 26.400** (Excel xuất vẫn VND).
+- **Số TBMT**: chỉ hỏi khi gói ở giai đoạn **Đang dự thầu (đã nộp hồ sơ)** — bắt buộc — hoặc đã có kết quả (không bắt buộc); giai đoạn trước không hiện ô này. Tên gói không bắt buộc (tự đặt theo loại SP + năm).
+  Kết quả thầu cũ hơn ngày bắt đầu theo dõi (> 60 ngày) không còn bị khớp nhầm thành "Đã có kết quả".
+- Gọn: cảnh báo hợp đồng sắp hết hạn 1 dòng / cơ sở (3 dòng đầu + "Xem cả"); cơ sở có kế hoạch FY68 đã có giai đoạn không bị báo "chưa theo dõi"; bảng dự báo ở chi tiết cơ sở gom mã chưa điền vào 1 dòng thu gọn;
+  chú giải Theo dõi thầu mặc định thu gọn (màu đã có ở hàng nút).
+
 ## Cập nhật 09/11/2026 (2) — Doanh số ước tính · sheet "Follow up by Account" · giai đoạn bán hàng mới (v20)
 
 - **Doanh số ước tính** (khối trong khung bản đồ, chỉ tài khoản công ty): doanh số FY68 của NPP (T09/2026 – T08/2027) + **SL dao / chỉ khâu / ghim da** trong FY,

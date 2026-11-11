@@ -260,6 +260,13 @@ Phong cách MMH: nền sáng, chữ Aptos, navy `#003047`, xanh `#3A5CAA`, viề
 | Chi tiết cơ sở | `FA.hospHtml(h)` (renderHosp + chi tiết khách Hoạt động): khớp dòng theo `fid` hoặc tỉnh + `hkey` / `sameName` / tên phụ; bấm dòng ⇒ `FA.open(id)` (hộp `#fa-dlg`), `+ Thêm mã` ⇒ dòng Sales mới (`fuFcSave` không id). Ước tính ngay trên máy (`est()`), lưu xong đọc lại `fuFcList`. |
 | Theo dõi thầu | `ST` / `SH` / `SC` theo giai đoạn mới (6 bỏ trống, 10 = Không tham dự), `TEND` = 1 2 3 4 5 7 8 10 9; hộp thêm `fm-start` / `fm-dur` ⇒ `start` / `dur`; lưu xong `FA.load()`. |
 
+## 8j. Mới cập nhật · nút giai đoạn · VND / USD (11/11/2026, v21)
+- Chuông `#news` (thanh trên; điện thoại giữ ở thanh trên, không vào bảng Bộ lọc): số đỏ = mục mới từ lần mở trước + gói theo dõi có kết quả chưa ghi. Bảng bên chế độ riêng (`NEWS.on()`,
+  ‹ để đóng; chọn tỉnh / cơ sở tự đóng). Mục mới có vạch xanh bên trái; nhóm theo ngày (Hôm nay · Hôm qua · dd/mm); kết quả = nhãn màu (xanh lá MANI trúng · đỏ hãng khác / trượt · cam đang dự thầu).
+- Hàng nút giai đoạn `#stbar`: thẻ nổi trắng góc dưới trái bản đồ (máy tính), trong bảng trượt cuộn ngang (điện thoại). Nút = chấm màu giai đoạn (`SC`) + tên ngắn (`SH`) + số; nút 0 mờ; nút đang chọn nền `--pale` viền xanh.
+- `VND | USD` cạnh Giá trị / Số lượng: `vnd()` đổi theo `CUR` (`$15.7K`, `$1.25M`), đơn giá `prc()` / `prn()`; ô nhập vẫn VND. Tỷ giá cố định `USD_RATE` = 26.400.
+- Dòng chưa điền: kế hoạch FY68 stage 0 không vẽ lên bản đồ (chỉ ở nút "Chưa có giai đoạn"); bảng dự báo chi tiết cơ sở `details.faoff` thu gọn.
+
 ## 9. Việc có thể làm tiếp
 
 - Danh mục cơ sở đầy đủ có **số giường / hạng** (file Sở Y tế / BHXH ⇒ ghép vào `tools/csyt_build.py`); OSM còn thiếu nhiều TTYT / bệnh viện tuyến huyện.

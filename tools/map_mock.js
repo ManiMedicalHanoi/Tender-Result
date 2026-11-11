@@ -210,6 +210,15 @@ async function install(page, opt = {}) {
         const loc = p.op === 'clear' ? null : p.op === 'name' ? ['', '', '', '', '', 'Viet Ha', '', p.std] : [+p.lat || '', +p.lng || '', p.fid || '', p.fname || '', p.src || 'tay', 'Viet Ha', '2026-11-04 10:00', ''];
         if (ai >= 0) { db.vis.acc[ai][8] = loc; if (p.op === 'name') db.vis.acc[ai][9] = p.std; }
         return reply(route, url, { ok: true, code: p.code, loc }); }
+      if (a === 'fuNews') {                                    // sổ gói mới (backend MMH_FcNews.gs) — dữ liệu giả
+        const iso = d => { const x = new Date(Date.now() - d * 864e5); return x.toISOString().slice(0, 10) + ' ' + x.toISOString().slice(11, 16); };
+        const rows = opt.noNews ? [] : [
+          [iso(0.1), 'KQ', 'Win', '', '', 'Bệnh viện Mắt Nghệ An', 'Nghệ An', 'IB2600888002', '11/2026', 0, 'Aurolab AU-CR × 300', 'Viet Ha'],
+          [iso(0.2), 'HV', 'Win', 'Pending', iso(0.2), 'Bệnh viện Đa khoa tỉnh Thái Bình', 'Hưng Yên', 'IB2600999001', '10/2026', 1, 'MSL28SH × 500', 'Viet Ha'],
+          [iso(1.2), 'KQ', 'Win', '', '', 'Bệnh viện Chợ Rẫy', 'Hồ Chí Minh', 'IB2600777003', '10/2026', 1, 'MANI MST15 × 200', 'Khang'],
+          [iso(3), 'IC', 'Pending', '', '', 'Bệnh viện Đa khoa Khánh Hòa', 'Khánh Hòa', 'IB2600666004', '11/2026', 0, 'MST15MK × 2034', 'Khang']];
+        return reply(route, url, { ok: true, v: '1.0', days: 45, base: '2026-11-11', last: iso(0.05), cols: ['seen','src','res','prev','chg','hosp','prov','tbmt','mon','mani','sum','pic'], rows });
+      }
       if (a === 'fuFcList') return reply(route, url, { ok: true, v: '1.0', fy: { fy: 68, m0: FA_M0, from: '09/2026', to: '08/2027' }, cols: FA_COLS, rows: db.fa.map(faRow), prices: FA_PRICE,
         stages: ST.slice(1, 6).concat(['Đã trúng thầu', 'Trượt thầu', 'Không tham dự', 'Tạm dừng theo dõi']), priv: ['Giới thiệu', 'Demo', 'Đề xuất từ chuyên môn', 'Ký hợp đồng mua sắm', 'Sử dụng hàng', 'Không thành công', 'Dừng theo dõi'],
         lists: { prog: ['Chưa có thông tin', 'Xây dựng danh mục', 'Yêu cầu báo giá', 'Đã phê duyệt kế hoạch', 'Đã ra HSMT', 'Đang chấm thầu', 'Đã có KQLCNT'], cfg: ['Mở', 'Khóa'], crit: ['Giá thấp', 'Chất lượng cao'], chance: ['Cao', 'Trung bình', 'Thấp'], brand: ['All', 'Mani', 'Feather'] },

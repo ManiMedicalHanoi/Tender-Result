@@ -84,6 +84,7 @@ async function pickPer(page, v) {
   await page.evaluate(() => WINMAP.hosp('Mắt Nghệ An')); await page.waitForTimeout(500);
   const fr = await page.evaluate(() => ({ h: [...document.querySelectorAll('#sb h3')].map(e => e.textContent).filter(t => /Dự báo doanh số/.test(t))[0] || '', n: document.querySelectorAll('#sb .fat tr[data-fa-edit]').length, off: document.querySelectorAll('#sb .fat tr.off').length }));
   ok(/Dự báo doanh số FY68 · 130 tr/.test(fr.h) && fr.n === 3 && fr.off === 1, `chi tiết cơ sở: mục "${fr.h.replace(/\s+/g, ' ')}" · ${fr.n} mã (${fr.off} chưa tính: ③ chưa có SL)`);
+  await page.click('#sb details.faoff > summary');                        // dòng chưa điền gom vào 1 dòng thu gọn (v21)
   await page.click('#sb .fat tr.off');
   await page.waitForSelector('#fa-dlg:not([hidden]) #fa-qty');
   await page.fill('#fa-qty', '240'); await page.fill('#fa-start', '2027-01'); await page.selectOption('#fa-st', 'Đã gửi báo giá');
@@ -100,6 +101,29 @@ async function pickPer(page, v) {
   await page.waitForFunction(() => document.getElementById('fa-dlg').hidden && document.querySelectorAll('#sb .fat tr[data-fa-edit]').length === 4, null, { timeout: 8000 });
   ok(db.faSaves[db.faSaves.length - 1].hosp === 'Bệnh viện Mắt Nghệ An' && db.faSaves[db.faSaves.length - 1].code === 'MSL28SH', '+ Thêm mã ⇒ dòng Sales mới (MSL28SH × 120) cho đúng cơ sở');
   await page.screenshot({ path: path.join(OUT, 'd1f_dubao_tinh.png') });
+  await page.evaluate(() => { WINMAP.select(-1); });
+  // ── đơn vị tiền VND ⇄ USD (tỷ giá cố định 26.400) ──
+  await page.click('#fabox [data-fa-ch="all"]');
+  const vd = await page.$eval('#fabox .fav b', e => e.textContent);
+  await page.click('#f-cur [data-v="usd"]');
+  const ud = await page.evaluate(() => ({ v: document.querySelector('#fabox .fav b').textContent, kpi: [...document.querySelectorAll('#sb .kpi b')].map(e => e.textContent).filter(t => /\$/.test(t)).length, ls: localStorage.getItem('tm_cur') }));
+  ok(/^\$[\d.]+K$/.test(ud.v) && ud.kpi > 0 && ud.ls === 'usd', `VND ⇄ USD: ${vd} ⇒ ${ud.v} (doanh số ước tính + ô số bảng bên), nhớ lựa chọn`);
+  await page.click('#f-cur [data-v="vnd"]');
+  ok(await page.$eval('#fabox .fav b', e => e.textContent) === vd, 'chuyển lại VND ⇒ số cũ');
+  // ── Mới cập nhật (fuNews + gói theo dõi có kết quả + Sales 7 ngày) ──
+  const nbg = await page.$eval('#news .n', e => e.hidden ? '' : e.textContent);
+  await page.click('#news');
+  await page.waitForFunction(() => WINMAP.news.on() && document.querySelectorAll('#sb .nwi').length >= 4);
+  const nwx = await page.evaluate(() => ({ t: document.getElementById('sh-t').textContent, n: document.querySelectorAll('#sb .nwi').length, fol: [...document.querySelectorAll('#sb .nwi')].filter(e => /Đang theo dõi/.test(e.textContent)).map(e => e.querySelector('.a').textContent),
+    res: [...document.querySelectorAll('#sb .nwi .st')].map(e => e.textContent).join('|'), days: [...document.querySelectorAll('#sb .nwd')].length }));
+  ok(+nbg >= 4 && /Mới cập nhật/.test(nwx.t) && nwx.n >= 4 && nwx.fol.some(t => /chợ rẫy/i.test(t)) && /MANI trúng · Hùng Vĩ/.test(nwx.res) && /iCare đang dự thầu/.test(nwx.res) && nwx.days >= 2,
+    `Mới cập nhật: chuông ${nbg} ⇒ ${nwx.n} gói mới theo ngày (${nwx.days} nhóm), kết quả ${nwx.res}; cơ sở đang theo dõi được đánh dấu (${nwx.fol.join(', ')})`);
+  await page.screenshot({ path: path.join(OUT, 'd1g_moi_cap_nhat.png') });
+  await page.click('#sb [data-nf="ok"]');
+  ok(await page.$$eval('#sb .nwi .st', l => l.length > 0 && l.every(e => /MANI trúng/.test(e.textContent))), 'lọc "MANI trúng" ⇒ chỉ còn gói MANI trúng');
+  await page.click('#sb .nwi [data-fh]');
+  await page.waitForFunction(() => !WINMAP.news.on() && /bệnh viện/i.test(document.getElementById('sh-t').textContent));
+  ok(await page.$eval('#news .n', e => e.hidden), 'bấm 1 gói ⇒ mở chi tiết cơ sở, chuông hết số (đã xem)');
   await page.evaluate(() => { WINMAP.select(-1); });
   // bộ lọc: bảng thả xuống ⇒ nhãn có × ⇒ bỏ lọc
   await page.click('#f-more');
@@ -214,11 +238,33 @@ async function pickPer(page, v) {
   await page.fill('[data-ln="code"][data-i="1"]', '1406');
   await page.fill('[data-ln="qty"][data-i="1"]', '120');
   await page.fill('#fm-note', 'Gặp trưởng khoa, giới thiệu MSL-SH. Khoa dùng dao Alcon, quan tâm giá.');
+  ok(!(await page.$('#fm-tb')), 'gói mới ở giai đoạn "Chưa tiếp cận": không hỏi số TBMT (v21)');
+  await page.click('.stg button[data-st="5"]');
+  ok(!!(await page.$('#fm-tb')) && /\*/.test(await page.$eval('label[for="fm-tb"]', e => e.textContent)), 'chọn "Đang dự thầu" (đã nộp hồ sơ) ⇒ hiện ô số TBMT, bắt buộc');
+  await page.click('[data-fm="save"]');
+  ok(/TBMT/.test(await page.$eval('#fu-b .er', e => e.textContent)) && !(await page.$eval('#fudlg', e => e.hidden)), 'Đang dự thầu mà chưa nhập TBMT ⇒ nhắc, chưa lưu');
+  await page.click('.stg button[data-st="1"]');
+  ok(await page.$eval('#fm-note', e => e.value) === 'Gặp trưởng khoa, giới thiệu MSL-SH. Khoa dùng dao Alcon, quan tâm giá.' && !(await page.$('#fm-tb')), 'đổi giai đoạn giữ nguyên nội dung đã nhập, ô TBMT ẩn lại');
   await page.screenshot({ path: path.join(OUT, 'd5_form.png') });
   await page.click('[data-fm="save"]');
   await page.waitForFunction(() => document.getElementById('fudlg').hidden);
   await page.waitForFunction(() => document.querySelectorAll('.fuc').length > 0 && !/đang lưu/.test(document.querySelector('.fuc').textContent), null, { timeout: 10000 });
   ok(db.fu.length === 1 && db.fu[0][15] === 1 && db.fu[0][23] === 'Viet Ha', 'lưu gói mới (bước 1) ⇒ 1 dòng FOLLOW UP TENDER, cột PIC phụ trách địa bàn = Viet Ha (Nghệ An)');
+  // ── hàng nút giai đoạn trên bản đồ (v21): Thầu công lập | Tư nhân + mỗi giai đoạn 1 nút, gộp gói theo dõi + kế hoạch FY68 ──
+  await page.evaluate(() => WINMAP.select(-1));
+  const sb0 = await page.evaluate(() => { const b = document.getElementById('stbar'); return { on: !b.hidden, tabs: [...b.querySelectorAll('[data-stk]')].map(x => x.textContent).join('|'), c: Object.fromEntries([...b.querySelectorAll('[data-stc]')].map(x => [x.dataset.stc, +x.querySelector('b').textContent])) }; });
+  ok(sb0.on && sb0.tabs === 'Thầu công lập|Tư nhân · mua sắm' && sb0.c['1'] >= 1 && sb0.c['2'] >= 1 && sb0.c['-1'] >= 1,
+    `hàng nút giai đoạn: ${sb0.tabs} · Chưa tiếp cận ${sb0.c['1']} · Đã giới thiệu ${sb0.c['2']} (kế hoạch FY68) · Chưa có giai đoạn ${sb0.c['-1']}`);
+  await page.click('#stbar [data-stc="2"]');
+  const sb1 = await page.evaluate(() => ({ h: (document.querySelector('#sb h3') || {}).textContent || '', items: [...document.querySelectorAll('#sb .fuc')].map(e => e.querySelector('.t').textContent), prov: [...document.querySelectorAll('#sb .fph')].map(e => e.textContent) }));
+  ok(/Đã giới thiệu tới chuyên môn/.test(sb1.h) && sb1.items.some(t => /chợ rẫy/i.test(t)) && sb1.prov.some(t => /Hồ Chí Minh/.test(t)), `bấm "Đã giới thiệu" ⇒ danh sách theo tỉnh: ${sb1.prov.join(', ')} (${sb1.items.join(', ')})`);
+  await page.screenshot({ path: path.join(OUT, 'd7c_nut_giai_doan.png') });
+  await page.click('#stbar [data-stc="-1"]');
+  ok(await page.$$eval('#sb .fuc.plan', l => l.length >= 1 && l.every(e => /Chưa có giai đoạn/.test(e.textContent))), '"Chưa có giai đoạn" ⇒ các dòng kế hoạch FY68 chưa điền (ẩn khỏi bản đồ khi xem Tất cả)');
+  await page.click('#stbar [data-stk="pv"]');
+  ok(await page.evaluate(() => { const c = [...document.querySelectorAll('#stbar [data-stc]')].map(x => x.textContent); return /Demo/.test(c.join('|')) && /Ký HĐ mua sắm/.test(c.join('|')) && !/Đang dự thầu/.test(c.join('|')); }), 'tab Tư nhân ⇒ nút giai đoạn mua sắm (Giới thiệu · Demo · … · Ký HĐ mua sắm)');
+  await page.click('#stbar [data-stk="pub"]'); await page.click('#stbar [data-stc="0"]');
+  await page.evaluate(() => WINMAP.hosp('Mắt Nghệ An'));
   await page.waitForFunction(() => /S-NA-001/.test((document.getElementById('crmx') || {}).textContent || ''), null, { timeout: 10000 });
   ok(await page.$eval('#crmx', e => /Lượt gặp 12 tháng/.test(e.textContent) && /Trưởng khoa/.test(e.textContent)), 'đã đăng nhập ⇒ khối CRM Surgical: mã địa bàn, lượt gặp, người liên hệ, đơn hàng');
   await page.click('[data-fu-up]');
@@ -238,9 +284,9 @@ async function pickPer(page, v) {
   await page.screenshot({ path: path.join(OUT, 'd7_theodoi_toanquoc.png') });
   // tô màu theo tiến độ + cảnh báo hợp đồng sắp hết hiệu lực chưa cập nhật theo dõi
   const pg = await page.evaluate(() => { const s = WINMAP.stat(16); const P = document.querySelector('.prov[data-i="16"]'); return { stg: s.stg, fill: P.getAttribute('fill'), col: WINMAP.fu.pcol(s) }; });
-  ok(pg.stg === 3 && pg.fill !== 'var(--land)', 'bản đồ theo dõi: Nghệ An tô màu giai đoạn 3 "Đang xây cấu hình" (' + pg.fill + ')');
+  ok(pg.stg === 4 && pg.fill !== 'var(--land)', 'bản đồ theo dõi: Nghệ An tô màu giai đoạn xa nhất — gói theo dõi "Đang xây cấu hình" + kế hoạch FY68 "Đã gửi báo giá" (sửa ở dự báo) ⇒ 4 (' + pg.fill + ')');
   ok(await page.$eval('#legend', e => /Tô màu theo tiến độ/.test(e.textContent) && e.querySelectorAll('.stl')[0].querySelectorAll('span').length === 9 && /Mua sắm cơ sở tư nhân/.test(e.textContent) && /Demo/.test(e.textContent)), 'chú giải: 9 giai đoạn thầu công lập + giai đoạn mua sắm tư nhân, mỗi giai đoạn 1 màu');
-  const wn = await page.evaluate(() => ({ n: WINMAP.fu.warnCount(), box: document.querySelectorAll('#sb .wbox .ri').length, badge: (document.querySelector('#f-view .wb') || {}).textContent || '' }));
+  const wn = await page.evaluate(() => ({ n: WINMAP.fu.warnCount(), box: document.querySelectorAll('#sb .wbox .wl').length, badge: (document.querySelector('#f-view .wb') || {}).textContent || '' }));
   ok(wn.n > 0 && wn.box > 0 && wn.badge === String(wn.n), `cảnh báo: ${wn.n} hợp đồng MANI sắp hết hiệu lực chưa cập nhật theo dõi — khối cảnh báo + số trên nút Theo dõi thầu`);
   await page.screenshot({ path: path.join(OUT, 'd7b_canhbao.png') });
   if (await page.$('#sb .wbox [data-fu-warn]')) {
@@ -250,11 +296,16 @@ async function pickPer(page, v) {
     await page.click('[data-fm="cancel"]');
   }
   // khớp kết quả KQTT với gói đang theo dõi (cùng số TBMT) ⇒ gợi ý ghi kết quả
-  const kq = await page.evaluate(() => { const p = WINMAP.pkgs().find(x => x.npp === 'KQTT' && x.h && x.h.f && x.tbmtRaw.length); if (!p) return null;
-    WINMAP.fu.open({ f: p.h.f, pre: { pkg: 'Gói khớp KQTT', tbmt: p.tbmtRaw[0], lines: [{ code: 'MSL28SH', qty: '100', kind: 'dao' }] } }); return { tb: p.tbmtRaw[0], mani: p.items.some(i => /mani/i.test(i.mfr)) }; });
+  const kq = await page.evaluate(() => { const p = WINMAP.pkgs().find(x => x.npp === 'KQTT' && x.h && x.h.f && x.tbmtRaw.length && x.approve); if (!p) return null;
+    WINMAP.fu.open({ f: p.h.f, pre: { pkg: 'Gói khớp KQTT', stage: 5, tbmt: p.tbmtRaw[0], lines: [{ code: 'MSL28SH', qty: '100', kind: 'dao' }] } }); return { tb: p.tbmtRaw[0], mani: p.items.some(i => /mani/i.test(i.mfr)), name: p.h.name }; });
   if (kq) {
     ok(await page.$eval('#fm-tb', e => e.value) === kq.tb, 'hộp theo dõi nhận số TBMT điền sẵn');
     await page.click('[data-fm="save"]');
+    await page.waitForFunction(() => document.getElementById('fudlg').hidden);
+    await page.waitForFunction(() => !/đang lưu/.test(document.getElementById('sb').textContent), null, { timeout: 10000 });
+    ok(!(await page.$('.kqm')), 'gói bắt đầu theo dõi HÔM NAY mà số TBMT trùng kết quả cũ (quyết định từ trước) ⇒ KHÔNG báo "Đã có kết quả" nhầm (v21)');
+    const old = db.fu[db.fu.length - 1].slice(); old[0] = '2022-06-01 09:00:00'; old[1] = 'FUOLD1'; old[20] = 'rid-old'; db.fu.push(old);   // gói theo dõi từ trước ngày quyết định
+    await page.evaluate(n => WINMAP.fu.load().then(() => WINMAP.hosp(n)), kq.name);
     await page.waitForSelector('.kqm', { timeout: 10000 });
     ok(true, 'gói theo dõi có TBMT trùng KQTT ⇒ hiện "Đã có kết quả"');
     await page.screenshot({ path: path.join(OUT, 'd8_khop_kqtt.png') });

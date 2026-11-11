@@ -114,7 +114,7 @@ Trang tĩnh (GitHub Pages): `https://manimedicalhanoi.github.io/Tender-Result/ma
 - **Hiện tức thì**: bấm khách / bệnh viện không còn chờ máy chủ — dùng 3 lượt gần nhất có sẵn và bản lưu trên máy, đọc mới ở nền (backend `crm-surgical/MMH_VisitMap.gs` v1.1).
 - **Bảng bên gọn**: số chính ở trên, dòng điểm chính thay đoạn văn, xếp hạng / biểu đồ / danh sách phụ thành mục thu gọn (nhớ mở / đóng).
 
-## Cập nhật 11/11/2026 (2) — kỳ mặc định · biểu đồ tròn độ phủ · thanh trên gọn (v21)
+## Cập nhật 11/11/2026 (2) — kỳ mặc định · biểu đồ tròn độ phủ · thanh trên gọn (v22)
 - **Kỳ** dùng chung 1 bộ chọn gọn `‹ kỳ ▾ ›` (tab **Tuần · Tháng · Quý · Kỳ (FY)**, Hoạt động thêm **Khoảng ngày**; Kết quả / Theo dõi thêm **Mọi năm**).
   Mặc định: **Kết quả thầu** và **Theo dõi thầu** = kỳ hiện tại (hôm nay thuộc FY68 = T09/2026 – T08/2027; sang 09/2027 tự thành FY69), **Hoạt động** = tháng hiện tại. Vẫn chọn được các kỳ trước.
   Theo dõi thầu lọc theo kỳ: gói có cập nhật trong kỳ, hoặc đang mở (kỳ chứa hôm nay); kế hoạch FY hiện tại luôn tính.

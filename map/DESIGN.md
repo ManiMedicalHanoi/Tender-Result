@@ -267,7 +267,7 @@ Phong cách MMH: nền sáng, chữ Aptos, navy `#003047`, xanh `#3A5CAA`, viề
 - `VND | USD` cạnh Giá trị / Số lượng: `vnd()` đổi theo `CUR` (`$15.7K`, `$1.25M`), đơn giá `prc()` / `prn()`; ô nhập vẫn VND. Tỷ giá cố định `USD_RATE` = 26.400.
 - Dòng chưa điền: kế hoạch FY68 stage 0 không vẽ lên bản đồ (chỉ ở nút "Chưa có giai đoạn"); bảng dự báo chi tiết cơ sở `details.faoff` thu gọn.
 
-## 8k. Kỳ chung · độ phủ (11/11/2026, v21)
+## 8k. Kỳ chung · độ phủ (11/11/2026, v22)
 | Phần | Cách làm |
 |---|---|
 | Kỳ | `PERX` = bộ chọn dùng chung (`render(el,{get,set,kinds,min,extra})`, `span(p)`, `mv(p,±1)`, `label(p,short)`), khoá kỳ `fy68` · `q68-1` · `m202611` · `w2026-11-09` · `c a~b` · `all` · `every`. Kết quả / Theo dõi: `F.pk` (mặc định `"fy"+FY_NOW`, `FY_NOW = fyOf(NOWK)`), `setPk` đổi sang `F.fy` / `F.q` / `rng`; Hoạt động: `ACT.S.per` (mặc định `"m"+NOWK`, không lưu). Theo dõi: `inPer(c)` (cập nhật trong kỳ · gói mở khi kỳ chứa hôm nay · kế hoạch FY hiện tại giao kỳ). |

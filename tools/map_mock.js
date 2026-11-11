@@ -149,7 +149,7 @@ function visitsFromList(txt) {
 }
 async function install(page, opt = {}) {
   seed = 7;
-  const db = { fu: [], locs: [], vis: addLast(visitsFake()), saves: 0, failSave: opt.failSave || 0, hv: nppRows('HUNGVI'), ic: nppRows('ICARE'), tk: 'mock.tk.' + 'x'.repeat(20), calls: [], fa: faSeedRows(), faSaves: [] };
+  const db = { fu: [], locs: [], vis: addLast(visitsFake()), saves: 0, failSave: opt.failSave || 0, hv: nppRows('HUNGVI'), ic: nppRows('ICARE'), tk: 'mock.tk.' + 'x'.repeat(20), calls: [], fa: faSeedRows(), faSaves: [], pw: Object.assign({}, opt.pw || {}), me: opt.me || 'mmh.product' };
   /* dữ liệu thật để rà soát (KHÔNG đưa vào repo): bản xuất winMap của 2 NPP, danh sách khách CRM Surgical "mã|tên|loại|tỉnh|PIC" */
   const hvp = opt.hvJson || process.env.NPP_HV_JSON, icp = opt.icJson || process.env.NPP_IC_JSON, accp = opt.accTxt || process.env.CRM_ACC_TXT;
   if (hvp) db.hv = JSON.parse(fs.readFileSync(hvp, 'utf8')).rows;
@@ -181,7 +181,8 @@ async function install(page, opt = {}) {
     const req = route.request(), url = new URL(req.url());
     if (req.resourceType && req.resourceType() === 'script' && opt.scriptFail) return route.fulfill({ status: 404, body: '' });
     let p = Object.fromEntries(url.searchParams.entries());
-    if (req.method() === 'POST') { try { p = Object.assign(p, JSON.parse(req.postData() || '{}')); } catch (e) {} }
+    if (req.method() === 'POST') { const body = req.postData() || '';
+      try { p = Object.assign(p, JSON.parse(body || '{}')); } catch (e) { p = Object.assign(p, Object.fromEntries(new URLSearchParams(body).entries())); } }
     const a = p.action || ''; db.calls.push(a);
     if (url.pathname.includes(HV) || url.pathname.includes(IC)) {
       const npp = url.pathname.includes(HV) ? 'HUNGVI' : 'ICARE';
@@ -191,7 +192,16 @@ async function install(page, opt = {}) {
     }
     if (url.pathname.includes(HUB)) {
       if (a === 'rhAuthStart') return reply(route, url, /@(manimedicalhanoi\.com|mani\.inc)$/.test(p.email || '') ? { ok: true, gap: 45 } : { ok: false, error: 'Email không có trong danh sách.' });
-      if (a === 'rhAuthVerify') return reply(route, url, p.code === '123456' ? { ok: true, token: db.tk, exp: Date.now() + 30 * 864e5, user: { pic: picOf(p.email), email: p.email, level: 'pic' } } : { ok: false, error: 'Mã chưa đúng.' });
+      if (a === 'rhAuthVerify') return reply(route, url, p.code === '123456' ? { ok: true, token: db.tk, exp: Date.now() + 30 * 864e5, user: { pic: picOf(p.email), email: p.email, level: 'pic' }, hasPw: !!db.pw[(p.email || '').split('@')[0]] } : { ok: false, error: 'Mã chưa đúng.' });
+      /* mật khẩu (11/11/2026): POST form — db.pw[phần trước @] = mật khẩu; mật khẩu KHÔNG được nằm trên URL */
+      if (/^rhAuthPw/.test(a) && url.searchParams.get('pw')) db.pwInUrl = (db.pwInUrl || 0) + 1;
+      if (a === 'rhAuthPw') { db.pwCalls = (db.pwCalls || 0) + 1; const l = (p.email || '').split('@')[0];
+        if (!db.pw[l]) return reply(route, url, { ok: false, code: 'NOPW', error: 'Email này chưa đặt mật khẩu. Bấm "Nhận mã qua email" để đăng nhập, sau đó đặt mật khẩu cho lần sau.' });
+        return reply(route, url, db.pw[l] === p.pw ? { ok: true, token: db.tk, exp: Date.now() + 30 * 864e5, user: { pic: picOf(p.email), email: p.email, level: 'pic' }, hasPw: true } : { ok: false, code: 'PW', left: 4, error: 'Mật khẩu chưa đúng. Còn 4 lần thử (hoặc bấm "Nhận mã qua email").' }); }
+      if (a === 'rhAuthPwSet') { if (p.tk !== db.tk) return reply(route, url, { ok: false, code: 'AUTH', error: 'Phiên đăng nhập đã hết hạn.' });
+        if (String(p.pw || '').length < 8) return reply(route, url, { ok: false, code: 'WEAK', error: 'Mật khẩu cần ít nhất 8 ký tự.' });
+        db.pw[db.me || 'mmh.product'] = p.pw; db.pwSets = (db.pwSets || 0) + 1; return reply(route, url, { ok: true, hasPw: true, message: 'Đã lưu mật khẩu — lần sau đăng nhập bằng email + mật khẩu.' }); }
+      if (a === 'rhAuthRenew') { db.renews = (db.renews || 0) + 1; return reply(route, url, p.tk === db.tk ? { ok: true, token: db.tk, exp: Date.now() + 30 * 864e5, user: { pic: 'Giang', email: 'mmh.product@manimedicalhanoi.com' }, hasPw: !!db.pw['mmh.product'] } : { ok: false, code: 'AUTH', error: 'Phiên đăng nhập đã hết hạn.' }); }
       return reply(route, url, { ok: true });
     }
     if (url.pathname.includes(CRM)) {
@@ -243,6 +253,10 @@ async function install(page, opt = {}) {
         let id = p.case, rev = 1;
         if (id) { const ex = db.fu.filter(r => r[1] === id); if (!ex.length) return reply(route, url, { ok: false, error: 'Không tìm thấy gói ' + id }); rev = ex.length + 1; }
         else id = 'FU261104-' + String(1000 + db.fu.length);
+        /* như backend v1.10 (fuDupOf_): gói mới ở cơ sở đã có gói đang theo dõi (giai đoạn 1–6 / 11–14) cùng tên cơ sở ⇒ DUP, trừ khi force=1 */
+        if (!p.case && String(p.force || '') !== '1' && opt.dupCheck) { const last = {}; db.fu.forEach(r => { if (!last[r[1]] || r[2] >= last[r[1]][2]) last[r[1]] = r; });
+          const hit = Object.values(last).find(r => r[6] === p.hosp && ((+r[15] >= 1 && +r[15] <= 6) || (+r[15] >= 11 && +r[15] <= 14)));
+          if (hit) { db.dups = (db.dups || 0) + 1; return reply(route, url, { ok: false, code: 'DUP', case: hit[1], error: 'Cơ sở này đã có gói đang theo dõi: ' + (hit[9] || hit[1]) + ' · ' + hit[16] + '. Gộp cập nhật vào gói đó, hoặc chọn "Vẫn tạo gói mới".' }); } }
         const KINDS = ['dao', 'chi', 'ghim', 'hook', 'forcep'];   // như backend MMH_TenderFU v1.8 (fuKind_)
         const items = (typeof p.items === 'string' ? JSON.parse(p.items) : (p.items || [])).map(x => Object.assign({}, x, { kind: KINDS.includes(String(x.kind || '').toLowerCase()) ? String(x.kind).toLowerCase() : /^chi/i.test(x.kind || '') ? 'chi' : 'dao' }));
         const d = new Date(Date.now() + 7 * 3600e3).toISOString().replace('T', ' ').slice(0, 19);

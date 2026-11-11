@@ -13,7 +13,24 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Tender Map">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="app.css?v=22">
+<link rel="preconnect" href="https://script.google.com" crossorigin>
+<link rel="preconnect" href="https://script.googleusercontent.com" crossorigin>
+<link rel="stylesheet" href="app.css?v=23">
+<script>
+/* Tải SỚM dữ liệu Apps Script ngay khi trang mở — song song với tải / dựng app (mỗi lệnh Apps Script mất 3–5 giây, phần lớn là thời gian khởi động
+   của Google). app.js dùng lại đúng các lệnh này qua window.__PRE (khoá = URL đầy đủ; URL khác ⇒ tự gọi lại như thường). */
+(function(){ try{
+  var P=window.__PRE={}, E=encodeURIComponent;
+  var HV="https://script.google.com/macros/s/AKfycbyL5FRVXl0Zr35ndE1PGJMGXzHOYzHjdsyQK7vHwIYhqe5owjSg3o1QtH-i8qGNBKJ-/exec",
+      IC="https://script.google.com/macros/s/AKfycbx8xuGaBOVgLxb8JtaH25t1pcisacigDecTMLKOVaBucuDWZ7hw2W_W4IngA1nSODg4/exec",
+      CRM="https://script.google.com/macros/s/AKfycbxxckrqwkfhE0fszm1XVdpYyEHU_PCKQWMKE_2wBnMTgoJCZ-1nRZ_fhOCPXXsVfEE/exec";
+  function go(u){ var p=fetch(u,{redirect:"follow",credentials:"omit"}).then(function(r){ if(!r.ok) throw new Error("HTTP "+r.status); return r.json(); }); p.catch(function(){}); P[u]=p; }
+  go(HV+"?action=winMap&from=202209"); go(IC+"?action=winMap&from=202209"); go(HV+"?action=kqttMap&from=202209");
+  var t=JSON.parse(localStorage.getItem("mmh_tk")||"null");
+  if(t && t.tk && t.user && (!t.exp || t.exp>Date.now())){ var k=E(t.tk);
+    go(CRM+"?action=fuList&tk="+k); go(CRM+"?action=fuVisits&from=2025-09-01&tk="+k); go(CRM+"?action=fuFcList&tk="+k); go(CRM+"?action=fuNews&days=45&tk="+k); }
+}catch(e){} })();
+</script>
 </head>
 <body>
 <header class="top" id="top">
@@ -109,11 +126,11 @@
   <div id="inst-b"></div>
   <div class="ft"><button class="btn" id="inst-x" type="button">Đã hiểu</button></div>
 </div></div>
-<script src="vn-geo.js"></script>
-<script src="products.js"></script>
-<script src="vn-dist.js"></script>
-<script src="csyt.js?v=22"></script>
-<script src="codes.js?v=22"></script>
-<script src="app.js?v=22"></script>
+<script src="vn-geo.js?v=23"></script>
+<script src="products.js?v=23"></script>
+<script src="vn-dist.js?v=23"></script>
+<script src="csyt.js?v=23"></script>
+<script src="codes.js?v=23"></script>
+<script src="app.js?v=23"></script>
 </body>
 </html>

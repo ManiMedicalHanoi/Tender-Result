@@ -274,6 +274,15 @@ Phong cách MMH: nền sáng, chữ Aptos, navy `#003047`, xanh `#3A5CAA`, viề
 | Độ phủ | `COV.get()` theo `F.view` ⇒ `COV.html()` đầu `#fabox` (donut SVG 44 px `COV.donut(v)`: < 20% đỏ · < 40% cam · < 70% xanh · ≥ 70% xanh lá); số chính (nút thu gọn) = chỉ số đầu tiên. `win()`: tỉnh `TERR[i].ni` của NPP ⇒ tỉnh có gói Win của NPP trong kỳ; bệnh viện NPP Win trong kỳ ÷ (KQTT Win mọi năm ∪ NPP Win) trong địa bàn. `fu()` = `FU.covData()`. `act()` = `ACT.cov2()` (khách CRM trong địa bàn PIC, công lập / tư nhân theo `privN`). |
 | Thanh trên | `#fu-st` ở `#fdrw` (`.fsec.fuo`, chỉ hiện khi `body.fu`); `#fu-add` rút gọn "+ Thêm gói". |
 
+## 8l. Đăng nhập mật khẩu · điện thoại · chống trùng · mở nhanh (11/11/2026, v23)
+| Phần | Cách làm |
+|---|---|
+| Đăng nhập | `FU.loginHtml`: `<form data-lgf="pw">` (`name=username autocomplete=username` + `type=password autocomplete=current-password`, nút con mắt `data-lg="eye"`) ⇒ `lgPw()` ⇒ `hubPost("rhAuthPw")` (POST form-urlencoded, không đưa mật khẩu lên URL). "Nhận mã qua email" ⇒ bước `code` (`<form data-lgf="verify">`). Submit bắt ở `document` (form `[data-lgf]`). Xong ⇒ `done(d, how)`; đăng nhập bằng mã mà `hasPw=false` ⇒ `PWD.offer()` (hộp `.pwdlg`, ô `new-password` ×2 + ô ẩn `username`; "Để sau" nhớ 7 ngày `tm_pw_later`). `credStore` = `PasswordCredential` (Chrome); `autoLogin()` (`mediation:"silent"`) khi màn đăng nhập hiện; đăng xuất ⇒ `preventSilentAccess()`. `renew()` 4 giây sau mở + 6 giờ / lần: phiên < 25 ngày ⇒ `rhAuthRenew`. Đã có mật khẩu: `localStorage tm_haspw:<phần trước @>`. Menu tên `.umenu` (Đặt / đổi mật khẩu · Đăng xuất bấm 2 lần). |
+| Điện thoại | `placeCtl()` chuyển `#fabox` vào `.side` (trước `#sb`) khi `MQ` khớp ⇒ CSS `html.mob .side .fabox` tĩnh, nền xanh nhạt; mở rộng ⇒ `SHEET.to("half")`. `#zin` / `#zout` ẩn. |
+| Chữ tỷ lệ | `COV.win/fu/act` trả `h` (tiêu đề), `it[].l` (nhãn), `it[].sh` / `totSh` (chữ ngắn trên nút thu gọn = chỉ số đầu tiên). Không dùng chữ "độ phủ" trên giao diện. |
+| Chống trùng | `dups(f)` = gói ở cùng cơ sở có cùng TBMT hoặc trùng loại SP mà đang mở / cập nhật ≤ 12 tháng ⇒ khối `.fdup` (`data-fm-dup` ⇒ `open({caseId, pre})` giữ ghi chú / mã / mốc), `#fm-dupok` ⇒ gửi `force=1`. `sameAsLast(c, …)` chặn cập nhật giống hệt. Máy chủ `DUP` ⇒ `o.dup` ⇒ `obPanel()` (Gộp: đổi `case` + mã tạm của các lệnh sau; Vẫn tạo: `force=1`; Thử lại; Bỏ). |
+| Mở nhanh | `index.html` ▸ script đầu trang: `window.__PRE[url] = fetch(...)` cho winMap ×2, kqttMap, (có phiên) fuList · fuVisits · fuFcList · fuNews — URL phải TRÙNG KHÍT với app.js; `getJSON(url)` lấy `__PRE[url]` 1 lần rồi xoá. `preconnect` script.google.com + googleusercontent. `sw.js` v23: `?v=` ⇒ cache-first; trang ⇒ mạng, quá 2,5 giây ⇒ bản lưu. `loadOne(k, force)` ⇒ `&fresh=1`. |
+
 ## 9. Việc có thể làm tiếp
 
 - Danh mục cơ sở đầy đủ có **số giường / hạng** (file Sở Y tế / BHXH ⇒ ghép vào `tools/csyt_build.py`); OSM còn thiếu nhiều TTYT / bệnh viện tuyến huyện.

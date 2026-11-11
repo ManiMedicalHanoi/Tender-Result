@@ -758,8 +758,9 @@ details.sec>.sb2>h3:first-child{margin-top:0}
 .stc:hover{border-color:var(--blue)}
 .stc.on{background:var(--pale);border-color:var(--blue);color:var(--navy);font-weight:600}
 .stbar.in{position:static;max-width:none;box-shadow:none;border-radius:12px;margin:0 0 10px;padding:8px}
-.stbar.in .stcs{flex-wrap:nowrap;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
-.stbar.in .stc{flex:none}
+html.mob .stbar.in .stcs{flex-wrap:nowrap;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
+html.mob .stbar.in .stc{flex:none}
+.stbar.in{background:var(--sf2);border-color:var(--line)}
 .sgt.s0{color:var(--t3);border-color:var(--line2);background:var(--sf2);font-weight:500}
 .fuc.plan{cursor:pointer;border-style:dashed}
 .fuc.plan:hover{border-color:var(--blue)}
@@ -795,3 +796,19 @@ details.faoff[open]>summary{margin-bottom:6px}
 .nwi .acts{margin-top:6px}
 
 .stbar[hidden]{display:none}
+/* v21: thẻ chung trên bản đồ — độ phủ (biểu đồ tròn) + doanh số ước tính */
+.fabox .fax{position:absolute;top:8px;right:8px}
+.fabox:not(.min) .fah{padding-right:28px;margin-bottom:2px}
+.fabox .cvs{font-size:11.5px;color:var(--t3);margin:0 0 7px;line-height:1.35}
+.fabox .cvs b{color:var(--t2)}
+.fabox .cvr{display:flex;gap:10px;flex-wrap:wrap}
+.fabox .cvi{display:flex;align-items:center;gap:7px;flex:1 1 118px;min-width:0;cursor:default}
+.fabox .cvi>div{min-width:0}
+.fabox .cvi b{display:block;font-size:15px;line-height:1.1;color:var(--navy)}
+.fabox .cvi b span{font-size:11.5px;color:var(--t3);font-weight:500}
+.fabox .cvi>div>span{display:block;font-size:11.5px;color:var(--t2);line-height:1.25}
+.dn{flex:none}
+.dn text{font-size:10.5px;font-weight:700;fill:var(--navy);font-family:inherit}
+.fabox .fasec{border-top:1px solid var(--line);margin-top:10px;padding-top:9px}
+.fabox .fasec .fah{padding-right:0;margin-bottom:7px}
+.fsec.fuo{display:none} body.fu .fsec.fuo{display:block}

@@ -58,7 +58,18 @@ async function pickPer(page, v) {
   ok(info.kq > 0, `KQTT: ${info.kq} gói thị trường (tổng ${info.n} gói)`);
   ok(info.dup === 0, `bỏ trùng theo TBMT: ${db.dupTb.length} số TBMT đã có ở NPP không còn trong KQTT`);
   ok(info.fac > 1000, `danh mục cơ sở y tế: ${info.fac} cơ sở, ${info.linked} có lịch sử thầu`);
-  await page.selectOption('#f-period', 'every');
+  // kỳ mặc định = kỳ hiện tại (FY theo ngày hôm nay — tự sang FY69 từ 09/2027); bộ chọn chung Tuần · Tháng · Quý · Kỳ (FY)
+  const pd = await page.evaluate(() => ({ pk: WINMAP.F.pk, lb: document.querySelector('#va-per .pb').textContent, sel: document.getElementById('f-period').hidden }));
+  await page.click('#va-per .pb');
+  const ptw = await page.evaluate(() => [...document.querySelectorAll('#va-per .ptab button')].map(b => b.textContent).join('|'));
+  await page.click('#va-per [data-ptab="m"]'); const pm = await page.$$eval('#va-per .pls button', l => l.length);
+  await page.click('#va-per [data-ptab="fy"]'); await page.click('#va-per .pop [data-per="every"]');
+  const fyNow = (() => { const d = new Date(); return (d.getMonth() >= 8 ? d.getFullYear() + 1 : d.getFullYear()) - 1959; })();
+  ok(pd.pk === 'fy' + fyNow && /^FY\d+ đến nay/.test(pd.lb) && pd.sel && ptw === 'Tuần|Tháng|Quý|Kỳ (FY)' && pm >= 2,
+    `Kết quả thầu mặc định kỳ hiện tại (${pd.lb.trim()}), bộ chọn ${ptw}, chọn "Mọi năm" trong tab Kỳ`);
+  const cv1 = await page.evaluate(() => ({ h: (document.querySelector('#fabox .cov .fah') || {}).textContent || '', n: document.querySelectorAll('#fabox .cov .cvi').length,
+    t: [...document.querySelectorAll('#fabox .cov .cvi b')].map(e => e.textContent), dn: document.querySelectorAll('#fabox .cov svg.dn').length }));
+  ok(/Độ phủ trúng thầu/.test(cv1.h) && cv1.n === 2 && cv1.dn === 2 && cv1.t.every(t => /^\d+\/\d+$/.test(t.replace(/\./g, ''))), `độ phủ trúng thầu (biểu đồ tròn trong thẻ bản đồ): tỉnh ${cv1.t[0]} · bệnh viện ${cv1.t[1]}`);
   const bars = await page.$$eval('.mon .c', e => e.length);
   ok(bars >= 36, `Mọi năm: biểu đồ tháng ${bars} cột (từ 2023)`);
   ok(await page.$eval('#f-view', e => /^Kết quả thầuTheo dõi thầu\d*Hoạt động$/.test(e.textContent)), 'chế độ: Kết quả thầu | Theo dõi thầu | Hoạt động');
@@ -252,18 +263,18 @@ async function pickPer(page, v) {
   ok(db.fu.length === 1 && db.fu[0][15] === 1 && db.fu[0][23] === 'Viet Ha', 'lưu gói mới (bước 1) ⇒ 1 dòng FOLLOW UP TENDER, cột PIC phụ trách địa bàn = Viet Ha (Nghệ An)');
   // ── hàng nút giai đoạn trên bản đồ (v21): Thầu công lập | Tư nhân + mỗi giai đoạn 1 nút, gộp gói theo dõi + kế hoạch FY68 ──
   await page.evaluate(() => WINMAP.select(-1));
-  const sb0 = await page.evaluate(() => { const b = document.getElementById('stbar'); return { on: !b.hidden, tabs: [...b.querySelectorAll('[data-stk]')].map(x => x.textContent).join('|'), c: Object.fromEntries([...b.querySelectorAll('[data-stc]')].map(x => [x.dataset.stc, +x.querySelector('b').textContent])) }; });
+  const sb0 = await page.evaluate(() => { const b = document.querySelector('#sb .stbar'); return { on: !!b && document.getElementById('stbar').hidden, tabs: [...b.querySelectorAll('[data-stk]')].map(x => x.textContent).join('|'), c: Object.fromEntries([...b.querySelectorAll('[data-stc]')].map(x => [x.dataset.stc, +x.querySelector('b').textContent])) }; });
   ok(sb0.on && sb0.tabs === 'Thầu công lập|Tư nhân · mua sắm' && sb0.c['1'] >= 1 && sb0.c['2'] >= 1 && sb0.c['-1'] >= 1,
     `hàng nút giai đoạn: ${sb0.tabs} · Chưa tiếp cận ${sb0.c['1']} · Đã giới thiệu ${sb0.c['2']} (kế hoạch FY68) · Chưa có giai đoạn ${sb0.c['-1']}`);
-  await page.click('#stbar [data-stc="2"]');
+  await page.click('#sb .stbar [data-stc="2"]');
   const sb1 = await page.evaluate(() => ({ h: (document.querySelector('#sb h3') || {}).textContent || '', items: [...document.querySelectorAll('#sb .fuc')].map(e => e.querySelector('.t').textContent), prov: [...document.querySelectorAll('#sb .fph')].map(e => e.textContent) }));
   ok(/Đã giới thiệu tới chuyên môn/.test(sb1.h) && sb1.items.some(t => /chợ rẫy/i.test(t)) && sb1.prov.some(t => /Hồ Chí Minh/.test(t)), `bấm "Đã giới thiệu" ⇒ danh sách theo tỉnh: ${sb1.prov.join(', ')} (${sb1.items.join(', ')})`);
   await page.screenshot({ path: path.join(OUT, 'd7c_nut_giai_doan.png') });
-  await page.click('#stbar [data-stc="-1"]');
+  await page.click('#sb .stbar [data-stc="-1"]');
   ok(await page.$$eval('#sb .fuc.plan', l => l.length >= 1 && l.every(e => /Chưa có giai đoạn/.test(e.textContent))), '"Chưa có giai đoạn" ⇒ các dòng kế hoạch FY68 chưa điền (ẩn khỏi bản đồ khi xem Tất cả)');
-  await page.click('#stbar [data-stk="pv"]');
-  ok(await page.evaluate(() => { const c = [...document.querySelectorAll('#stbar [data-stc]')].map(x => x.textContent); return /Demo/.test(c.join('|')) && /Ký HĐ mua sắm/.test(c.join('|')) && !/Đang dự thầu/.test(c.join('|')); }), 'tab Tư nhân ⇒ nút giai đoạn mua sắm (Giới thiệu · Demo · … · Ký HĐ mua sắm)');
-  await page.click('#stbar [data-stk="pub"]'); await page.click('#stbar [data-stc="0"]');
+  await page.click('#sb .stbar [data-stk="pv"]');
+  ok(await page.evaluate(() => { const c = [...document.querySelectorAll('#sb .stbar [data-stc]')].map(x => x.textContent); return /Demo/.test(c.join('|')) && /Ký HĐ mua sắm/.test(c.join('|')) && !/Đang dự thầu/.test(c.join('|')); }), 'tab Tư nhân ⇒ nút giai đoạn mua sắm (Giới thiệu · Demo · … · Ký HĐ mua sắm)');
+  await page.click('#sb .stbar [data-stk="pub"]'); await page.click('#sb .stbar [data-stc="0"]');
   await page.evaluate(() => WINMAP.hosp('Mắt Nghệ An'));
   await page.waitForFunction(() => /S-NA-001/.test((document.getElementById('crmx') || {}).textContent || ''), null, { timeout: 10000 });
   ok(await page.$eval('#crmx', e => /Lượt gặp 12 tháng/.test(e.textContent) && /Trưởng khoa/.test(e.textContent)), 'đã đăng nhập ⇒ khối CRM Surgical: mã địa bàn, lượt gặp, người liên hệ, đơn hàng');
@@ -319,12 +330,17 @@ async function pickPer(page, v) {
   await page.evaluate(() => WINMAP.select(-1));
   await page.click('#f-view button[data-v="act"]');
   await page.waitForFunction(() => window.WINMAP && WINMAP.act._S.loaded && document.querySelector('#sb .kpis'), null, { timeout: 10000 });
+  const actDef = await page.$eval('#va-per .pb', e => e.textContent.trim());
+  ok(/^Tháng \d+\/\d{4}$/.test(actDef) && actDef === 'Tháng ' + (new Date().getMonth() + 1) + '/' + new Date().getFullYear(), `Hoạt động mặc định tháng hiện tại (${actDef})`);
+  await pickPer(page, 'fy' + fyNow);                                  // dữ liệu giả rải cả FY ⇒ các bài dưới xem theo FY
+  const cv3 = await page.evaluate(() => ({ h: (document.querySelector('#fabox .cov .fah') || {}).textContent || '', l: [...document.querySelectorAll('#fabox .cov .cvi')].map(e => e.textContent), fc: !!document.querySelector('#fabox .fasec') }));
+  ok(/Độ phủ chăm sóc/.test(cv3.h) && cv3.l.length === 2 && /công lập/.test(cv3.l[0]) && /tư nhân/.test(cv3.l[1]) && !cv3.fc, `độ phủ chăm sóc (customer list): ${cv3.l.join(' · ')} — tab Hoạt động không hiện doanh số`);
   await page.click('#va-per .pb');
   const pt = await page.evaluate(() => ({ tabs: [...document.querySelectorAll('#va-per .ptab button')].map(b => b.textContent).join('|'), fy: document.querySelectorAll('#va-per .pls button').length }));
   await page.click('#va-per [data-ptab="w"]');
   pt.w = await page.$$eval('#va-per .pls button', l => l.map(b => b.textContent));
   await page.keyboard.press('Escape');
-  ok(pt.tabs === 'Tuần|Tháng|Quý|FY|Khoảng ngày' && pt.fy >= 2 && /^Tuần này/.test(pt.w[0]) && /^Tuần trước/.test(pt.w[1]) && await page.$eval('#va-per .pop', e => e.hidden),
+  ok(pt.tabs === 'Tuần|Tháng|Quý|Kỳ (FY)|Khoảng ngày' && pt.fy >= 2 && /^Tuần này/.test(pt.w[0]) && /^Tuần trước/.test(pt.w[1]) && await page.$eval('#va-per .pop', e => e.hidden),
     `Hoạt động: chọn kỳ Tuần · Tháng · Quý · FY · Khoảng ngày (${pt.w.length} tuần gần nhất, Esc đóng)`);
   const av = await page.evaluate(() => ({ per: document.querySelectorAll('#va-per > button').length, pic: document.querySelectorAll('#f-pic button').length,
     na: document.querySelector('.prov[data-i="16"]').getAttribute('fill'), leg: /nhiều lượt viếng thăm hơn/.test(document.getElementById('legend').textContent) }));
@@ -345,7 +361,7 @@ async function pickPer(page, v) {
   ok(n67 > 0 && nm <= n67, `đổi kỳ: FY67 ${n67} lượt ⇒ 1 tháng ${nm} lượt`);
   // khoảng ngày tuỳ chọn: cả FY67 theo ngày = đúng số lượt FY67; 1 tuần có lượt ⇒ đếm theo NGÀY
   await page.click('#va-per .pb'); await page.click('#va-per [data-ptab="c"]');
-  await page.fill('#va-d0', '2025-09-01'); await page.fill('#va-d1', '2026-08-31'); await page.click('#va-per [data-pgo]');
+  await page.fill('#va-per .pd0', '2025-09-01'); await page.fill('#va-per .pd1', '2026-08-31'); await page.click('#va-per [data-pgo]');
   const nc = await page.$eval('#sb .kpi b', e => +e.textContent), lcp = await page.$eval("#va-per .pb", e => e.textContent);
   const wk = await page.evaluate(() => { const R = WINMAP.act.rows().filter(r => r.visit && r.done && r.d < '2026-09-01').map(r => r.d).sort(); const d = new Date(R[R.length - 1] + 'T00:00:00'); d.setDate(d.getDate() - ((d.getDay() + 6) % 7));
     const p2 = n => (n < 10 ? '0' : '') + n, mon = d.getFullYear() + '-' + p2(d.getMonth() + 1) + '-' + p2(d.getDate()); const e = new Date(d); e.setDate(e.getDate() + 6); const sun = e.getFullYear() + '-' + p2(e.getMonth() + 1) + '-' + p2(e.getDate());
@@ -635,7 +651,7 @@ async function pickPer(page, v) {
   ok(dnv.qn > 0 && dnv.qnIn === 0 && dnv.dn > 0 && dnv.dnIn === dnv.dn && dnv.own.join() === 'Viet Ha,Khang,Khang',
     `tỉnh Đà Nẵng mới chia theo tỉnh cũ: Viet Ha thấy ${dnv.dn} cơ sở Đà Nẵng cũ, không thấy ${dnv.qn} cơ sở Quảng Nam cũ (thuộc Khang)`);
   await page.screenshot({ path: path.join(OUT, 's1_vietha.png') });
-  await page.evaluate(() => WINMAP.view('act'));
+  await page.evaluate(f => { WINMAP.act._S.per = 'fy' + f; WINMAP.view('act'); }, (() => { const d = new Date(); return (d.getMonth() >= 8 ? d.getFullYear() + 1 : d.getFullYear()) - 1959; })());
   await page.waitForFunction(() => WINMAP.act._S.loaded && document.querySelector('#sb .tb2'), null, { timeout: 10000 });
   const vr = await page.$$eval('#sb .tb2 tbody tr', l => l.map(x => x.textContent.trim().split(/\s+/)[0]));
   ok(vr.length === 1 && /Viet/.test(vr[0]), 'Viet Ha ⇒ Hoạt động chỉ có lượt của Viet Ha');

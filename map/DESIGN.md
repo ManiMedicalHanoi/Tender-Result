@@ -263,9 +263,16 @@ Phong cách MMH: nền sáng, chữ Aptos, navy `#003047`, xanh `#3A5CAA`, viề
 ## 8j. Mới cập nhật · nút giai đoạn · VND / USD (11/11/2026, v21)
 - Chuông `#news` (thanh trên; điện thoại giữ ở thanh trên, không vào bảng Bộ lọc): số đỏ = mục mới từ lần mở trước + gói theo dõi có kết quả chưa ghi. Bảng bên chế độ riêng (`NEWS.on()`,
   ‹ để đóng; chọn tỉnh / cơ sở tự đóng). Mục mới có vạch xanh bên trái; nhóm theo ngày (Hôm nay · Hôm qua · dd/mm); kết quả = nhãn màu (xanh lá MANI trúng · đỏ hãng khác / trượt · cam đang dự thầu).
-- Hàng nút giai đoạn `#stbar`: thẻ nổi trắng góc dưới trái bản đồ (máy tính), trong bảng trượt cuộn ngang (điện thoại). Nút = chấm màu giai đoạn (`SC`) + tên ngắn (`SH`) + số; nút 0 mờ; nút đang chọn nền `--pale` viền xanh.
+- Hàng nút giai đoạn: `barHtml()` vẽ ở đầu bảng bên (`.stbar.in`, điện thoại cuộn ngang); `#stbar` trên bản đồ luôn ẩn (người dùng: che biểu đồ). Nút = chấm màu giai đoạn (`SC`) + tên ngắn (`SH`) + số; nút 0 mờ; nút đang chọn nền `--pale` viền xanh.
 - `VND | USD` cạnh Giá trị / Số lượng: `vnd()` đổi theo `CUR` (`$15.7K`, `$1.25M`), đơn giá `prc()` / `prn()`; ô nhập vẫn VND. Tỷ giá cố định `USD_RATE` = 26.400.
 - Dòng chưa điền: kế hoạch FY68 stage 0 không vẽ lên bản đồ (chỉ ở nút "Chưa có giai đoạn"); bảng dự báo chi tiết cơ sở `details.faoff` thu gọn.
+
+## 8k. Kỳ chung · độ phủ (11/11/2026, v21)
+| Phần | Cách làm |
+|---|---|
+| Kỳ | `PERX` = bộ chọn dùng chung (`render(el,{get,set,kinds,min,extra})`, `span(p)`, `mv(p,±1)`, `label(p,short)`), khoá kỳ `fy68` · `q68-1` · `m202611` · `w2026-11-09` · `c a~b` · `all` · `every`. Kết quả / Theo dõi: `F.pk` (mặc định `"fy"+FY_NOW`, `FY_NOW = fyOf(NOWK)`), `setPk` đổi sang `F.fy` / `F.q` / `rng`; Hoạt động: `ACT.S.per` (mặc định `"m"+NOWK`, không lưu). Theo dõi: `inPer(c)` (cập nhật trong kỳ · gói mở khi kỳ chứa hôm nay · kế hoạch FY hiện tại giao kỳ). |
+| Độ phủ | `COV.get()` theo `F.view` ⇒ `COV.html()` đầu `#fabox` (donut SVG 44 px `COV.donut(v)`: < 20% đỏ · < 40% cam · < 70% xanh · ≥ 70% xanh lá); số chính (nút thu gọn) = chỉ số đầu tiên. `win()`: tỉnh `TERR[i].ni` của NPP ⇒ tỉnh có gói Win của NPP trong kỳ; bệnh viện NPP Win trong kỳ ÷ (KQTT Win mọi năm ∪ NPP Win) trong địa bàn. `fu()` = `FU.covData()`. `act()` = `ACT.cov2()` (khách CRM trong địa bàn PIC, công lập / tư nhân theo `privN`). |
+| Thanh trên | `#fu-st` ở `#fdrw` (`.fsec.fuo`, chỉ hiện khi `body.fu`); `#fu-add` rút gọn "+ Thêm gói". |
 
 ## 9. Việc có thể làm tiếp
 

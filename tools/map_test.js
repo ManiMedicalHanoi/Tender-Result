@@ -144,7 +144,12 @@ async function pickPer(page, v) {
   const est = await page.$eval('#fa-est', e => e.textContent);
   await page.screenshot({ path: path.join(OUT, 'd1e_dubao_sua.png') });
   await page.click('#fa-dlg [data-fd="save"]');
-  await page.waitForFunction(() => document.getElementById('fa-dlg').hidden && !document.querySelector('#sb .fat tr.off'), null, { timeout: 8000 });
+  try { await page.waitForFunction(() => document.getElementById('fa-dlg').hidden && !document.querySelector('#sb .fat tr.off'), null, { timeout: 15000 }); }
+  catch (e) {   /* chẩn đoán khi chỉ lỗi trên máy CI */
+    console.log('CHẨN ĐOÁN lưu dự báo:', JSON.stringify(await page.evaluate(() => ({ dlg: document.getElementById('fa-dlg').hidden, er: (document.getElementById('fa-er') || {}).textContent, off: [...document.querySelectorAll('#sb .fat tr.off')].map(t => t.textContent.slice(0, 60)),
+      S: (({ loading, loaded, saving, again, err }) => ({ loading, loaded, saving, again, err }))(WINMAP.fa._S), sb: (document.getElementById('sh-t') || {}).textContent, tk: !!localStorage.getItem('mmh_tk') }))), 'faSaves', db.faSaves.length, JSON.stringify(db.faSaves.slice(-1)), 'calls', db.calls.slice(-12).join(','));
+    throw e;
+  }
   const sv = db.faSaves[db.faSaves.length - 1] || {};
   const fa5 = await page.$eval('#fabox .fav b', e => e.textContent);
   ok(/SL \/ tháng 20/.test(est) && /8 tháng/.test(est) && sv.qty === '240' && sv.start === '2027-01' && sv.stage === 'Đã gửi báo giá' && fa5 === '144 tr',

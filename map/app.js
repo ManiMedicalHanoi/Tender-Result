@@ -2604,18 +2604,22 @@ var FA=(function(){
     S.cols=d.cols||[]; S.rows=d.rows||[]; S.fy=d.fy||null; S.prices=d.prices||{}; S.stages=d.stages||[]; S.priv=d.priv||[]; S.lists=d.lists||{}; S.sync=d.sync||{};
     S.loaded=true; S.cached=!!cached; index();
   }
+  /* đang đọc mà lại cần đọc (vừa lưu / xoá 1 dòng) ⇒ đọc lại ngay khi lượt đang chạy xong — trước đây bỏ qua ⇒ lượt đang chạy (bắt đầu TRƯỚC khi lưu)
+     trả dữ liệu cũ, màn hình vẫn hiện số cũ đến lần tải sau (11/11/2026) */
   function load(){
     var t=FU.tk(); if(!t){ box(); return Promise.resolve(); }
-    if(S.loading) return Promise.resolve();
-    S.loading=true; S.err=""; box();
+    if(S.loading){ S.again=true; return S.lp || Promise.resolve(); }
+    S.loading=true; S.again=false; S.err=""; box();
     if(!S.loaded) IDB.get("fa").then(function(c){ if(c && c.d && !S.loaded){ apply(c.d, true); S.at=c.at; after(); } });
-    return getJSON(CRM_SURG+"?action=fuFcList&tk="+encodeURIComponent(t)).then(function(d){
+    function next(){ if(S.again){ S.again=false; load(); } }
+    S.lp=getJSON(CRM_SURG+"?action=fuFcList&tk="+encodeURIComponent(t)).then(function(d){
       S.loading=false;
       if(d && d.ok){ apply(d); S.at=new Date().toLocaleString("vi-VN"); IDB.set("fa", {at:S.at, d:d}); }
       else if(d && d.code==="AUTH") S.err=d.error||"Phiên đăng nhập hết hạn.";
       else S.err=(d&&d.error)||"Không đọc được dữ liệu dự báo (Follow up by Account).";
-      after();
-    },function(e){ S.loading=false; S.err="Không đọc được dữ liệu dự báo ("+e.message+")."; box(); });
+      after(); next();
+    },function(e){ S.loading=false; S.err="Không đọc được dữ liệu dự báo ("+e.message+")."; box(); next(); });
+    return S.lp;
   }
   function ensure(){ if(FU.auth() && !S.loaded && !S.loading) load(); else box(); }
   /* dữ liệu kế hoạch đổi ⇒ Theo dõi thầu (hàng nút giai đoạn, bản đồ) vẽ lại */

@@ -357,7 +357,10 @@ var TERR=(function(){   /* ni[i] = 1 (cả tỉnh) hoặc {tỉnh cũ: 1} (một
   var a={}, b={};
   NEW.forEach(function(x,i){ if(i<DNI) a[i]=1; else if(i>DNI) b[i]=1; });
   a[DNI]={danang:1}; b[DNI]={quangnam:1};
-  return [{ pic:"Viet Ha", lbl:"Miền Bắc → Đà Nẵng (cũ)", ni:a, col:"#4F46E5" }, { pic:"Khang", lbl:"Quảng Nam (cũ) → miền Nam", ni:b, col:"#D97706" }];
+  /* x = phụ trách THÊM theo nhóm sản phẩm (người dùng 14/11/2026: Khang phụ trách Manipler — ghim da — khu vực Đà Nẵng cũ; dao / chỉ khâu vẫn Viet Ha).
+     Đà Nẵng vẫn tô màu + thuộc Viet Ha (ownerOf), Khang chỉ được XEM thêm Đà Nẵng cũ; gói chỉ có ghim da ở Đà Nẵng cũ ⇒ PIC phụ trách = Khang. */
+  return [{ pic:"Viet Ha", lbl:"Miền Bắc → Đà Nẵng (cũ)", ni:a, col:"#4F46E5" },
+          { pic:"Khang", lbl:"Quảng Nam (cũ) → miền Nam · Manipler Đà Nẵng (cũ)", ni:b, col:"#D97706", x:[{ ni:DNI, oi:"danang", kind:"ghim" }] }];
 })();
 /* địa chỉ ghi "TP Đà Nẵng" sau sáp nhập nhưng thuộc Quảng Nam cũ ⇒ nhận qua tên huyện / thị cũ */
 var QNAM_RE=/\b(quang nam|tam ky|hoi an|dien ban|duy xuyen|que son|thang binh|nui thanh|phu ninh|dai loc|nong son|hiep duc|tien phuoc|tra my|phuoc son|nam giang|dong giang|tay giang|chu lai)\b/;
@@ -369,9 +372,13 @@ var SCOPE=(function(){
   function terr(){ var L=lockT(); if(L) return L; var v=chosen(); return v ? TERR.filter(function(t){ return t.pic===v; })[0] : null; }
   function pic(){ var t=terr(); return t ? t.pic : ""; }
   /* oi = tỉnh cũ (khoá nk) — cần cho tỉnh mới chia đôi; không rõ tỉnh cũ ⇒ coi như thuộc */
-  function inProv(ni, oi){ var t=terr(); if(!t) return true; if(ni==null || ni<0) return false; var v=t.ni[ni]; if(!v) return false; return v===1 || !oi || !!v[oi]; }
-  /* PIC phụ trách theo tỉnh mới + tỉnh cũ (không xét người đang xem) */
-  function ownerOf(ni, oi){ for(var i=0;i<TERR.length;i++){ var v=TERR[i].ni[ni]; if(v===1 || (v && oi && v[oi])) return TERR[i].pic; } return ""; }
+  function inProv(ni, oi){ var t=terr(); if(!t) return true; if(ni==null || ni<0) return false;
+    if((t.x||[]).some(function(x){ return x.ni===+ni && (!oi || oi===x.oi); })) return true;
+    var v=t.ni[ni]; if(!v) return false; return v===1 || !oi || !!v[oi]; }
+  /* PIC phụ trách theo tỉnh mới + tỉnh cũ (không xét người đang xem); kinds = loại SP của gói ⇒ gói chỉ có loại thuộc phần phụ trách thêm (x) ⇒ PIC đó */
+  function ownerOf(ni, oi, kinds){
+    if(kinds && kinds.length) for(var j=0;j<TERR.length;j++){ if((TERR[j].x||[]).some(function(x){ return x.ni===+ni && oi===x.oi && kinds.every(function(k){ return k===x.kind; }); })) return TERR[j].pic; }
+    for(var i=0;i<TERR.length;i++){ var v=TERR[i].ni[ni]; if(v===1 || (v && oi && v[oi])) return TERR[i].pic; } return ""; }
   function place(){ var t=terr(); return t ? t.lbl : "toàn quốc"; }
   function bbox(){
     var t=terr(); if(!t || !PROV || !PROV.length) return null; var b=null;
@@ -2022,7 +2029,9 @@ var FU=(function(){
     if(f) return f;
     var uid="U:"+ni+"|"+hkey(r.hosp); if(FID[uid]) return FID[uid];
     var ll=null, m=/^(-?[\d.]+),(-?[\d.]+)$/.exec(String(r.ll||"")); if(m) ll=[+m[2],+m[1]];
-    var oi=r.own ? (TERR.filter(function(t){ return t.pic===r.own; }).map(function(t){ var v=t.ni[ni]; return v && v!==1 ? Object.keys(v)[0] : ""; })[0]||"") : ((provOf(r.prov, r.addr)||{}).o||"");
+    var oi=r.own ? (TERR.filter(function(t){ return t.pic===r.own; }).map(function(t){
+        if((t.x||[]).some(function(x){ return x.ni===ni; })) return (provOf(r.prov, r.addr)||{}).o || t.x.filter(function(x){ return x.ni===ni; })[0].oi;   /* phụ trách thêm (Manipler Đà Nẵng cũ) */
+        var v=t.ni[ni]; return v && v!==1 ? Object.keys(v)[0] : ""; })[0]||"") : ((provOf(r.prov, r.addr)||{}).o||"");
     return facAdd({ id:uid, name:r.hosp, t:kindOf(r.hosp)==="tt"?"ttyt":kindOf(r.hosp)==="bv"?"bv":"khac", sp:"", lv:"", ni:ni, oi:oi, addr:r.addr||"", ll:ll, src:"fu", alias:[], h:null });
   }
   function byFac(f){ cases(); return (BYF && BYF[f.id]) || []; }
@@ -2074,7 +2083,7 @@ var FU=(function(){
     var o={}, t30=Date.now()-30*864e5;
     items().forEach(function(c){
       if(!c.f || (sel>=0 && c.f.ni!==sel)) return;
-      var p=SCOPE.ownerOf(c.f.ni, c.f.oi)||c.pic, x=o[p]||(o[p]={open:0, upd:0, stale:0, won:0});
+      var p=((c.last&&c.last.own)||c.own)||SCOPE.ownerOf(c.f.ni, c.f.oi)||c.pic, x=o[p]||(o[p]={open:0, upd:0, stale:0, won:0});
       if(isOpen(c.stage)) x.open++;
       if(c.plan) return;
       c.revs.forEach(function(r){ var d=String(r.at||"").slice(0,10); if(d>=sp[0] && d<=sp[1]) x.upd++; });
@@ -2499,7 +2508,7 @@ var FU=(function(){
     if(!M.c && !M.pkg) M.pkg=(pvS?"Mua sắm ":"Gói ")+ptype.toLowerCase()+" "+(M.start?M.start.slice(0,4):new Date().getFullYear());
     var r=rid(), now=new Date(), at=now.getFullYear()+"-"+String(now.getMonth()+1).padStart(2,"0")+"-"+String(now.getDate()).padStart(2,"0")+" "+String(now.getHours()).padStart(2,"0")+":"+String(now.getMinutes()).padStart(2,"0")+":"+String(now.getSeconds()).padStart(2,"0");
     var cid=M.c?M.c.id:"tmp-"+r, rev=M.c?M.c.revs.length+1:1, qty=lines.reduce(function(s2,l){ return s2+l.qty; },0);
-    var body={ action:"fuSave", rid:r, "case":M.c?M.c.id:"", fid:fid, hosp:hosp, prov:NEW[ni][0], addr:addr, own:SCOPE.ownerOf(ni, (f&&f.oi) || ((provOf(NEW[ni][0], addr)||{}).o) || ""), pkg:M.pkg, tbmt:M.tbmt, ptype:ptype, items:lines,
+    var body={ action:"fuSave", rid:r, "case":M.c?M.c.id:"", fid:fid, hosp:hosp, prov:NEW[ni][0], addr:addr, own:SCOPE.ownerOf(ni, (f&&f.oi) || ((provOf(NEW[ni][0], addr)||{}).o) || "", lines.map(function(l){ return l.kind; })), pkg:M.pkg, tbmt:M.tbmt, ptype:ptype, items:lines,
                value:M.value||"", stage:M.stage, due:M.due, note:M.note.trim(), ll:ll, src:"Tender Map", start:M.start||"", dur:M.dur||"", force:(!M.c && M.dupOk)?1:"" };
     var row=[at, cid, rev, a.user.pic, "", fid, hosp, NEW[ni][0], addr, M.pkg, M.tbmt, ptype, lines.map(function(l){ return l.code+" × "+l.qty; }).join("; "), qty, +M.value||0, M.stage, ST[M.stage], M.due, M.note.trim(), JSON.stringify(lines), r, "Tender Map", ll];
     OB.push({rid:r, body:body, row:row, tmp:M.c?"":cid, tries:0, err:""}); obSave();

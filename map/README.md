@@ -243,3 +243,9 @@ npx mapshaper@0.6.102 wards.json -dissolve2 o copy-fields=n name=old -simplify 5
 ```
 
 Quần đảo Hoàng Sa (Đà Nẵng) và Trường Sa (Khánh Hòa) vẽ bằng điểm theo toạ độ thật (`ISL` trong `index.html`).
+
+## Cập nhật 14/11/2026 — Khang phụ trách Manipler khu vực Đà Nẵng (v25)
+- Địa bàn Khang = Quảng Nam (cũ) → miền Nam **+ Manipler (ghim da) ở Đà Nẵng cũ** (`TERR[1].x`). Khang đăng nhập ⇒ xem được thêm Đà Nẵng cũ (bản đồ, gói, theo dõi, hoạt động);
+  Đà Nẵng cũ vẫn tô màu và thuộc Viet Ha cho dao / chỉ khâu.
+- Lưu gói theo dõi ở Đà Nẵng cũ mà mọi mã là ghim da ⇒ "PIC phụ trách địa bàn" = Khang (`SCOPE.ownerOf(ni, oi, kinds)`) ⇒ nhắc việc / email thứ Hai tới Khang
+  (backend `crm-surgical/MMH_TenderFU.gs` v1.11 dùng cùng luật cho dòng cũ). CRM v36.7: Khang chọn được account Đà Nẵng khi lên kế hoạch đi địa bàn.

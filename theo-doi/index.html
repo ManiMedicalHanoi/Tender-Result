@@ -6,6 +6,9 @@
 <title>Theo dõi gói thầu · MMH</title>
 <link rel="icon" href="../map/app/favicon-32.png">
 <link rel="apple-touch-icon" href="../map/app/apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#003047">
+<meta name="apple-mobile-web-app-capable" content="yes">
 <style>
 @font-face{font-family:Aptos;src:local(Aptos),local(Aptos-Regular);font-weight:100 500}
 @font-face{font-family:Aptos;src:local('Aptos Semibold'),local(Aptos-SemiBold);font-weight:600}
@@ -81,7 +84,7 @@ select.inp{padding-right:28px}
 .st.err{color:var(--bad);border-color:#F3C9C4;background:#FEF3F2}
 .st.nofile,.st.off{color:var(--t2)}
 .files{grid-column:2/4;display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
-.files a{display:inline-flex;gap:6px;align-items:center;border:1px solid var(--line2);border-radius:8px;padding:4px 10px;font-size:12.5px;text-decoration:none;background:var(--sf2)}
+.files a{max-width:100%;overflow-wrap:anywhere;display:inline-flex;gap:6px;align-items:center;border:1px solid var(--line2);border-radius:8px;padding:4px 10px;font-size:12.5px;text-decoration:none;background:var(--sf2)}
 .files a:hover{border-color:var(--sky)}
 .no{font-family:ui-monospace,Consolas,monospace;font-size:12.5px;color:var(--navy)}
 .more{padding:12px 16px;text-align:center}
@@ -122,12 +125,20 @@ select.inp{padding-right:28px}
 .gate .alt{margin-top:12px;font-size:13px;color:var(--t2)}
 .toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:var(--navy);color:#fff;border-radius:10px;padding:10px 16px;font-size:13.5px;z-index:60;display:none;max-width:90vw}
 .toast.show{display:block}
+.quick{display:flex;gap:8px;padding:12px 16px;border-bottom:1px solid var(--line);align-items:flex-start;flex-wrap:wrap}
+.quick textarea{flex:1;min-width:220px;height:40px;resize:vertical;border:1px solid var(--fld);border-radius:8px;padding:8px 10px;font:13px ui-monospace,Consolas,monospace}
+.quick textarea:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(58,92,170,.15)}
+.quick .hint{flex-basis:100%;margin:0}
+.ag{grid-column:2/4;font-size:12.5px;color:var(--t2);margin-top:4px;line-height:1.5;overflow-wrap:anywhere}
+.ag b{color:var(--t1);font-weight:600}
+.inst{display:none}
 @media (max-width:860px){
   .wrap{grid-template-columns:1fr;padding:12px}
   .top{padding:10px 14px}
   .hit{grid-template-columns:1fr;gap:4px}
   .hit .r{flex-direction:row;align-items:center;justify-content:flex-start;text-align:left}
-  .files{grid-column:1}
+  .files,.ag{grid-column:1}
+  .hit>*{min-width:0}
 }
 </style>
 </head>
@@ -142,7 +153,7 @@ select.inp{padding-right:28px}
    Đăng nhập: phiên email công ty (localStorage.mmh_tk — dùng chung Report Hub / CRM / Tender Map). */
 var API = "https://script.google.com/macros/s/AKfycbwv3R7EACqtt3pQZfMWRQFilC4E0W7td8Z8xWxQW6P7UckqFjWFJSFxcOWBZknHplhQuQ/exec";
 var TRAINING_HUB = "https://script.google.com/macros/s/AKfycbwsX4cQEoH4LNlmcNfe8qWIM9K6EiDEXy7PjhP9bHY2citL6xHn5L1unsAlQJHyL9EP/exec";
-var VER = "1.0";
+var VER = "1.1";
 var TYPES = { khmt: "Kế hoạch LCNT", tbmt: "Thông báo mời thầu", kqdt: "Kết quả LCNT" };
 var TSHORT = { khmt: "KH LCNT", tbmt: "TBMT", kqdt: "Kết quả" };
 var STC = { "Chờ tải": "wait", "Đang tải": "work", "Đã tải": "done", "Lỗi": "err", "Không có file": "nofile", "Không tải": "off" };
@@ -243,14 +254,17 @@ function render(){
   var bot = B.bot || {}, seen = bot.seen ? new Date(bot.seen.replace(" ", "T") + "+07:00") : null, live = seen && (Date.now() - seen) < 3 * 3600e3;
   var h = '<div class="top"><div class="brand"><b>Theo dõi gói thầu</b><span>Kế hoạch LCNT · Thông báo mời thầu · Kết quả — theo chủ đầu tư bạn chọn</span></div>' +
     '<span class="chip" title="Bot tải hồ sơ từ muasamcong.mof.gov.vn"><span class="dot ' + (live ? "on" : seen ? "off" : "") + '"></span>Bot tải hồ sơ: ' + (live ? "đang chạy" : seen ? "lần cuối " + esc(bot.seen.slice(0, 16)) : "chưa chạy") + (bot.queue ? " · chờ " + bot.queue : "") + '</span>' +
+    '<button class="btn sm inst" id="inst" data-a="install">Cài app</button>' +
     (B.me && B.me.admin ? '<button class="btn sm" data-a="bot">Cài đặt bot</button>' : "") +
     '<span class="who">' + esc(a.user.pic || a.user.email || "") + ' · <button class="lnk" data-a="out">Đăng xuất</button></span></div>';
   h += '<div class="wrap"><div class="card"><h3>Đang theo dõi <span class="sp"></span><button class="btn pri sm" data-a="add">+ Thêm</button></h3>';
   var W = B.watches || [];
-  if (!W.length) h += '<div class="empty">' + (S.busy && !S.boot ? "Đang tải…" : 'Chưa theo dõi chủ đầu tư nào.<br>Bấm <b>+ Thêm</b> ⇒ gõ tên bệnh viện ⇒ chọn loại tin ⇒ Lưu. Hệ thống báo khi có tin mới và tự tải hồ sơ.') + '</div>';
+  if (!W.length && !(B.hits || []).length) h += '<div class="empty">' + (S.busy && !S.boot ? "Đang tải…" : 'Chưa theo dõi chủ đầu tư nào.<br>Bấm <b>+ Thêm</b> ⇒ gõ tên bệnh viện ⇒ chọn loại tin ⇒ Lưu. Hệ thống báo khi có tin mới và tự tải hồ sơ.') + '</div>';
   else {
     var cnt = {}; (B.hits || []).forEach(function(x){ var k = fold(x.investor); cnt[k] = (cnt[k] || 0) + 1; });
     h += '<ul class="wl"><li class="' + (!S.sel ? "on" : "") + '" data-sel=""><div class="nm">Tất cả<span class="n">' + (B.hits || []).length + ' tin</span></div></li>';
+    var nq = (B.hits || []).filter(function(x){ return /^n:/.test(x.key) || (x.info || {}).quick; }).length;
+    if (nq) h += '<li class="' + (S.sel === "_q" ? "on" : "") + '" data-sel="_q"><div class="nm">Tải ngay<span class="n">' + nq + ' gói</span></div><div class="meta"><span>Số TBMT / KHLCNT bạn dán vào ô Tải ngay</span></div></li>';
     W.forEach(function(w){
       h += '<li class="' + (S.sel === w.id ? "on" : "") + (w.active ? "" : " off") + '" data-sel="' + esc(w.id) + '"><div class="nm">' + esc(w.investor) + '<span class="n">' + (cnt[fold(w.investor)] || 0) + ' tin</span></div><div class="meta">' +
         w.types.map(function(t){ return '<span class="tg ' + t + '">' + TSHORT[t] + '</span>'; }).join("") +
@@ -268,6 +282,7 @@ function render(){
 function hitsHtml(B){
   var W = B.watches || [], sel = W.filter(function(w){ return w.id === S.sel; })[0];
   var L = (B.hits || []).filter(function(x){
+    if (S.sel === "_q" && !(/^n:/.test(x.key) || (x.info || {}).quick)) return false;
     if (sel && fold(x.investor) !== fold(sel.investor)) return false;
     if (S.type && x.type !== S.type) return false;
     if (S.st === "files" && !(x.files || []).length) return false;
@@ -275,7 +290,9 @@ function hitsHtml(B){
     if (S.q) { var f = fold(x.name + " " + x.no + " " + x.investor + " " + ((x.info || {}).winner || "")); if (fold(S.q).split(/\s+/).some(function(w){ return f.indexOf(w) < 0; })) return false; }
     return true;
   });
-  var h = '<div class="bar"><div class="seg">' + [["", "Tất cả"], ["khmt", "KH LCNT"], ["tbmt", "TBMT"], ["kqdt", "Kết quả"]].map(function(t){ return '<button data-type="' + t[0] + '" class="' + (S.type === t[0] ? "on" : "") + '">' + t[1] + '</button>'; }).join("") + '</div>' +
+  var h = '<div class="quick"><textarea id="q-nos" placeholder="Tải ngay: dán số TBMT / KHLCNT, vd. IB2500491794">' + esc(S.qn || '') + '</textarea><button class="btn pri" data-a="quick"' + (S.qbusy ? ' disabled' : '') + '>' + (S.qbusy ? 'Đang gửi…' : 'Tải ngay') + '</button>' +
+    '<div class="hint">Máy chủ tự vào muasamcong, mở đúng gói, tải Excel (hàng hóa, nhà thầu…) về Drive trong vài phút. File PDF đính kèm cần Agent trên máy tính ⇒ có nút mở thẳng trang gói.</div></div>';
+  h += '<div class="bar"><div class="seg">' + [["", "Tất cả"], ["khmt", "KH LCNT"], ["tbmt", "TBMT"], ["kqdt", "Kết quả"]].map(function(t){ return '<button data-type="' + t[0] + '" class="' + (S.type === t[0] ? "on" : "") + '">' + t[1] + '</button>'; }).join("") + '</div>' +
     '<select class="inp" id="f-st"><option value="">Mọi trạng thái</option><option value="files"' + (S.st === "files" ? " selected" : "") + '>Đã có hồ sơ</option><option value="wait"' + (S.st === "wait" ? " selected" : "") + '>Đang chờ tải</option></select>' +
     '<input class="inp q" id="f-q" placeholder="Tìm tên gói, số TBMT, nhà thầu…" value="' + esc(S.q) + '"></div>';
   if (S.err) h += '<div class="err">' + esc(S.err) + ' <button class="lnk" data-a="reload">Thử lại</button></div>';
@@ -293,6 +310,7 @@ function hitsHtml(B){
       '<div><div class="t">' + esc(x.name) + '</div><div class="s">' + esc(x.investor) + (x.no ? ' · <span class="no">' + esc(x.no) + '</span>' : "") + (line.length ? '<br>' + line.join(" · ") : "") + (x.note && sc === "err" ? '<br><span style="color:var(--bad)">' + esc(x.note) + '</span>' : "") + '</div></div>' +
       '<div class="r"><span class="st ' + sc + '">' + esc(x.status || "") + '</span>' +
       (x.no && (sc === "off" || sc === "err" || sc === "nofile") ? '<button class="btn sm" data-dl="' + esc(x.key) + '">Tải hồ sơ</button>' : "") + '</div>' +
+      ((i.agentFiles || []).length || i.url ? '<div class="ag">' + ((i.agentFiles || []).length ? 'File PDF cần Agent (tải trên máy tính đã cài Agent): <b>' + i.agentFiles.map(function(f){ return esc(f.name); }).join('</b> · <b>') + '</b>' : '') + (i.url ? ' <a href="' + esc(i.url) + '" target="_blank" rel="noopener">Mở trang gói trên muasamcong</a>' : '') + '</div>' : '') +
       ((x.files || []).length ? '<div class="files">' + x.files.map(function(f){ return '<a href="' + esc(f.url) + '" target="_blank" rel="noopener">' + esc(f.name) + '</a>'; }).join("") + '</div>' : "") + '</li>';
   });
   h += '</ul>';
@@ -378,6 +396,29 @@ function openBot(renew){
   }, function(e){ toast(e.message); close_(); });
 }
 
+/* ── tải ngay ── */
+function quick(){
+  var t = $("q-nos"); S.qn = t ? t.value : "";
+  var nos = (S.qn.toUpperCase().match(/(IB|PL)\d{8,12}(-\d+)?/g) || []);
+  if (!nos.length) { toast("Dán số TBMT (IB…) hoặc KHLCNT (PL…)."); return; }
+  S.qbusy = true; render();
+  api("wQuick", { nos: nos.join(",") }, true).then(function(d){
+    S.qbusy = false;
+    if (d && d.ok) { S.boot = d; S.qn = ""; S.sel = "_q"; render(); toast("Đã đưa " + (d.queued || []).length + " gói vào hàng đợi. Máy chủ tải trong vài phút."); }
+    else { render(); toast((d && d.error) || "Chưa gửi được."); }
+  }, function(e){ S.qbusy = false; render(); toast(e.message); });
+}
+
+/* ── cài app (PWA) ── */
+var deferredInstall = null;
+window.addEventListener("beforeinstallprompt", function(e){ e.preventDefault(); deferredInstall = e; var b = $("inst"); if (b) b.style.display = "inline-block"; });
+function install(){
+  if (deferredInstall) { deferredInstall.prompt(); deferredInstall = null; return; }
+  toast(/iphone|ipad|mac/i.test(navigator.userAgent) ? "Safari: bấm nút Chia sẻ ⇒ Thêm vào MH chính." : "Trình duyệt: menu ⋮ ⇒ Cài đặt ứng dụng / Thêm vào màn hình chính.");
+}
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(function(){});
+if (!matchMedia("(display-mode: standalone)").matches) setTimeout(function(){ var b = $("inst"); if (b && /iphone|ipad/i.test(navigator.userAgent)) b.style.display = "inline-block"; }, 500);
+
 /* ── sự kiện ── */
 document.addEventListener("click", function(e){
   var t = e.target.closest("[data-a],[data-sel],[data-edit],[data-type],[data-dl],[data-f],[data-pick],[data-t]");
@@ -395,6 +436,8 @@ document.addEventListener("click", function(e){
   }
   var a = t.getAttribute("data-a"), f = t.getAttribute("data-f");
   if (a === "add") openForm("");
+  else if (a === "quick") quick();
+  else if (a === "install") install();
   else if (a === "more") { S.lim += 100; render(); }
   else if (a === "reload") load();
   else if (a === "bot") openBot(false);
@@ -413,7 +456,11 @@ document.addEventListener("input", function(e){ if (e.target.id === "f-q") { S.q
 $("ov").addEventListener("click", function(e){ if (e.target.id === "ov") close_(); });
 document.addEventListener("keydown", function(e){ if (e.key === "Escape" && $("ov").classList.contains("show")) close_(); });
 window.addEventListener("hashchange", jump);
-setInterval(function(){ if (auth() && document.visibilityState === "visible" && !$("ov").classList.contains("show")) load(); }, 5 * 60e3);
+setInterval(function(){
+  if (!auth() || document.visibilityState !== "visible" || $("ov").classList.contains("show")) return;
+  var busy = ((S.boot || {}).hits || []).some(function(x){ return x.status === "Chờ tải" || x.status === "Đang tải"; });
+  var now = Date.now(); if (busy ? now - (S._lt || 0) > 45e3 : now - (S._lt || 0) > 5 * 60e3) { S._lt = now; load(); }
+}, 15e3);
 
 if (auth()) load(); else render();
 </script>

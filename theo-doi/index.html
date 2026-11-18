@@ -410,6 +410,35 @@ button.stx b{color:#9A5B00}
   .files,.ag{grid-column:1}
   .hit>*{min-width:0}
 }
+/* v2.2 — tab Hàng hóa trúng thầu */
+.gform{padding:14px 18px;border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:12px}
+.gfh{display:flex;gap:6px 14px;align-items:baseline;flex-wrap:wrap}
+.gfh b{color:var(--navy);font-size:15px}
+.gfh span{font-size:12.5px;color:var(--t2);margin-right:auto}
+.gfg{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px 12px}
+.gfl{display:flex;flex-direction:column;min-width:0}
+.gfl .lb{margin-bottom:4px}
+.gfa{display:flex;gap:8px 14px;align-items:center;flex-wrap:wrap}
+.gfa .hint{flex:1;min-width:220px;margin:0}
+.gfb{display:flex;gap:8px;margin-left:auto}
+.gsum{display:flex;gap:6px 14px;align-items:center;flex-wrap:wrap;padding:10px 18px;border-bottom:1px solid var(--line);background:var(--sf2);font-size:13px;color:var(--t2)}
+.gsum b{color:var(--navy)}
+.gcond{flex:1;min-width:200px;font-size:12px;color:var(--t3)}
+.gtw{overflow-x:auto;max-height:calc(100vh - 260px);overflow-y:auto}
+.gt{border-collapse:collapse;width:100%;min-width:1500px;font-size:12.5px}
+.gt th{position:sticky;top:0;background:var(--pale);color:var(--navy);text-align:left;font-weight:600;padding:8px 10px;border-bottom:1px solid var(--line2);cursor:pointer;white-space:nowrap;z-index:1}
+.gt th:hover,.gt th.on{color:var(--blue)}
+.gt td{padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top;line-height:1.4;color:var(--t1)}
+.gt .n{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.gt small{display:block;color:var(--t3);font-size:11.5px;margin-top:2px}
+.gt td{min-width:96px}
+.gt td:nth-child(2){min-width:150px}
+.gt td:nth-child(4){min-width:150px}
+.gt .gp{min-width:220px}
+.gt .gi{min-width:220px}
+.gt .gl{min-width:260px;color:var(--t2)}
+.gt .mute{color:var(--mute)}
+@media (max-width:860px){ .gfg{grid-template-columns:1fr} .gfb{width:100%} .gfb .btn{flex:1} .gform{padding:12px} .gtw{max-height:none} }
 </style>
 </head>
 <body>
@@ -425,7 +454,7 @@ button.stx b{color:#9A5B00}
    Đăng nhập: phiên email công ty (localStorage.mmh_tk — dùng chung Report Hub / CRM / Tender Map). */
 var API = "https://script.google.com/macros/s/AKfycbwv3R7EACqtt3pQZfMWRQFilC4E0W7td8Z8xWxQW6P7UckqFjWFJSFxcOWBZknHplhQuQ/exec";
 var TRAINING_HUB = "https://script.google.com/macros/s/AKfycbwsX4cQEoH4LNlmcNfe8qWIM9K6EiDEXy7PjhP9bHY2citL6xHn5L1unsAlQJHyL9EP/exec";
-var VER = "2.1";
+var VER = "2.2";
 var TYPES = { khmt: "Kế hoạch LCNT", tbmt: "Thông báo mời thầu", kqdt: "Kết quả LCNT" };
 var TSHORT = { khmt: "KH LCNT", tbmt: "TBMT", kqdt: "Kết quả" };
 var STC = { "Chờ tải": "wait", "Đang tải": "work", "Đã tải": "done", "Lỗi": "err", "Không có file": "nofile", "Không tải": "off" };
@@ -609,7 +638,7 @@ function render(){
       nWait = H.filter(function(x){ return x.status === "Chờ tải" || x.status === "Đang tải"; }).length;
   var nDocs = 0; H.forEach(function(x){ nDocs += (x.files || []).length; });
   var h = '<div class="top"><div class="brand"><b>Theo dõi gói thầu</b><span>Kế hoạch LCNT · TBMT · Kết quả — tự tải hồ sơ về Drive</span></div>' +
-    '<nav class="tabs">' + [["map", "Bản đồ", ""], ["watch", "Theo dõi", W.length], ["docs", "Tài liệu", nDocs]].map(function(t){ return '<button data-tab="' + t[0] + '" class="' + (S.tab === t[0] ? "on" : "") + '">' + t[1] + (t[2] ? '<span class="tn">' + t[2] + '</span>' : "") + '</button>'; }).join("") + '</nav>' +
+    '<nav class="tabs">' + [["map", "Bản đồ", ""], ["watch", "Theo dõi", W.length], ["docs", "Tài liệu", nDocs], ["goods", "Hàng hóa", ""]].map(function(t){ return '<button data-tab="' + t[0] + '" class="' + (S.tab === t[0] ? "on" : "") + '">' + t[1] + (t[2] ? '<span class="tn">' + t[2] + '</span>' : "") + '</button>'; }).join("") + '</nav>' +
     '<span class="chip" title="Bot tải hồ sơ từ muasamcong.mof.gov.vn, chạy trên máy chủ 5 phút / lần (7h–21h, T2–T7)"><span class="dot ' + (live ? "on" : seen ? "off" : "") + '"></span>Bot: ' + (live ? "đang chạy" : seen ? "lần cuối " + esc(bot.seen.slice(5, 16)) : "chưa chạy") + '</span>' +
     (nWait ? '<button class="chip dlq" data-a="dlq" title="Xem các gói đang chờ / đang tải">' + (H.some(function(x){ return x.status === "Đang tải"; }) ? '<span class="spin"></span>' : "") + 'Đang tải ' + nWait + ' gói</button>' : "") +
     (B.rootUrl ? '<a class="btn sm" href="' + esc(B.rootUrl) + '" target="_blank" rel="noopener">Thư mục Drive</a>' : "") +
@@ -618,6 +647,7 @@ function render(){
     '<button class="btn sm" data-a="acct" title="Tài khoản, mật khẩu, cài app">' + esc(a.user.pic || (a.user.email || "").split("@")[0] || "Tài khoản") + ' ▾</button></div>';
   if (S.tab === "map") { app.innerHTML = h + mapView(B); mapWire(); return; }
   if (S.tab === "docs") { app.innerHTML = h + docsView(B); return; }
+  if (S.tab === "goods") { var fa = document.activeElement, fid = fa && fa.id && /^g-/.test(fa.id) ? fa.id : "", fp = fid && fa.selectionStart; app.innerHTML = h + goodsView(); goodsWire(); if (fid && $(fid)) { $(fid).focus(); try { $(fid).setSelectionRange(fp, fp); } catch (_) {} } return; }
   h += '<div class="stats">' +
     tile("watch", W.filter(function(w){ return w.active; }).length, "bệnh viện đang theo dõi", "") +
     tile("new", nNew, "tin trong 7 ngày", S.st === "new") +
@@ -1323,7 +1353,8 @@ function mgBar(B){
   if (!m.hh && !m.nt) return '<div class="mgb"><span class="mgt">File tổng hàng hóa trúng thầu và nhà thầu tham dự sẽ có sau lượt gộp đầu tiên (máy chủ gộp 15 phút / lần).</span></div>';
   return '<div class="mgb"><span class="mgt"><b>File tổng</b> — gộp mọi gói đã tải, mỗi gói 1 lần (không trùng)' + (L && L.at ? ' · gộp lúc ' + esc(String(L.at).slice(5, 16)) : "") + '</span>' +
     (m.hh ? '<a class="btn sm" href="' + esc(m.hh) + '" target="_blank" rel="noopener"><i class="fi gs">Sheet</i> Kết quả trúng thầu (hàng hóa)</a>' : "") +
-    (m.nt ? '<a class="btn sm" href="' + esc(m.nt) + '" target="_blank" rel="noopener"><i class="fi gs">Sheet</i> Nhà thầu tham dự</a>' : "") + '</div>';
+    (m.nt ? '<a class="btn sm" href="' + esc(m.nt) + '" target="_blank" rel="noopener"><i class="fi gs">Sheet</i> Nhà thầu tham dự</a>' : "") +
+    '<button class="btn sm pri" data-tab="goods" title="Lọc theo hãng sản xuất, nhà thầu trúng thầu, danh mục hàng hóa ⇒ tải Excel">Lọc &amp; tải hàng hóa</button></div>';
 }
 /* 1 tài liệu = 1 link gọn: biểu tượng loại file + tên (bỏ số gói ở đầu tên) */
 function fileLink(f){
@@ -1519,6 +1550,119 @@ function install(){
 }
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(function(){});
 if (!matchMedia("(display-mode: standalone)").matches) setTimeout(function(){ var b = $("inst"); if (b && /iphone|ipad/i.test(navigator.userAgent)) b.style.display = "inline-block"; }, 500);
+
+/* ── v2.2 (18/11/2026, người dùng yêu cầu) — tab Hàng hóa trúng thầu: lọc file tổng theo Hãng sản xuất · Nhà thầu trúng thầu · Danh mục hàng hóa
+   (+ Tỉnh / chủ đầu tư / gói), kết hợp VÀ / HOẶC, nhiều từ khoá trong 1 ô cách nhau dấu phẩy ⇒ bảng sắp xếp được ⇒ tải Excel.
+   Cột cuối "Nhà thầu tham dự không trúng" do máy chủ ghép theo số TBMT + phần / lô từ file tổng nhà thầu tham dự (backend wGoods). ── */
+var G = { hang: "", win: "", dm: "", place: "", mode: "all", res: null, busy: false, err: "", si: -1, sd: 1, lim: 150, fac: null, facBusy: false, q0: null };
+try { var g0 = JSON.parse(localStorage.getItem("wt_goods") || "null"); if (g0) ["hang", "win", "dm", "place", "mode"].forEach(function(k){ if (g0[k] != null) G[k] = g0[k]; }); } catch (_) {}
+var GF = [["hang", "Hãng sản xuất", "vd. MANI, Alcon", "hang"], ["win", "Nhà thầu trúng thầu", "vd. Hùng Vĩ, iCare", "win"], ["dm", "Danh mục hàng hóa", "vd. dao mổ, chỉ khâu", "dm"], ["place", "Tỉnh · chủ đầu tư · gói (tuỳ chọn)", "vd. Hà Nội, Bệnh viện Mắt", "inv"]];
+var GNUM = { 10: 1, 12: 1, 13: 1 };
+function gMoney(n){ n = Math.round(+n || 0); return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, "."); }
+function gShort(n){ n = +n || 0; return n >= 1e9 ? (n / 1e9).toFixed(n >= 1e11 ? 0 : 1).replace(".", ",") + " tỷ" : n >= 1e6 ? Math.round(n / 1e6) + " triệu" : gMoney(n); }
+function gSave(){ try { localStorage.setItem("wt_goods", JSON.stringify({ hang: G.hang, win: G.win, dm: G.dm, place: G.place, mode: G.mode })); } catch (_) {} }
+function gFacets(){
+  if (G.fac || G.facBusy) return; G.facBusy = true;
+  api("wGoods", { op: "facets" }).then(function(d){ G.facBusy = false; if (d && d.ok) { G.fac = d; if (S.tab === "goods") render(); } }, function(){ G.facBusy = false; });
+}
+function gSearch(){
+  ["hang", "win", "dm", "place"].forEach(function(k){ var el = $("g-" + k); if (el) G[k] = el.value.trim(); });
+  gSave();
+  if (!G.hang && !G.win && !G.dm && !G.place) { G.err = "Nhập ít nhất 1 từ khoá: Hãng sản xuất, Nhà thầu trúng thầu hoặc Danh mục hàng hóa."; render(); return; }
+  G.busy = true; G.err = ""; G.lim = 150; render();
+  var q = { hang: G.hang, win: G.win, dm: G.dm, place: G.place, mode: G.mode };
+  api("wGoods", q).then(function(d){
+    G.busy = false;
+    if (d && d.ok) { G.res = d; G.q0 = q; G.si = -1; } else G.err = (d && d.error) || "Chưa lọc được dữ liệu.";
+    render();
+  }, function(e){ G.busy = false; G.err = "Chưa lọc được dữ liệu (" + e.message + ")."; render(); });
+}
+function gRows(){
+  var R = (G.res && G.res.rows) || [];
+  if (G.si < 0) return R;
+  var i = G.si, d = G.sd, num = GNUM[i];
+  return R.slice().sort(function(a, b){
+    var x = a[i], y = b[i];
+    if (num) { x = typeof x === "number" ? x : -Infinity; y = typeof y === "number" ? y : -Infinity; return (x - y) * d; }
+    return String(x || "").localeCompare(String(y || ""), "vi") * d;
+  });
+}
+function gCond(q){
+  q = q || G.q0 || {}; var p = [];
+  if (q.hang) p.push("Hãng sản xuất: " + q.hang); if (q.win) p.push("Nhà thầu trúng thầu: " + q.win);
+  if (q.dm) p.push("Danh mục hàng hóa: " + q.dm); if (q.place) p.push("Tỉnh / CĐT / gói: " + q.place);
+  return p.join(q.mode === "any" ? "  HOẶC  " : "  VÀ  ");
+}
+function goodsView(){
+  gFacets();
+  var F = G.fac || {}, m = (G.res && G.res.mg) || F.mg || (S.boot || {}).mg || {};
+  var dl = function(id, arr){ return '<datalist id="gl-' + id + '">' + (arr || []).slice(0, 400).map(function(x){ return '<option value="' + esc(x[0]) + '">' + x[1] + ' dòng</option>'; }).join("") + '</datalist>'; };
+  var h = '<div class="dwrap"><div class="card"><form id="g-form" class="gform" autocomplete="off" novalidate>' +
+    '<div class="gfh"><b>Lọc hàng hóa trúng thầu</b><span>Từ file tổng' + (F.n ? ' · ' + gMoney(F.n) + ' mặt hàng của ' + F.pkgs + ' gói' : G.facBusy ? ' · đang đọc…' : '') + '</span>' +
+    (m.hh ? '<a class="sm2" href="' + esc(m.hh) + '" target="_blank" rel="noopener">Mở file hàng hóa</a>' : "") + (m.nt ? '<a class="sm2" href="' + esc(m.nt) + '" target="_blank" rel="noopener">Mở file nhà thầu</a>' : "") + '</div>' +
+    '<div class="gfg">' + GF.map(function(f){ return '<label class="gfl"><span class="lb">' + f[1] + '</span><input class="inp" id="g-' + f[0] + '" list="gl-' + f[0] + '" placeholder="' + esc(f[2]) + '" value="' + esc(G[f[0]]) + '">' + dl(f[0], f[0] === "place" ? (F.prov || []).concat(F.inv || []) : F[f[3]]) + '</label>'; }).join("") + '</div>' +
+    '<div class="gfa"><span class="seg sm">' + [["all", "Khớp tất cả ô (VÀ)"], ["any", "Khớp 1 trong các ô (HOẶC)"]].map(function(t){ return '<button type="button" data-gmode="' + t[0] + '" class="' + (G.mode === t[0] ? "on" : "") + '">' + t[1] + '</button>'; }).join("") + '</span>' +
+    '<span class="hint">Nhiều từ khoá trong 1 ô: cách nhau dấu phẩy (vd. <b>mani, alcon</b>) — khớp 1 trong các từ. Không phân biệt dấu, hoa thường.</span>' +
+    '<span class="gfb"><button type="button" class="btn sm" data-ga="clear">Xoá</button><button class="btn pri" type="submit"' + (G.busy ? " disabled" : "") + '>' + (G.busy ? '<span class="spin"></span>Đang lọc…' : "Lọc") + '</button></span></div></form>';
+  if (G.err) h += '<div class="err">' + esc(G.err) + '</div>';
+  var r = G.res;
+  if (!r) return h + '<div class="empty">Chọn hãng sản xuất, nhà thầu trúng thầu và / hoặc danh mục hàng hóa ⇒ bấm <b>Lọc</b> ⇒ xem bảng ⇒ <b>Tải Excel</b>.<br>File tải về có: khu vực, tỉnh, chủ đầu tư, gói, số TBMT, phần / lô, nhà thầu trúng, danh mục, hãng, khối lượng, cấu hình kỹ thuật, đơn giá, thành tiền và <b>nhà thầu tham dự không trúng</b> (giá dự thầu, lý do).</div></div></div>';
+  var rows = gRows(), C = r.cols || [];
+  h += '<div class="gsum"><span><b>' + gMoney(r.n) + '</b> mặt hàng · <b>' + r.pkgs + '</b> gói · thành tiền <b title="' + gMoney(r.sum) + ' đ">' + gShort(r.sum) + '</b></span>' +
+    '<span class="gcond">' + esc(gCond()) + '</span>' +
+    (r.n ? '<button class="btn sm pri" data-ga="xlsx">Tải Excel</button>' : "") + '</div>';
+  if (r.cut) h += '<div class="note">Hiện ' + gMoney(rows.length) + ' / ' + gMoney(r.n) + ' dòng đầu (cả bảng và file tải về). Thêm từ khoá để thu hẹp.</div>';
+  if (!r.n) return h + '<div class="empty">Không có mặt hàng khớp. Thử bớt từ khoá, hoặc chọn <b>Khớp 1 trong các ô (HOẶC)</b>.</div></div></div>';
+  var SHOW = [1, 2, 3, 5, 6, 7, 8, 9, 10, 12, 13, 14];
+  h += '<div class="gtw"><table class="gt"><thead><tr>' + SHOW.map(function(i){ return '<th data-gs="' + i + '" class="' + (GNUM[i] ? "n" : "") + (G.si === i ? " on" : "") + '">' + esc(i === 3 ? "Gói thầu · Số TBMT" : i === 14 ? "Nhà thầu không trúng" : C[i]) + (G.si === i ? (G.sd > 0 ? " ▲" : " ▼") : "") + '</th>'; }).join("") + '</tr></thead><tbody>' +
+    rows.slice(0, G.lim).map(function(x){
+      return '<tr>' + SHOW.map(function(i){
+        var v = x[i];
+        if (i === 3) return '<td class="gp">' + esc(v) + '<small class="no">' + esc(x[4]) + '</small></td>';
+        if (GNUM[i]) return '<td class="n">' + (typeof v === "number" ? gMoney(v) : esc(v)) + '</td>';
+        if (i === 7) return '<td class="gi" title="' + esc(x[11]) + '">' + esc(v) + (x[11] ? '<small>' + esc(String(x[11]).slice(0, 140)) + (String(x[11]).length > 140 ? "…" : "") + '</small>' : "") + '</td>';
+        if (i === 14) return '<td class="gl">' + (v ? esc(v).replace(/\n/g, "<br>") : '<span class="mute">—</span>') + '</td>';
+        return '<td>' + esc(v) + '</td>';
+      }).join("") + '</tr>';
+    }).join("") + '</tbody></table></div>';
+  if (rows.length > G.lim) h += '<div class="more"><button class="btn sm" data-ga="more">Xem thêm ' + Math.min(300, rows.length - G.lim) + ' dòng (đang hiện ' + G.lim + ' / ' + rows.length + ')</button></div>';
+  return h + '</div></div>';
+}
+function goodsWire(){ var f = $("g-form"); if (f) f.onsubmit = function(e){ e.preventDefault(); if (!G.busy) gSearch(); }; }
+/* SheetJS (cdnjs) — tải khi cần lần đầu */
+function gLib(){ if (window.XLSX) return Promise.resolve(); if (gLib._p) return gLib._p;
+  gLib._p = new Promise(function(ok, no){ var s = document.createElement("script"); s.src = "https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"; s.onload = ok; s.onerror = function(){ gLib._p = null; no(new Error("không tải được thư viện Excel")); }; document.head.appendChild(s); });
+  return gLib._p; }
+function gXlsx(){
+  var r = G.res; if (!r || !r.rows.length) return;
+  toast("Đang tạo file Excel…");
+  gLib().then(function(){
+    var C = r.cols, rows = gRows();
+    var ws = XLSX.utils.aoa_to_sheet([C].concat(rows.map(function(x){ return x.map(function(v){ return v == null ? "" : v; }); })));
+    ws["!cols"] = [12, 14, 30, 34, 18, 22, 30, 36, 20, 10, 11, 50, 15, 17, 60].map(function(w){ return { wch: w }; });
+    var rg = XLSX.utils.decode_range(ws["!ref"]);
+    for (var R = 1; R <= rg.e.r; R++) [10, 12, 13].forEach(function(c){ var cl = ws[XLSX.utils.encode_cell({ r: R, c: c })]; if (cl && cl.t === "n") cl.z = "#,##0"; });
+    ws["!autofilter"] = { ref: XLSX.utils.encode_range({ s: { r: 0, c: 0 }, e: { r: rg.e.r, c: rg.e.c } }) };
+    var info = XLSX.utils.aoa_to_sheet([["Điều kiện lọc", gCond()], ["Số mặt hàng", r.n], ["Số gói thầu", r.pkgs], ["Tổng thành tiền (đ)", r.sum],
+      ["Tải lúc", vnNow()], ["Nguồn", "File tổng Kết quả trúng thầu - Tổng hợp danh mục hàng hóa + Danh mục nhà thầu tham dự (app Theo dõi gói thầu)"],
+      ["Nhà thầu không trúng", "Nhà thầu cùng số TBMT + cùng phần / lô, không trúng thầu — kèm giá dự thầu và lý do (nếu muasamcong có ghi)"]].concat(r.cut ? [["Lưu ý", "Chỉ " + rows.length + " / " + r.n + " dòng đầu — thêm từ khoá để thu hẹp"]] : []));
+    info["!cols"] = [{ wch: 22 }, { wch: 100 }];
+    var wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Hàng hóa trúng thầu"); XLSX.utils.book_append_sheet(wb, info, "Điều kiện lọc");
+    var q = G.q0 || {}, tag = [q.hang, q.win, q.dm, q.place].filter(Boolean).join("_");
+    var name = ("Hang_hoa_trung_thau_" + fold(tag).replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 60) + "_" + vnNow().slice(0, 10).replace(/-/g, "")).replace(/__/g, "_") + ".xlsx";
+    XLSX.writeFile(wb, name, { compression: true });
+  }, function(e){ toast("Chưa tạo được file Excel (" + e.message + ")."); });
+}
+document.addEventListener("click", function(e){
+  var t = e.target.closest && e.target.closest("[data-gmode],[data-ga],[data-gs]"); if (!t || S.tab !== "goods") return;
+  if (t.hasAttribute("data-gmode")) { ["hang", "win", "dm", "place"].forEach(function(k){ var el = $("g-" + k); if (el) G[k] = el.value; }); G.mode = t.getAttribute("data-gmode"); gSave(); render(); return; }
+  if (t.hasAttribute("data-gs")) { var i = +t.getAttribute("data-gs"); if (G.si === i) G.sd = -G.sd; else { G.si = i; G.sd = GNUM[i] ? -1 : 1; } render(); return; }
+  var a = t.getAttribute("data-ga");
+  if (a === "clear") { G.hang = G.win = G.dm = G.place = ""; G.res = null; G.err = ""; gSave(); render(); }
+  else if (a === "more") { G.lim += 300; render(); }
+  else if (a === "xlsx") gXlsx();
+});
+document.addEventListener("input", function(e){ var m = /^g-(hang|win|dm|place)$/.exec(e.target.id || ""); if (m) G[m[1]] = e.target.value; });
 
 /* ── sự kiện ── */
 document.addEventListener("click", function(e){

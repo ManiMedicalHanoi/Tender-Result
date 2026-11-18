@@ -1,0 +1,18 @@
+MMH · MÁY TỰ TẢI FILE "CẦN AGENT" — Theo dõi gói thầu
+
+Dùng cho 1 máy tính Windows luôn bật, ĐÃ CÀI VNeGP Client Agent của muasamcong.
+
+Cài 1 lần:
+  1. Giải nén thư mục này ra máy (vd. Desktop).
+  2. Bấm đúp "Cai dat may tai Agent.bat".
+  3. Khi được hỏi, dán KHOÁ BOT: app Theo dõi gói thầu ▸ tên tài khoản ▸ Cài đặt bot ▸ sao chép khoá.
+  4. Thấy "XONG" là xong. Từ đó máy tự chạy ngầm mỗi khi mở máy (không hiện cửa sổ).
+
+Máy làm gì:
+  - 2 phút / lần hỏi app còn tài liệu nào "cần Agent" (QĐ phê duyệt, Báo cáo đánh giá, HSMT, Biên bản mở thầu…).
+  - Lấy file qua Agent; không được thì mở 1 Chrome ẩn vào muasamcong để tải.
+  - Gửi file lên app ⇒ file vào đúng thư mục Drive của gói, đúng tên, vào Sheet tổng hợp.
+  - XOÁ file tạm trên máy ngay sau khi gửi — máy không giữ lại file nào.
+
+Kiểm tra: app ▸ tab Tài liệu ▸ dòng "Máy tải Agent" (đang bật / lần cuối). Nhật ký: %LOCALAPPDATA%\MMH_Agent\log.txt
+Gỡ: bấm đúp "Go cai dat may tai Agent.bat".

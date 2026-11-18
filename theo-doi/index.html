@@ -243,6 +243,10 @@ select.inp{padding-right:28px}
 @keyframes spin{to{transform:rotate(360deg)}}
 
 /* v2.0 — tab Tài liệu gọn */
+.mgb{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:10px 18px;border-bottom:1px solid var(--line);background:var(--sf2)}
+.mgt{flex:1;min-width:220px;font-size:12.5px;color:var(--t2)}
+.mgt b{color:var(--t1)}
+.mgb .btn{display:inline-flex;gap:6px;align-items:center}
 .dl2{list-style:none;margin:0;padding:0}
 .dl2>li{padding:14px 18px;border-bottom:1px solid var(--line)}
 .dl2>li:last-child{border-bottom:0}
@@ -421,7 +425,7 @@ button.stx b{color:#9A5B00}
    Đăng nhập: phiên email công ty (localStorage.mmh_tk — dùng chung Report Hub / CRM / Tender Map). */
 var API = "https://script.google.com/macros/s/AKfycbwv3R7EACqtt3pQZfMWRQFilC4E0W7td8Z8xWxQW6P7UckqFjWFJSFxcOWBZknHplhQuQ/exec";
 var TRAINING_HUB = "https://script.google.com/macros/s/AKfycbwsX4cQEoH4LNlmcNfe8qWIM9K6EiDEXy7PjhP9bHY2citL6xHn5L1unsAlQJHyL9EP/exec";
-var VER = "2.0";
+var VER = "2.1";
 var TYPES = { khmt: "Kế hoạch LCNT", tbmt: "Thông báo mời thầu", kqdt: "Kết quả LCNT" };
 var TSHORT = { khmt: "KH LCNT", tbmt: "TBMT", kqdt: "Kết quả" };
 var STC = { "Chờ tải": "wait", "Đang tải": "work", "Đã tải": "done", "Lỗi": "err", "Không có file": "nofile", "Không tải": "off" };
@@ -1300,7 +1304,7 @@ function docsView(B){
   (B.hits || []).forEach(function(x){ (x.files || []).forEach(function(f){ cnt[secOf(x, f)]++; cnt[""]++; }); });
   var h = '<div class="dwrap"><div class="card"><div class="bar"><div class="seg">' + [["", "Tất cả"], ["tbmt", "TBMT"], ["mo", "Mở thầu"], ["kq", "Kết quả"], ["kh", "KH LCNT"]].map(function(t){ return '<button data-dsec="' + t[0] + '" class="' + (sec === t[0] ? "on" : "") + '">' + t[1] + (cnt[t[0]] ? ' <span class="tn">' + cnt[t[0]] + '</span>' : "") + '</button>'; }).join("") + '</div>' +
     '<input class="inp q" id="d-q" placeholder="Tìm tài liệu, gói thầu, bệnh viện…" value="' + esc(S.dq) + '">' +
-    (B.rootUrl ? '<a class="btn sm" href="' + esc(B.rootUrl) + '" target="_blank" rel="noopener">Thư mục Drive</a>' : "") + (B.sumUrl ? '<a class="btn sm" href="' + esc(B.sumUrl) + '" target="_blank" rel="noopener">Sheet tổng hợp</a>' : "") + '</div>';
+    (B.rootUrl ? '<a class="btn sm" href="' + esc(B.rootUrl) + '" target="_blank" rel="noopener">Thư mục Drive</a>' : "") + (B.sumUrl ? '<a class="btn sm" href="' + esc(B.sumUrl) + '" target="_blank" rel="noopener">Sheet tổng hợp</a>' : "") + '</div>' + mgBar(B);
   if (!rows.length) return h + '<div class="empty">' + (cnt[""] ? "Không có tài liệu khớp." : 'Chưa có tài liệu nào. Chọn gói trên Bản đồ hoặc dán số gói vào ô <b>Tải ngay</b> ở tab Theo dõi.') + '</div></div></div>';
   h += '<ul class="dl2">' + rows.slice(0, 200).map(function(r){
     var x = r.x, i = x.info || {}, by = {};
@@ -1312,6 +1316,14 @@ function docsView(B){
       files + (r.ag.length ? agLine(x, r.ag) : "") + '</li>';
   }).join("") + '</ul></div></div>';
   return h;
+}
+/* 2 file tổng (máy chủ tự gộp Danh sách hàng hóa / nhà thầu của mọi gói, không trùng gói) */
+function mgBar(B){
+  var m = B.mg || {}, L = B.mgLast || null;
+  if (!m.hh && !m.nt) return '<div class="mgb"><span class="mgt">File tổng hàng hóa trúng thầu và nhà thầu tham dự sẽ có sau lượt gộp đầu tiên (máy chủ gộp 15 phút / lần).</span></div>';
+  return '<div class="mgb"><span class="mgt"><b>File tổng</b> — gộp mọi gói đã tải, mỗi gói 1 lần (không trùng)' + (L && L.at ? ' · gộp lúc ' + esc(String(L.at).slice(5, 16)) : "") + '</span>' +
+    (m.hh ? '<a class="btn sm" href="' + esc(m.hh) + '" target="_blank" rel="noopener"><i class="fi gs">Sheet</i> Kết quả trúng thầu (hàng hóa)</a>' : "") +
+    (m.nt ? '<a class="btn sm" href="' + esc(m.nt) + '" target="_blank" rel="noopener"><i class="fi gs">Sheet</i> Nhà thầu tham dự</a>' : "") + '</div>';
 }
 /* 1 tài liệu = 1 link gọn: biểu tượng loại file + tên (bỏ số gói ở đầu tên) */
 function fileLink(f){

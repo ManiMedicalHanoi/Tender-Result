@@ -527,7 +527,7 @@ function jump(){
 }
 
 /* ── giao diện chính ── */
-var SEC = { tbmt: "TBMT", kq: "Kết quả LCNT", kh: "KH LCNT" };
+var SEC = { tbmt: "TBMT", mo: "Mở thầu", kq: "Kết quả LCNT", kh: "KH LCNT" };
 function render(){
   var app = $("app");
   if (!auth() || lg.step === "setpw") { app.innerHTML = gateHtml(); gateWire(); return; }
@@ -579,7 +579,7 @@ function filesHtml(x){
   var F = x.files || [], i = x.info || {}, ag = i.agentFiles || [], grp = {}, order = [];
   F.forEach(function(f){ var k = f.sec || (x.type === "khmt" ? "kh" : x.type === "kqdt" ? "kq" : "tbmt"); if (!grp[k]) { grp[k] = []; order.push(k); } grp[k].push(f); });
   var h = "";
-  ["tbmt", "kq", "kh"].forEach(function(k){
+  ["tbmt", "mo", "kq", "kh"].forEach(function(k){
     var L = grp[k] || [], A = ag.filter(function(a){ return (a.tab || "") === k || (!a.tab && k === "tbmt"); });
     if (!L.length && !A.length) return;
     h += '<div class="fg"><span class="fgl">' + SEC[k] + '</span><div class="fgf">' +
@@ -1090,9 +1090,9 @@ function docsView(B){
     if (q && fold(x.name + " " + x.no + " " + x.investor + " " + all.map(function(f){ return f.name; }).join(" ")).indexOf(q) < 0) return;
     rows.push({ x: x, f: all });
   });
-  var cnt = { "": 0, tbmt: 0, kq: 0, kh: 0 };
+  var cnt = { "": 0, tbmt: 0, mo: 0, kq: 0, kh: 0 };
   (B.hits || []).forEach(function(x){ (x.files || []).forEach(function(f){ var k = f.sec || (x.type === "khmt" ? "kh" : x.type === "kqdt" ? "kq" : "tbmt"); cnt[k]++; cnt[""]++; }); });
-  var h = '<div class="dwrap"><div class="card"><div class="bar"><div class="seg">' + [["", "Tất cả"], ["tbmt", "TBMT"], ["kq", "Kết quả"], ["kh", "KH LCNT"]].map(function(t){ return '<button data-dsec="' + t[0] + '" class="' + (sec === t[0] ? "on" : "") + '">' + t[1] + ' <span class="tn">' + cnt[t[0]] + '</span></button>'; }).join("") + '</div>' +
+  var h = '<div class="dwrap"><div class="card"><div class="bar"><div class="seg">' + [["", "Tất cả"], ["tbmt", "TBMT"], ["mo", "Mở thầu"], ["kq", "Kết quả"], ["kh", "KH LCNT"]].map(function(t){ return '<button data-dsec="' + t[0] + '" class="' + (sec === t[0] ? "on" : "") + '">' + t[1] + ' <span class="tn">' + cnt[t[0]] + '</span></button>'; }).join("") + '</div>' +
     '<input class="inp q" id="d-q" placeholder="Tìm tài liệu, gói thầu, bệnh viện…" value="' + esc(S.dq) + '">' +
     (B.rootUrl ? '<a class="btn sm" href="' + esc(B.rootUrl) + '" target="_blank" rel="noopener">Mở thư mục Drive</a>' : "") + (B.sumUrl ? '<a class="btn sm" href="' + esc(B.sumUrl) + '" target="_blank" rel="noopener">Sheet tổng hợp</a>' : "") + '</div>';
   if (!rows.length) return h + '<div class="empty">' + (cnt[""] ? "Không có tài liệu khớp." : 'Chưa có tài liệu nào. Dán số gói vào ô <b>Tải ngay</b> ở tab Đang theo dõi, hoặc bật "Tự tải hồ sơ" cho bệnh viện bạn theo dõi.') + '</div></div></div>';
@@ -1112,13 +1112,14 @@ function docsView(B){
 var WANT = [
   ["tbmt", "Thông báo mời thầu", "PDF trang thông tin chung", 0, "tb"],
   ["hsmt", "Hồ sơ mời thầu (các chương)", "Tiêu chuẩn đánh giá, Yêu cầu kỹ thuật… — cần Agent, máy chủ chỉ ghi tên + link", 1, "tb"],
+  ["mo", "Biên bản mở thầu + Nhà thầu tham dự", "PDF biên bản + Excel nhà thầu tham dự ⇒ Google Sheet (thư mục Biên bản mở thầu)", 0, "tb"],
   ["kq", "Kết quả lựa chọn nhà thầu", "PDF trang kết quả", 0, "tb"],
   ["nt", "Danh sách nhà thầu", "Excel ⇒ Google Sheet", 0, "tb"],
   ["hh", "Danh sách hàng hóa", "Excel ⇒ Google Sheet", 0, "tb"],
   ["qd", "Quyết định phê duyệt, Báo cáo đánh giá", "cần Agent, máy chủ chỉ ghi tên + link", 1, "all"],
   ["kh", "Kế hoạch lựa chọn nhà thầu", "PDF trang KHLCNT", 0, "kh"]
 ];
-function wantGet(){ try { var a = JSON.parse(localStorage.getItem("wt_want") || "null"); if (Array.isArray(a)) return a; } catch (_) {} return WANT.map(function(w){ return w[0]; }); }
+function wantGet(){ try { var a = JSON.parse(localStorage.getItem("wt_want") || "null"); if (Array.isArray(a)) { if (localStorage.getItem("wt_want_v") !== "2") { if (a.indexOf("mo") < 0) a.push("mo"); localStorage.setItem("wt_want", JSON.stringify(a)); localStorage.setItem("wt_want_v", "2"); } return a; } } catch (_) {} return WANT.map(function(w){ return w[0]; }); }
 function wantSet(a){ try { localStorage.setItem("wt_want", JSON.stringify(a)); } catch (_) {} }
 function wantSend(a){ return a.length >= WANT.length ? "" : a.join(","); }
 /* mở hộp chọn; kinds = "tb" (gói TBMT / Kết quả) | "kh" (KHLCNT) | "" (cả hai — Tải ngay); done(want[]) */

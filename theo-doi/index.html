@@ -34,7 +34,7 @@ a{color:var(--blue)}
 .chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line2);border-radius:999px;padding:3px 10px;font-size:12.5px;background:var(--sf);white-space:nowrap}
 .dot{width:8px;height:8px;border-radius:50%;background:var(--mute);flex:none}
 .dot.on{background:var(--ok)}.dot.off{background:var(--bad)}
-.btn{border:1px solid var(--line2);background:var(--sf);border-radius:8px;padding:7px 14px;cursor:pointer;font-weight:600;color:var(--navy)}
+.btn{text-decoration:none;display:inline-block;border:1px solid var(--line2);background:var(--sf);border-radius:8px;padding:7px 14px;cursor:pointer;font-weight:600;color:var(--navy)}
 .btn:hover{border-color:var(--sky);color:var(--blue)}
 .btn.pri{background:var(--blue);border-color:var(--blue);color:#fff}
 .btn.pri:hover{background:#2F4F96}
@@ -131,9 +131,38 @@ select.inp{padding-right:28px}
 .quick .hint{flex-basis:100%;margin:0}
 .ag{grid-column:2/4;font-size:12.5px;color:var(--t2);margin-top:4px;line-height:1.5;overflow-wrap:anywhere}
 .ag b{color:var(--t1);font-weight:600}
-.inst{display:none}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:14px 20px 0;max-width:1500px;margin:0 auto}
+.tile{border:1px solid var(--line);background:var(--sf);border-radius:var(--r);padding:10px 14px;text-align:left;cursor:pointer;display:flex;flex-direction:column;gap:2px}
+.tile b{font-size:22px;color:var(--navy);line-height:1.1}
+.tile span{font-size:12.5px;color:var(--t2)}
+.tile:hover{border-color:var(--sky)}
+.tile.on{border-color:var(--blue);background:var(--pale)}
+.wl .nm .nmt{min-width:0;overflow-wrap:anywhere}
+.wl .meta .ed{margin-left:auto}
+.files{flex-direction:column;gap:6px}
+.fg{display:flex;gap:8px;align-items:flex-start}
+.fgl{flex:none;width:96px;font-size:11.5px;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:.3px;padding-top:6px}
+.fgf{display:flex;gap:6px;flex-wrap:wrap;min-width:0}
+.fx{font-size:10.5px;font-weight:700;border-radius:4px;padding:0 5px;border:1px solid var(--line2);color:var(--t2);background:#fff}
+.fx.gs{color:var(--kq);border-color:#C6E2C8}
+.fx.pdf{color:var(--bad);border-color:#F3C9C4}
+.agf{display:inline-flex;gap:6px;align-items:center;border:1px dashed var(--line2);border-radius:8px;padding:4px 10px;font-size:12.5px;color:var(--t2)}
+.agf small{font-size:11px;color:var(--warn);font-weight:600}
+.sm2{font-size:12.5px;font-weight:600;text-decoration:none}
+.pwrow{display:flex;gap:6px}
+.pwrow .inp{flex:1}
+.eye{border:1px solid var(--fld);background:#fff;border-radius:8px;padding:0 12px;cursor:pointer;color:var(--t2);font-size:12.5px}
+.acl{display:flex;gap:8px;flex-wrap:wrap;border-top:1px solid var(--line);padding-top:12px}
 @media (max-width:860px){
-  .wrap{grid-template-columns:1fr;padding:12px}
+  .wrap{grid-template-columns:minmax(0,1fr);padding:12px}
+  .wrap>*{min-width:0}
+  .stats{grid-template-columns:repeat(2,1fr);padding:12px 12px 0;gap:8px}
+  .tile b{font-size:19px}
+  .side .wl{display:flex;align-items:flex-start;overflow-x:auto;gap:8px;padding:10px 12px;scroll-snap-type:x proximity}
+  .side .wl li{flex:none;width:230px;border:1px solid var(--line);border-radius:10px;scroll-snap-align:start}
+  .side .wl li.on{box-shadow:none;border-color:var(--blue)}
+  .fg{flex-direction:column;gap:4px}
+  .fgl{width:auto;padding-top:0}
   .top{padding:10px 14px}
   .hit{grid-template-columns:1fr;gap:4px}
   .hit .r{flex-direction:row;align-items:center;justify-content:flex-start;text-align:left}
@@ -147,13 +176,15 @@ select.inp{padding-right:28px}
 <div class="ov" id="ov"><div class="dlg" id="dlg"></div></div>
 <div class="toast" id="toast"></div>
 <script>
-/* MMH · Theo dõi gói thầu v1.0 (17/11/2026)
+/* MMH · Theo dõi gói thầu v1.2 (18/11/2026) — danh sách bệnh viện lưu sẵn trên máy, tạo mật khẩu sau lần đầu đăng nhập bằng mã,
+   hồ sơ chia theo TBMT / KQLCNT / KHLCNT + link thư mục Drive và Sheet tổng hợp.
+   v1.0 (17/11/2026)
    Người dùng tự chọn chủ đầu tư (bệnh viện) + loại tin cần theo dõi ⇒ backend tender-info (MMH_Watch.gs) quét 3 tab của file
    "MMH FY 67_ Tender Information" (dữ liệu Báo Đấu Thầu hằng ngày) ⇒ gói mới ⇒ thông báo + bot tải hồ sơ từ muasamcong về Drive.
    Đăng nhập: phiên email công ty (localStorage.mmh_tk — dùng chung Report Hub / CRM / Tender Map). */
 var API = "https://script.google.com/macros/s/AKfycbwv3R7EACqtt3pQZfMWRQFilC4E0W7td8Z8xWxQW6P7UckqFjWFJSFxcOWBZknHplhQuQ/exec";
 var TRAINING_HUB = "https://script.google.com/macros/s/AKfycbwsX4cQEoH4LNlmcNfe8qWIM9K6EiDEXy7PjhP9bHY2citL6xHn5L1unsAlQJHyL9EP/exec";
-var VER = "1.1";
+var VER = "1.2";
 var TYPES = { khmt: "Kế hoạch LCNT", tbmt: "Thông báo mời thầu", kqdt: "Kết quả LCNT" };
 var TSHORT = { khmt: "KH LCNT", tbmt: "TBMT", kqdt: "Kết quả" };
 var STC = { "Chờ tải": "wait", "Đang tải": "work", "Đã tải": "done", "Lỗi": "err", "Không có file": "nofile", "Không tải": "off" };
@@ -186,12 +217,42 @@ function api(action, params, post){
 /* ── đăng nhập (Training Hub): email + mật khẩu, hoặc mã 6 số qua email ── */
 function cleanEmail(v){ var e = String(v || "").trim().toLowerCase().replace(/\s+/g, ""); if (e && e.indexOf("@") < 0) e += "@manimedicalhanoi.com"; return e; }
 function okEmail(e){ return /^[a-z0-9._%+\-]+@(mani\.inc|manimedicalhanoi\.com)$/.test(e); }
-function loginDone(d){ try { localStorage.setItem("mmh_tk", JSON.stringify({ tk: d.token, exp: d.exp, user: d.user, at: Date.now() })); localStorage.setItem("mmh_last_email", lg.email); } catch (_) {} lg = { step: "pw", email: lg.email, busy: false, err: "" }; load(); }
+function loginDone(d, how, pw){
+  try { localStorage.setItem("mmh_tk", JSON.stringify({ tk: d.token, exp: d.exp, user: d.user, at: Date.now() })); localStorage.setItem("mmh_last_email", lg.email); } catch (_) {}
+  var loc = lg.email.split("@")[0];
+  if (d.hasPw) { try { localStorage.setItem("tm_haspw:" + loc, "1"); } catch (_) {} }
+  if (how === "pw" && pw) credStore(lg.email, pw);
+  var later = 0; try { later = +localStorage.getItem("tm_pw_later:" + loc) || 0; } catch (_) {}
+  if (how === "code" && d.hasPw === false && Date.now() > later) { lg = { step: "setpw", email: lg.email, busy: false, err: "" }; render(); return; }
+  lg = { step: "pw", email: lg.email, busy: false, err: "" }; load();
+}
+/* trình duyệt (Chrome / Android) nhớ mật khẩu ⇒ lần sau tự điền */
+function credStore(email, pw){ try { if (window.PasswordCredential && navigator.credentials) navigator.credentials.store(new PasswordCredential({ id: email, password: pw, name: email })).catch(function(){}); } catch (_) {} }
+function setPw(pw, pw2, old, done){
+  if (String(pw).length < 8) return done("Mật khẩu cần ít nhất 8 ký tự.");
+  if (pw !== pw2) return done("Hai lần nhập chưa giống nhau.");
+  var a = auth(); if (!a) return done("Phiên đăng nhập đã hết — đăng nhập lại.");
+  var prm = { action: "rhAuthPwSet", tk: a.tk, pw: pw }; if (old) prm.old = old;
+  call(TRAINING_HUB, prm, true).then(function(d){
+    if (d && d.ok) { var em = (a.user && a.user.email) || lg.email || ""; try { localStorage.setItem("tm_haspw:" + em.split("@")[0], "1"); } catch (_) {} credStore(em, pw); done("", d.message || "Đã lưu mật khẩu."); }
+    else done((d && d.error) || "Chưa lưu được mật khẩu.");
+  }, function(e){ done("Không kết nối được máy chủ đăng nhập (" + e.message + ")."); });
+}
 function gateHtml(){
   var em = lg.email; if (!em) { try { em = localStorage.getItem("mmh_last_email") || ""; } catch (_) {} }
   var h = '<div class="gate"><div class="card"><h2>Theo dõi gói thầu</h2><p>Đăng nhập bằng email công ty (như Report Hub / CRM / Tender Map).</p>';
+  if (lg.step === "setpw") {
+    h = '<div class="gate"><div class="card"><h2>Tạo mật khẩu</h2><p>Lần sau đăng nhập bằng <b>' + esc(lg.email) + '</b> + mật khẩu trên mọi máy (điện thoại, máy tính) — không phải chờ mã email nữa.</p>' +
+      '<form id="f-setpw" autocomplete="on" novalidate><input type="email" name="username" autocomplete="username" value="' + esc(lg.email) + '" style="display:none">' +
+      '<div class="pwrow"><input class="inp" id="s-pw" type="password" autocomplete="new-password" placeholder="Mật khẩu mới (ít nhất 8 ký tự)"><button type="button" class="eye" data-a="eye" aria-label="Hiện mật khẩu">Hiện</button></div>' +
+      '<input class="inp" id="s-pw2" type="password" autocomplete="new-password" placeholder="Nhập lại mật khẩu">' +
+      '<button class="btn pri" type="submit"' + (lg.busy ? " disabled" : "") + '>' + (lg.busy ? "Đang lưu…" : "Lưu mật khẩu") + '</button></form>' +
+      '<div class="alt"><button class="lnk" data-a="later">Để sau</button></div>';
+    if (lg.err) h += '<div class="err" style="margin:12px 0 0">' + esc(lg.err) + '</div>';
+    return h + '</div></div>';
+  }
   if (lg.step === "code") h += '<form id="f-code" novalidate><div>Mã 6 số đã gửi tới <b>' + esc(lg.email) + '</b></div><input class="inp" id="g-code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="6 số"><button class="btn pri" type="submit"' + (lg.busy ? " disabled" : "") + '>' + (lg.busy ? "Đang kiểm tra…" : "Đăng nhập") + '</button></form><div class="alt"><button class="lnk" data-a="back">Đăng nhập bằng mật khẩu</button></div>';
-  else h += '<form id="f-pw" autocomplete="on" novalidate><input class="inp" id="g-mail" name="username" type="email" autocomplete="username" placeholder="ten@manimedicalhanoi.com" value="' + esc(em) + '"><input class="inp" id="g-pw" name="password" type="password" autocomplete="current-password" placeholder="Mật khẩu"><button class="btn pri" type="submit"' + (lg.busy ? " disabled" : "") + '>' + (lg.busy ? "Đang đăng nhập…" : "Đăng nhập") + '</button></form><div class="alt">Chưa có hoặc quên mật khẩu? <button class="lnk" data-a="code">Nhận mã qua email</button></div>';
+  else h += '<form id="f-pw" autocomplete="on" novalidate><input class="inp" id="g-mail" name="username" type="email" autocomplete="username" placeholder="ten@manimedicalhanoi.com" value="' + esc(em) + '"><div class="pwrow"><input class="inp" id="g-pw" name="password" type="password" autocomplete="current-password" placeholder="Mật khẩu"><button type="button" class="eye" data-a="eye" aria-label="Hiện mật khẩu">Hiện</button></div><button class="btn pri" type="submit"' + (lg.busy ? " disabled" : "") + '>' + (lg.busy ? "Đang đăng nhập…" : "Đăng nhập") + '</button></form><div class="alt">Chưa có hoặc quên mật khẩu? <button class="lnk" data-a="code">Nhận mã qua email</button></div>';
   if (lg.err) h += '<div class="err" style="margin:12px 0 0">' + esc(lg.err) + '</div>';
   return h + '</div></div>';
 }
@@ -203,8 +264,14 @@ function gateWire(){
     if (!okEmail(lg.email)) { lg.err = "Nhập email công ty: …@manimedicalhanoi.com hoặc …@mani.inc"; render(); return; }
     if (!pw) { lg.err = "Nhập mật khẩu, hoặc bấm \"Nhận mã qua email\"."; render(); return; }
     lg.busy = true; lg.err = ""; render();
-    call(TRAINING_HUB, { action: "rhAuthPw", email: lg.email, pw: pw }, true).then(function(d){ lg.busy = false; if (d && d.ok && d.token) loginDone(d); else { lg.err = (d && d.error) || "Chưa đăng nhập được."; render(); } },
+    call(TRAINING_HUB, { action: "rhAuthPw", email: lg.email, pw: pw }, true).then(function(d){ lg.busy = false; if (d && d.ok && d.token) loginDone(d, "pw", pw); else if (d && d.code === "NOPW") { sendCode(); } else { lg.err = (d && d.error) || "Chưa đăng nhập được."; render(); } },
       function(e){ lg.busy = false; lg.err = "Không kết nối được máy chủ đăng nhập (" + e.message + ")."; render(); });
+  };
+  var sp = $("f-setpw");
+  if (sp) sp.onsubmit = function(e){
+    e.preventDefault(); if (lg.busy) return;
+    lg.busy = true; lg.err = ""; var a1 = $("s-pw").value, a2 = $("s-pw2").value; render();
+    setPw(a1, a2, "", function(err, msg){ lg.busy = false; if (err) { lg.err = err; render(); return; } lg.step = "pw"; toast(msg); load(); });
   };
   var c = $("f-code");
   if (c) c.onsubmit = function(e){
@@ -212,7 +279,7 @@ function gateWire(){
     var code = String($("g-code").value || "").replace(/\D/g, "");
     if (code.length !== 6) { lg.err = "Nhập đủ 6 số trong email."; render(); return; }
     lg.busy = true; lg.err = ""; render();
-    call(TRAINING_HUB, { action: "rhAuthVerify", email: lg.email, code: code }).then(function(d){ lg.busy = false; if (d && d.ok && d.token) loginDone(d); else { lg.err = (d && d.error) || "Mã chưa đúng."; render(); } },
+    call(TRAINING_HUB, { action: "rhAuthVerify", email: lg.email, code: code }).then(function(d){ lg.busy = false; if (d && d.ok && d.token) loginDone(d, "code"); else { lg.err = (d && d.error) || "Mã chưa đúng."; render(); } },
       function(e){ lg.busy = false; lg.err = e.message; render(); });
   };
 }
@@ -230,15 +297,28 @@ function load(){
   S.busy = true; render();
   api("wBoot").then(function(d){
     S.busy = false;
-    if (d && d.ok) { S.boot = d; S.err = ""; try { localStorage.setItem("wt_boot1", JSON.stringify(d)); } catch (_) {} }
+    if (d && d.ok) { S.boot = d; S.err = ""; try { localStorage.setItem("wt_boot1", JSON.stringify(d)); } catch (_) {} setTimeout(function(){ loadInv(null, true); }, 400); }
     else S.err = (d && d.error) || "Chưa đọc được dữ liệu.";
     render(); jump();
   }, function(e){ S.busy = false; S.err = "Chưa đọc được dữ liệu (" + e.message + ")."; render(); });
 }
-function loadInv(cb){
-  if (S.inv) return cb && cb();
-  api("wInvestors").then(function(d){ if (d && d.ok) { S.inv = d.list; cb && cb(); } else toast((d && d.error) || "Chưa đọc được danh sách chủ đầu tư."); },
-    function(e){ toast("Chưa đọc được danh sách chủ đầu tư (" + e.message + ")."); });
+/* danh sách chủ đầu tư: lưu trên máy (localStorage wt_inv2 = {v, list}), chỉ tải lại khi máy chủ báo phiên bản mới (boot.invV) */
+function invCache(){ try { return JSON.parse(localStorage.getItem("wt_inv2") || "null"); } catch (_) { return null; } }
+function loadInv(cb, quiet){
+  if (!S.inv) { var c = invCache(); if (c && c.list) { S.inv = c.list; S.invV = c.v; } }
+  var want = (S.boot || {}).invV, called = false, fire = function(){ if (!called && cb) { called = true; cb(); } };
+  if (S.inv && (!want || want === S.invV)) return fire();
+  if (S.inv) fire();                // có bản cũ ⇒ hiện ngay, làm mới phía sau
+  if (S._invBusy) return; S._invBusy = true;
+  api("wInvestors", S.invV ? { since: S.invV } : {}).then(function(d){
+    S._invBusy = false;
+    if (d && d.ok) {
+      if (d.list) { S.inv = d.list; try { localStorage.setItem("wt_inv2", JSON.stringify({ v: d.v || "", list: d.list })); } catch (_) {} }
+      S.invV = d.v || S.invV;
+      if (F && !F.investor) paintSugg();
+      fire();
+    } else if (!quiet) toast((d && d.error) || "Chưa đọc được danh sách chủ đầu tư.");
+  }, function(e){ S._invBusy = false; if (!quiet) toast("Chưa đọc được danh sách chủ đầu tư (" + e.message + ")."); });
 }
 function jump(){
   var m = location.hash.match(/#g=(.+)$/); if (!m) return;
@@ -247,56 +327,83 @@ function jump(){
 }
 
 /* ── giao diện chính ── */
+var SEC = { tbmt: "TBMT", kq: "Kết quả LCNT", kh: "KH LCNT" };
 function render(){
   var app = $("app");
-  if (!auth()) { app.innerHTML = gateHtml(); gateWire(); return; }
+  if (!auth() || lg.step === "setpw") { app.innerHTML = gateHtml(); gateWire(); return; }
   var a = auth(), B = S.boot || { watches: [], hits: [], bot: {} };
   var bot = B.bot || {}, seen = bot.seen ? new Date(bot.seen.replace(" ", "T") + "+07:00") : null, live = seen && (Date.now() - seen) < 3 * 3600e3;
-  var h = '<div class="top"><div class="brand"><b>Theo dõi gói thầu</b><span>Kế hoạch LCNT · Thông báo mời thầu · Kết quả — theo chủ đầu tư bạn chọn</span></div>' +
-    '<span class="chip" title="Bot tải hồ sơ từ muasamcong.mof.gov.vn"><span class="dot ' + (live ? "on" : seen ? "off" : "") + '"></span>Bot tải hồ sơ: ' + (live ? "đang chạy" : seen ? "lần cuối " + esc(bot.seen.slice(0, 16)) : "chưa chạy") + (bot.queue ? " · chờ " + bot.queue : "") + '</span>' +
-    '<button class="btn sm inst" id="inst" data-a="install">Cài app</button>' +
-    (B.me && B.me.admin ? '<button class="btn sm" data-a="bot">Cài đặt bot</button>' : "") +
-    '<span class="who">' + esc(a.user.pic || a.user.email || "") + ' · <button class="lnk" data-a="out">Đăng xuất</button></span></div>';
-  h += '<div class="wrap"><div class="card"><h3>Đang theo dõi <span class="sp"></span><button class="btn pri sm" data-a="add">+ Thêm</button></h3>';
-  var W = B.watches || [];
-  if (!W.length && !(B.hits || []).length) h += '<div class="empty">' + (S.busy && !S.boot ? "Đang tải…" : 'Chưa theo dõi chủ đầu tư nào.<br>Bấm <b>+ Thêm</b> ⇒ gõ tên bệnh viện ⇒ chọn loại tin ⇒ Lưu. Hệ thống báo khi có tin mới và tự tải hồ sơ.') + '</div>';
+  var H = B.hits || [], W = B.watches || [];
+  var wk = new Date(Date.now() - 7 * 864e5).toISOString().slice(0, 10);
+  var nNew = H.filter(function(x){ return (x.date || "") >= wk; }).length, nDone = H.filter(function(x){ return (x.files || []).length; }).length,
+      nWait = H.filter(function(x){ return x.status === "Chờ tải" || x.status === "Đang tải"; }).length;
+  var h = '<div class="top"><div class="brand"><b>Theo dõi gói thầu</b><span>Kế hoạch LCNT · Thông báo mời thầu · Kết quả — tự tải hồ sơ về Drive</span></div>' +
+    '<span class="chip" title="Bot tải hồ sơ từ muasamcong.mof.gov.vn, chạy trên máy chủ 5 phút / lần (7h–21h, T2–T7)"><span class="dot ' + (live ? "on" : seen ? "off" : "") + '"></span>Bot: ' + (live ? "đang chạy" : seen ? "lần cuối " + esc(bot.seen.slice(5, 16)) : "chưa chạy") + '</span>' +
+    (B.rootUrl ? '<a class="btn sm" href="' + esc(B.rootUrl) + '" target="_blank" rel="noopener">Thư mục Drive</a>' : "") +
+    (B.sumUrl ? '<a class="btn sm" href="' + esc(B.sumUrl) + '" target="_blank" rel="noopener">Sheet tổng hợp</a>' : "") +
+    '<button class="btn sm" data-a="acct" title="Tài khoản, mật khẩu, cài app">' + esc(a.user.pic || (a.user.email || "").split("@")[0] || "Tài khoản") + ' ▾</button></div>';
+  h += '<div class="stats">' +
+    tile("watch", W.filter(function(w){ return w.active; }).length, "bệnh viện đang theo dõi", "") +
+    tile("new", nNew, "tin trong 7 ngày", S.st === "new") +
+    tile("files", nDone, "gói đã có hồ sơ", S.st === "files") +
+    tile("wait", nWait, "gói đang chờ tải", S.st === "wait") + '</div>';
+  h += '<div class="wrap"><div class="card side"><h3>Đang theo dõi <span class="sp"></span><button class="btn pri sm" data-a="add">+ Thêm</button></h3>';
+  if (!W.length && !H.length) h += '<div class="empty">' + (S.busy && !S.boot ? "Đang tải…" : 'Chưa theo dõi chủ đầu tư nào.<br>Bấm <b>+ Thêm</b> ⇒ gõ tên bệnh viện ⇒ chọn loại tin ⇒ Lưu. Hệ thống báo khi có tin mới và tự tải hồ sơ.') + '</div>';
   else {
-    var cnt = {}; (B.hits || []).forEach(function(x){ var k = fold(x.investor); cnt[k] = (cnt[k] || 0) + 1; });
-    h += '<ul class="wl"><li class="' + (!S.sel ? "on" : "") + '" data-sel=""><div class="nm">Tất cả<span class="n">' + (B.hits || []).length + ' tin</span></div></li>';
-    var nq = (B.hits || []).filter(function(x){ return /^n:/.test(x.key) || (x.info || {}).quick; }).length;
-    if (nq) h += '<li class="' + (S.sel === "_q" ? "on" : "") + '" data-sel="_q"><div class="nm">Tải ngay<span class="n">' + nq + ' gói</span></div><div class="meta"><span>Số TBMT / KHLCNT bạn dán vào ô Tải ngay</span></div></li>';
+    var cnt = {}; H.forEach(function(x){ var k = fold(x.investor); cnt[k] = (cnt[k] || 0) + 1; });
+    h += '<ul class="wl"><li class="' + (!S.sel ? "on" : "") + '" data-sel=""><div class="nm">Tất cả<span class="n">' + H.length + ' tin</span></div></li>';
+    var nq = H.filter(function(x){ return /^n:/.test(x.key) || (x.info || {}).quick; }).length;
+    if (nq) h += '<li class="' + (S.sel === "_q" ? "on" : "") + '" data-sel="_q"><div class="nm">Tải ngay<span class="n">' + nq + ' gói</span></div><div class="meta"><span>Số bạn dán vào ô Tải ngay</span></div></li>';
     W.forEach(function(w){
-      h += '<li class="' + (S.sel === w.id ? "on" : "") + (w.active ? "" : " off") + '" data-sel="' + esc(w.id) + '"><div class="nm">' + esc(w.investor) + '<span class="n">' + (cnt[fold(w.investor)] || 0) + ' tin</span></div><div class="meta">' +
+      h += '<li class="' + (S.sel === w.id ? "on" : "") + (w.active ? "" : " off") + '" data-sel="' + esc(w.id) + '"><div class="nm"><span class="nmt">' + esc(w.investor) + '</span><span class="n">' + (cnt[fold(w.investor)] || 0) + ' tin</span></div><div class="meta">' +
         w.types.map(function(t){ return '<span class="tg ' + t + '">' + TSHORT[t] + '</span>'; }).join("") +
-        (w.keywords.length ? '<span>· từ khoá: ' + esc(w.keywords.join(", ")) + '</span>' : "") +
+        (w.keywords.length ? '<span>· ' + esc(w.keywords.join(", ")) + '</span>' : "") +
         (w.dl ? "" : '<span>· không tự tải</span>') + (w.active ? "" : '<span>· tạm dừng</span>') +
         (B.me && B.me.boss && w.mail !== B.me.mail ? '<span>· ' + esc(w.pic || w.mail) + '</span>' : "") +
-        '<span style="margin-left:auto"><button class="lnk" data-edit="' + esc(w.id) + '">Sửa</button></span></div></li>';
+        '<span class="ed"><button class="lnk" data-edit="' + esc(w.id) + '">Sửa</button></span></div></li>';
     });
     h += '</ul>';
   }
   h += '</div><div class="card">' + hitsHtml(B) + '</div></div>';
   app.innerHTML = h;
 }
+function tile(k, n, t, on){ return '<button class="tile' + (on ? " on" : "") + '" data-tile="' + k + '"><b>' + n + '</b><span>' + t + '</span></button>'; }
+
+/* hồ sơ của 1 gói: chia theo phần TBMT / Kết quả / KHLCNT */
+function filesHtml(x){
+  var F = x.files || [], i = x.info || {}, ag = i.agentFiles || [], grp = {}, order = [];
+  F.forEach(function(f){ var k = f.sec || (x.type === "khmt" ? "kh" : x.type === "kqdt" ? "kq" : "tbmt"); if (!grp[k]) { grp[k] = []; order.push(k); } grp[k].push(f); });
+  var h = "";
+  ["tbmt", "kq", "kh"].forEach(function(k){
+    var L = grp[k] || [], A = ag.filter(function(a){ return (a.tab || "") === k || (!a.tab && k === "tbmt"); });
+    if (!L.length && !A.length) return;
+    h += '<div class="fg"><span class="fgl">' + SEC[k] + '</span><div class="fgf">' +
+      L.map(function(f){ var nm = String(f.name || "").replace(/^(IB|PL)\d+(-\d+)?\s*-\s*/i, ""); return '<a href="' + esc(f.url) + '" target="_blank" rel="noopener" title="' + esc(f.name) + '"><span class="fx ' + (f.gsheet ? "gs" : /\.pdf$/i.test(f.name) ? "pdf" : "doc") + '">' + (f.gsheet ? "Sheet" : (String(f.name).match(/\.(\w+)$/) || [, "File"])[1].toUpperCase()) + '</span>' + esc(nm) + '</a>'; }).join("") +
+      A.map(function(a){ return '<span class="agf" title="muasamcong chỉ cho tải file này qua Agent cài trên máy tính">' + esc(a.type || a.name || a) + '<small>cần Agent</small></span>'; }).join("") + '</div></div>';
+  });
+  return h;
+}
 
 function hitsHtml(B){
   var W = B.watches || [], sel = W.filter(function(w){ return w.id === S.sel; })[0];
+  var wk = new Date(Date.now() - 7 * 864e5).toISOString().slice(0, 10);
   var L = (B.hits || []).filter(function(x){
     if (S.sel === "_q" && !(/^n:/.test(x.key) || (x.info || {}).quick)) return false;
     if (sel && fold(x.investor) !== fold(sel.investor)) return false;
     if (S.type && x.type !== S.type) return false;
     if (S.st === "files" && !(x.files || []).length) return false;
     if (S.st === "wait" && !(x.status === "Chờ tải" || x.status === "Đang tải")) return false;
+    if (S.st === "new" && !((x.date || "") >= wk)) return false;
     if (S.q) { var f = fold(x.name + " " + x.no + " " + x.investor + " " + ((x.info || {}).winner || "")); if (fold(S.q).split(/\s+/).some(function(w){ return f.indexOf(w) < 0; })) return false; }
     return true;
   });
-  var h = '<div class="quick"><textarea id="q-nos" placeholder="Tải ngay: dán số TBMT / KHLCNT, vd. IB2500491794">' + esc(S.qn || '') + '</textarea><button class="btn pri" data-a="quick"' + (S.qbusy ? ' disabled' : '') + '>' + (S.qbusy ? 'Đang gửi…' : 'Tải ngay') + '</button>' +
-    '<div class="hint">Máy chủ tự vào muasamcong, mở đúng gói, tải Excel (hàng hóa, nhà thầu…) về Drive trong vài phút. File PDF đính kèm cần Agent trên máy tính ⇒ có nút mở thẳng trang gói.</div></div>';
+  var h = '<div class="quick"><textarea id="q-nos" placeholder="Tải ngay: dán 1 hoặc nhiều số TBMT / KHLCNT, vd. IB2500491794">' + esc(S.qn || '') + '</textarea><button class="btn pri" data-a="quick"' + (S.qbusy ? ' disabled' : '') + '>' + (S.qbusy ? 'Đang gửi…' : 'Tải ngay') + '</button>' +
+    '<div class="hint">Máy chủ tự mở gói trên muasamcong (không cần bật máy tính), lưu vào thư mục Drive đúng loại (TBMT · Kết quả · KH LCNT) và ghi Sheet tổng hợp — thường xong trong 5–10 phút. Excel ⇒ Google Sheet.</div></div>';
   h += '<div class="bar"><div class="seg">' + [["", "Tất cả"], ["khmt", "KH LCNT"], ["tbmt", "TBMT"], ["kqdt", "Kết quả"]].map(function(t){ return '<button data-type="' + t[0] + '" class="' + (S.type === t[0] ? "on" : "") + '">' + t[1] + '</button>'; }).join("") + '</div>' +
-    '<select class="inp" id="f-st"><option value="">Mọi trạng thái</option><option value="files"' + (S.st === "files" ? " selected" : "") + '>Đã có hồ sơ</option><option value="wait"' + (S.st === "wait" ? " selected" : "") + '>Đang chờ tải</option></select>' +
+    '<select class="inp" id="f-st"><option value="">Mọi trạng thái</option><option value="new"' + (S.st === "new" ? " selected" : "") + '>Tin trong 7 ngày</option><option value="files"' + (S.st === "files" ? " selected" : "") + '>Đã có hồ sơ</option><option value="wait"' + (S.st === "wait" ? " selected" : "") + '>Đang chờ tải</option></select>' +
     '<input class="inp q" id="f-q" placeholder="Tìm tên gói, số TBMT, nhà thầu…" value="' + esc(S.q) + '"></div>';
   if (S.err) h += '<div class="err">' + esc(S.err) + ' <button class="lnk" data-a="reload">Thử lại</button></div>';
-  if (!L.length) return h + '<div class="empty">' + (S.busy && !S.boot ? "Đang tải…" : W.length ? "Chưa có tin nào khớp bộ lọc." : "Thêm chủ đầu tư cần theo dõi ở cột bên trái.") + '</div>';
+  if (!L.length) return h + '<div class="empty">' + (S.busy && !S.boot ? "Đang tải…" : W.length ? "Chưa có tin nào khớp bộ lọc." : "Thêm chủ đầu tư cần theo dõi ở cột bên trái, hoặc dán số gói vào ô Tải ngay.") + '</div>';
   h += '<ul class="hits">';
   L.slice(0, S.lim).forEach(function(x){
     var i = x.info || {}, sc = STC[x.status] || "off";
@@ -304,18 +411,40 @@ function hitsHtml(B){
     if (i.price) line.push("Giá gói: <b>" + esc(i.price) + "</b>");
     if (i.win) line.push("Giá trúng: <b>" + esc(i.win) + "</b>");
     if (i.winner) line.push("Nhà thầu trúng: <b>" + esc(i.winner) + "</b>");
+    var fc = (i.fields || {})["Thời điểm đóng thầu"]; if (fc && x.type === "tbmt") line.push("Đóng thầu: <b>" + esc(fc) + "</b>");
     if (i.form) line.push(esc(i.form));
     if (i.open) line.push("Mở thầu: " + esc(i.open));
+    var fh = filesHtml(x);
     h += '<li class="hit' + (S.hl === x.key ? " hl" : "") + '" data-key="' + esc(x.key) + '"><div class="d">' + esc(dmy(x.date)) + '<br><span class="tg ' + x.type + '">' + TSHORT[x.type] + '</span></div>' +
-      '<div><div class="t">' + esc(x.name) + '</div><div class="s">' + esc(x.investor) + (x.no ? ' · <span class="no">' + esc(x.no) + '</span>' : "") + (line.length ? '<br>' + line.join(" · ") : "") + (x.note && sc === "err" ? '<br><span style="color:var(--bad)">' + esc(x.note) + '</span>' : "") + '</div></div>' +
+      '<div><div class="t">' + esc(x.name) + '</div><div class="s">' + esc(x.investor) + (i.prov ? ' · ' + esc(i.prov) : "") + (x.no ? ' · <span class="no">' + esc(x.no) + '</span>' : "") + (line.length ? '<br>' + line.join(" · ") : "") + (x.note && sc === "err" ? '<br><span style="color:var(--bad)">' + esc(x.note) + '</span>' : "") + '</div></div>' +
       '<div class="r"><span class="st ' + sc + '">' + esc(x.status || "") + '</span>' +
-      (x.no && (sc === "off" || sc === "err" || sc === "nofile") ? '<button class="btn sm" data-dl="' + esc(x.key) + '">Tải hồ sơ</button>' : "") + '</div>' +
-      ((i.agentFiles || []).length || i.url ? '<div class="ag">' + ((i.agentFiles || []).length ? 'File PDF cần Agent (tải trên máy tính đã cài Agent): <b>' + i.agentFiles.map(function(f){ return esc(f.name); }).join('</b> · <b>') + '</b>' : '') + (i.url ? ' <a href="' + esc(i.url) + '" target="_blank" rel="noopener">Mở trang gói trên muasamcong</a>' : '') + '</div>' : '') +
-      ((x.files || []).length ? '<div class="files">' + x.files.map(function(f){ return '<a href="' + esc(f.url) + '" target="_blank" rel="noopener">' + esc(f.name) + '</a>'; }).join("") + '</div>' : "") + '</li>';
+      (x.no && (sc === "off" || sc === "err" || sc === "nofile") ? '<button class="btn sm" data-dl="' + esc(x.key) + '">Tải hồ sơ</button>' : x.no && sc === "done" ? '<button class="lnk sm2" data-dl="' + esc(x.key) + '">Tải lại</button>' : "") +
+      (i.url ? '<a class="lnk sm2" href="' + esc(i.url) + '" target="_blank" rel="noopener">Trang gói ↗</a>' : "") + '</div>' +
+      (fh ? '<div class="files">' + fh + '</div>' : "") + '</li>';
   });
   h += '</ul>';
   if (L.length > S.lim) h += '<div class="more"><button class="btn" data-a="more">Xem thêm (' + (L.length - S.lim) + ')</button></div>';
   return h;
+}
+
+/* ── tài khoản: mật khẩu, cài app, bot, đăng xuất ── */
+function openAcct(){
+  var a = auth() || { user: {} }, B = S.boot || {}, em = a.user.email || "", loc = em.split("@")[0], has = false;
+  try { has = localStorage.getItem("tm_haspw:" + loc) === "1"; } catch (_) {}
+  var fresh = a.at && Date.now() - a.at < 25 * 60e3;
+  $("dlg").innerHTML = '<h4>Tài khoản</h4><div class="bd"><div><b>' + esc(a.user.pic || loc) + '</b><div class="hint" style="margin:2px 0 0">' + esc(em) + '</div></div>' +
+    '<form id="f-acpw" autocomplete="on" novalidate><span class="lb">' + (has ? "Đổi mật khẩu" : "Đặt mật khẩu") + '</span><input type="email" name="username" autocomplete="username" value="' + esc(em) + '" style="display:none">' +
+    (has && !fresh ? '<input class="inp" id="a-old" type="password" autocomplete="current-password" placeholder="Mật khẩu hiện tại" style="width:100%;margin-bottom:8px">' : "") +
+    '<input class="inp" id="a-pw" type="password" autocomplete="new-password" placeholder="Mật khẩu mới (ít nhất 8 ký tự)" style="width:100%;margin-bottom:8px"><input class="inp" id="a-pw2" type="password" autocomplete="new-password" placeholder="Nhập lại mật khẩu mới" style="width:100%">' +
+    '<div class="hint">Dùng chung cho Report Hub, CRM, Tender Map. Quên mật khẩu ⇒ đăng xuất, đăng nhập lại bằng mã email rồi đặt mật khẩu mới.</div>' +
+    '<div style="display:flex;gap:8px;margin-top:8px;align-items:center"><span class="msg" id="a-msg" style="color:var(--bad);font-size:12.5px;margin-right:auto"></span><button class="btn pri sm" type="submit">Lưu mật khẩu</button></div></form>' +
+    '<div class="acl"><button class="btn sm" data-a="install">Cài app lên máy này</button>' + (B.me && B.me.admin ? '<button class="btn sm" data-a="bot">Cài đặt bot</button>' : "") + '<button class="btn sm dng" data-a="out">Đăng xuất</button></div></div>' +
+    '<div class="ft"><button class="btn" data-f="close">Đóng</button></div>';
+  $("ov").classList.add("show");
+  $("f-acpw").onsubmit = function(e){
+    e.preventDefault(); var o = $("a-old"), m = $("a-msg"); m.style.color = "var(--t2)"; m.textContent = "Đang lưu…";
+    setPw($("a-pw").value, $("a-pw2").value, o ? o.value : "", function(err, msg){ m.style.color = err ? "var(--bad)" : "var(--ok)"; m.textContent = err || msg; if (!err) { $("a-pw").value = ""; $("a-pw2").value = ""; if (o) o.value = ""; } });
+  };
 }
 
 /* ── thêm / sửa theo dõi ── */
@@ -421,9 +550,10 @@ if (!matchMedia("(display-mode: standalone)").matches) setTimeout(function(){ va
 
 /* ── sự kiện ── */
 document.addEventListener("click", function(e){
-  var t = e.target.closest("[data-a],[data-sel],[data-edit],[data-type],[data-dl],[data-f],[data-pick],[data-t]");
+  var t = e.target.closest("[data-a],[data-sel],[data-edit],[data-type],[data-dl],[data-f],[data-pick],[data-t],[data-tile]");
   if (!t) { return; }
   if (t.hasAttribute("data-edit")) { e.stopPropagation(); openForm(t.getAttribute("data-edit")); return; }
+  if (t.hasAttribute("data-tile")) { var k0 = t.getAttribute("data-tile"); if (k0 === "watch") { S.sel = ""; S.st = ""; } else S.st = S.st === k0 ? "" : k0; S.lim = 60; render(); return; }
   if (t.hasAttribute("data-sel")) { S.sel = t.getAttribute("data-sel"); S.lim = 60; S.hl = ""; render(); return; }
   if (t.hasAttribute("data-type")) { S.type = t.getAttribute("data-type"); S.lim = 60; render(); return; }
   if (t.hasAttribute("data-pick")) { pick(t.getAttribute("data-pick")); return; }
@@ -441,7 +571,10 @@ document.addEventListener("click", function(e){
   else if (a === "more") { S.lim += 100; render(); }
   else if (a === "reload") load();
   else if (a === "bot") openBot(false);
-  else if (a === "out") { try { localStorage.removeItem("mmh_tk"); } catch (_) {} S.boot = null; render(); }
+  else if (a === "acct") openAcct();
+  else if (a === "out") { try { localStorage.removeItem("mmh_tk"); localStorage.removeItem("wt_boot1"); } catch (_) {} S.boot = null; close_(); render(); }
+  else if (a === "later") { try { localStorage.setItem("tm_pw_later:" + lg.email.split("@")[0], String(Date.now() + 7 * 864e5)); } catch (_) {} lg.step = "pw"; load(); }
+  else if (a === "eye") { var pi = t.previousElementSibling; if (pi) { var sh = pi.type === "password"; pi.type = sh ? "text" : "password"; t.textContent = sh ? "Ẩn" : "Hiện"; } }
   else if (a === "code") sendCode();
   else if (a === "back") { lg.step = "pw"; lg.err = ""; render(); }
   else if (f === "close") close_();

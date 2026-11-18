@@ -171,6 +171,14 @@ select.inp{padding-right:28px}
 .dfs a{display:inline-flex;gap:6px;align-items:center;border:1px solid var(--line2);border-radius:8px;padding:5px 10px;font-size:12.5px;text-decoration:none;background:var(--sf2);max-width:100%;overflow-wrap:anywhere}
 .dfs a:hover{border-color:var(--sky)}
 .dfs a small{color:var(--t3);font-size:11px}
+.wantl{display:flex;flex-direction:column;gap:6px}
+.wnt{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--line2);border-radius:10px;padding:9px 12px;cursor:pointer}
+.wnt.on{border-color:var(--blue);background:var(--pale)}
+.wnt input{margin-top:3px}
+.wnt small{display:block;color:var(--t3);font-size:12px;margin-top:2px}
+.wq{display:flex;gap:14px}
+.qw{flex-basis:100%;font-size:12.5px;color:var(--t2)}
+.qw b{color:var(--navy);font-weight:600}
 .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:14px 20px 0;max-width:1500px;margin:0 auto}
 .tile{border:1px solid var(--line);background:var(--sf);border-radius:var(--r);padding:10px 14px;text-align:left;cursor:pointer;display:flex;flex-direction:column;gap:2px}
 .tile b{font-size:22px;color:var(--navy);line-height:1.1}
@@ -234,7 +242,7 @@ select.inp{padding-right:28px}
    Đăng nhập: phiên email công ty (localStorage.mmh_tk — dùng chung Report Hub / CRM / Tender Map). */
 var API = "https://script.google.com/macros/s/AKfycbwv3R7EACqtt3pQZfMWRQFilC4E0W7td8Z8xWxQW6P7UckqFjWFJSFxcOWBZknHplhQuQ/exec";
 var TRAINING_HUB = "https://script.google.com/macros/s/AKfycbwsX4cQEoH4LNlmcNfe8qWIM9K6EiDEXy7PjhP9bHY2citL6xHn5L1unsAlQJHyL9EP/exec";
-var VER = "1.3";
+var VER = "1.4";
 var TYPES = { khmt: "Kế hoạch LCNT", tbmt: "Thông báo mời thầu", kqdt: "Kết quả LCNT" };
 var TSHORT = { khmt: "KH LCNT", tbmt: "TBMT", kqdt: "Kết quả" };
 var STC = { "Chờ tải": "wait", "Đang tải": "work", "Đã tải": "done", "Lỗi": "err", "Không có file": "nofile", "Không tải": "off" };
@@ -453,6 +461,7 @@ function hitsHtml(B){
     return true;
   });
   var h = '<div class="quick"><textarea id="q-nos" placeholder="Tải ngay: dán 1 hoặc nhiều số TBMT / KHLCNT, vd. IB2500491794">' + esc(S.qn || '') + '</textarea><button class="btn pri" data-a="quick"' + (S.qbusy ? ' disabled' : '') + '>' + (S.qbusy ? 'Đang gửi…' : 'Tải ngay') + '</button>' +
+    '<div class="qw">Sẽ tải: <b>' + esc(wantGet().length >= WANT.length ? "mọi loại tài liệu" : wantLabel(wantGet())) + '</b> <button class="lnk" data-a="qwant">Chọn tài liệu</button></div>' +
     '<div class="hint">Máy chủ tự mở gói trên muasamcong (không cần bật máy tính), lưu vào thư mục Drive đúng loại (TBMT · Kết quả · KH LCNT) và ghi Sheet tổng hợp — thường xong trong 5–10 phút. Excel ⇒ Google Sheet.</div></div>';
   h += '<div class="bar"><div class="seg">' + [["", "Tất cả"], ["khmt", "KH LCNT"], ["tbmt", "TBMT"], ["kqdt", "Kết quả"]].map(function(t){ return '<button data-type="' + t[0] + '" class="' + (S.type === t[0] ? "on" : "") + '">' + t[1] + '</button>'; }).join("") + '</div>' +
     '<select class="inp" id="f-st"><option value="">Mọi trạng thái</option><option value="new"' + (S.st === "new" ? " selected" : "") + '>Tin trong 7 ngày</option><option value="files"' + (S.st === "files" ? " selected" : "") + '>Đã có hồ sơ</option><option value="wait"' + (S.st === "wait" ? " selected" : "") + '>Đang chờ tải</option></select>' +
@@ -470,6 +479,7 @@ function hitsHtml(B){
     if (i.form) line.push(esc(i.form));
     if (i.open) line.push("Mở thầu: " + esc(i.open));
     var fh = filesHtml(x);
+    if (i.want && i.want.length && (sc === "wait" || sc === "work")) line.push("Chỉ tải: " + esc(wantLabel(i.want)));
     h += '<li class="hit' + (S.hl === x.key ? " hl" : "") + '" data-key="' + esc(x.key) + '"><div class="d">' + esc(dmy(x.date)) + '<br><span class="tg ' + x.type + '">' + TSHORT[x.type] + '</span></div>' +
       '<div><div class="t">' + esc(x.name) + '</div><div class="s">' + esc(x.investor) + (i.prov ? ' · ' + esc(i.prov) : "") + (x.no ? ' · <span class="no">' + esc(x.no) + '</span>' : "") + (line.length ? '<br>' + line.join(" · ") : "") + (x.note && sc === "err" ? '<br><span style="color:var(--bad)">' + esc(x.note) + '</span>' : "") + '</div></div>' +
       '<div class="r"><span class="st ' + sc + '">' + esc(x.status || "") + '</span>' +
@@ -612,6 +622,40 @@ function docsView(B){
   return h;
 }
 
+/* ── chọn loại tài liệu cần tải (backend info.want ⇒ bot chỉ tải loại đã chọn) ── */
+var WANT = [
+  ["tbmt", "Thông báo mời thầu", "PDF trang thông tin chung", 0, "tb"],
+  ["hsmt", "Hồ sơ mời thầu (các chương)", "Tiêu chuẩn đánh giá, Yêu cầu kỹ thuật… — cần Agent, máy chủ chỉ ghi tên + link", 1, "tb"],
+  ["kq", "Kết quả lựa chọn nhà thầu", "PDF trang kết quả", 0, "tb"],
+  ["nt", "Danh sách nhà thầu", "Excel ⇒ Google Sheet", 0, "tb"],
+  ["hh", "Danh sách hàng hóa", "Excel ⇒ Google Sheet", 0, "tb"],
+  ["qd", "Quyết định phê duyệt, Báo cáo đánh giá", "cần Agent, máy chủ chỉ ghi tên + link", 1, "all"],
+  ["kh", "Kế hoạch lựa chọn nhà thầu", "PDF trang KHLCNT", 0, "kh"]
+];
+function wantGet(){ try { var a = JSON.parse(localStorage.getItem("wt_want") || "null"); if (Array.isArray(a)) return a; } catch (_) {} return WANT.map(function(w){ return w[0]; }); }
+function wantSet(a){ try { localStorage.setItem("wt_want", JSON.stringify(a)); } catch (_) {} }
+function wantSend(a){ return a.length >= WANT.length ? "" : a.join(","); }
+/* mở hộp chọn; kinds = "tb" (gói TBMT / Kết quả) | "kh" (KHLCNT) | "" (cả hai — Tải ngay); done(want[]) */
+function openWant(title, kinds, done){
+  var cur = wantGet(), L = WANT.filter(function(w){ return !kinds || w[4] === "all" || w[4] === kinds; });
+  $("dlg").innerHTML = '<h4>' + esc(title) + '</h4><div class="bd"><div class="wantl">' + L.map(function(w){
+      return '<label class="wnt' + (cur.indexOf(w[0]) >= 0 ? " on" : "") + '"><input type="checkbox" data-w="' + w[0] + '"' + (cur.indexOf(w[0]) >= 0 ? " checked" : "") + '><span><b>' + esc(w[1]) + '</b><small>' + esc(w[2]) + '</small></span></label>'; }).join("") +
+    '</div><div class="wq"><button class="lnk" data-wall="1">Chọn tất cả</button><button class="lnk" data-wall="0">Bỏ chọn</button></div></div>' +
+    '<div class="ft"><span class="msg" id="w-msg"></span><button class="btn" data-f="close">Huỷ</button><button class="btn pri" id="w-go">Tải</button></div>';
+  $("ov").classList.add("show");
+  var box = $("dlg");
+  box.querySelectorAll("[data-wall]").forEach(function(b){ b.onclick = function(){ var on = b.getAttribute("data-wall") === "1"; box.querySelectorAll("[data-w]").forEach(function(c){ c.checked = on; c.parentNode.classList.toggle("on", on); }); }; });
+  box.querySelectorAll("[data-w]").forEach(function(c){ c.onchange = function(){ c.parentNode.classList.toggle("on", c.checked); }; });
+  $("w-go").onclick = function(){
+    var sel = [].slice.call(box.querySelectorAll("[data-w]:checked")).map(function(c){ return c.getAttribute("data-w"); });
+    if (!sel.length) { $("w-msg").textContent = "Chọn ít nhất 1 loại."; return; }
+    var keep = cur.filter(function(k){ return !L.some(function(w){ return w[0] === k; }); });      // loại không hiện trong hộp này giữ nguyên lựa chọn cũ
+    wantSet(keep.concat(sel)); close_();
+    done(kinds ? (sel.length === L.length ? [] : sel.concat(kinds === "tb" ? [] : [])) : sel);
+  };
+}
+function wantLabel(a){ if (!a || !a.length) return ""; return a.map(function(k){ var w = WANT.filter(function(x){ return x[0] === k; })[0]; return w ? w[1] : k; }).join(" · "); }
+
 /* ── tài khoản: mật khẩu, cài app, bot, đăng xuất ── */
 function openAcct(){
   var a = auth() || { user: {} }, B = S.boot || {}, em = a.user.email || "", loc = em.split("@")[0], has = false;
@@ -710,13 +754,17 @@ function openBot(renew){
   }, function(e){ toast(e.message); close_(); });
 }
 
+function dlHit(key, want){
+  api("wHit", { key: key, op: "dl", want: want.join(",") }, true).then(function(d){ if (d && d.ok) { (S.boot.hits || []).forEach(function(x){ if (x.key === key) { x.status = "Chờ tải"; x.info = Object.assign({}, x.info, { want: want.length ? want : undefined }); } }); render(); toast("Đã đưa vào hàng đợi tải" + (want.length ? ": " + wantLabel(want) : "") + "."); } else toast((d && d.error) || "Chưa được."); },
+    function(err){ toast(err.message); });
+}
 /* ── tải ngay ── */
 function quick(){
   var t = $("q-nos"); S.qn = t ? t.value : "";
   var nos = (S.qn.toUpperCase().match(/(IB|PL)\d{8,12}(-\d+)?/g) || []);
   if (!nos.length) { toast("Dán số TBMT (IB…) hoặc KHLCNT (PL…)."); return; }
   S.qbusy = true; render();
-  api("wQuick", { nos: nos.join(",") }, true).then(function(d){
+  api("wQuick", { nos: nos.join(","), want: wantSend(wantGet()) }, true).then(function(d){
     S.qbusy = false;
     if (d && d.ok) { S.boot = d; S.qn = ""; S.sel = "_q"; render(); toast("Đã đưa " + (d.queued || []).length + " gói vào hàng đợi. Máy chủ tải trong vài phút."); }
     else { render(); toast((d && d.error) || "Chưa gửi được."); }
@@ -749,14 +797,14 @@ document.addEventListener("click", function(e){
   if (t.hasAttribute("data-pick")) { pick(t.getAttribute("data-pick")); return; }
   if (t.hasAttribute("data-t")) { var k = t.getAttribute("data-t"), i = F.types.indexOf(k); readForm(); if (t.checked && i < 0) F.types.push(k); if (!t.checked && i >= 0) F.types.splice(i, 1); paintForm(); return; }
   if (t.hasAttribute("data-dl")) {
-    var key = t.getAttribute("data-dl"); t.disabled = true;
-    api("wHit", { key: key, op: "dl" }, true).then(function(d){ if (d && d.ok) { (S.boot.hits || []).forEach(function(x){ if (x.key === key) x.status = "Chờ tải"; }); render(); toast("Đã đưa vào hàng đợi tải."); } else { t.disabled = false; toast((d && d.error) || "Chưa được."); } },
-      function(err){ t.disabled = false; toast(err.message); });
+    var key = t.getAttribute("data-dl"), hx = ((S.boot || {}).hits || []).filter(function(x){ return x.key === key; })[0] || {};
+    openWant("Chọn tài liệu cần tải · " + (hx.no || ""), hx.type === "khmt" || /^PL/i.test(hx.no || "") ? "kh" : "tb", function(want){ dlHit(key, want); });
     return;
   }
   var a = t.getAttribute("data-a"), f = t.getAttribute("data-f");
   if (a === "add") openForm("");
   else if (a === "quick") quick();
+  else if (a === "qwant") { var tq = $("q-nos"); S.qn = tq ? tq.value : S.qn; openWant("Tải ngay: chọn loại tài liệu", "", function(){ render(); }); }
   else if (a === "install") install();
   else if (a === "more") { S.lim += 100; render(); }
   else if (a === "mmore") { S.mlim = (S.mlim || 40) + 60; render(); }

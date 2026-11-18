@@ -515,13 +515,38 @@ button.stx b{color:#9A5B00}
    Đăng nhập: phiên email công ty (localStorage.mmh_tk — dùng chung Report Hub / CRM / Tender Map). */
 var API = "https://script.google.com/macros/s/AKfycbwv3R7EACqtt3pQZfMWRQFilC4E0W7td8Z8xWxQW6P7UckqFjWFJSFxcOWBZknHplhQuQ/exec";
 var TRAINING_HUB = "https://script.google.com/macros/s/AKfycbwsX4cQEoH4LNlmcNfe8qWIM9K6EiDEXy7PjhP9bHY2citL6xHn5L1unsAlQJHyL9EP/exec";
-var VER = "2.4";
+var VER = "2.5";
 var TYPES = { khmt: "Kế hoạch LCNT", tbmt: "Thông báo mời thầu", kqdt: "Kết quả LCNT" };
 var TSHORT = { khmt: "KH LCNT", tbmt: "TBMT", kqdt: "Kết quả" };
 var STC = { "Chờ tải": "wait", "Đang tải": "work", "Đã tải": "done", "Lỗi": "err", "Không có file": "nofile", "Không tải": "off" };
 var S = { boot: null, inv: null, sel: "", type: "", st: "", q: "", lim: 60, busy: false, err: "", hl: "", tab: "map", prov: -1, dq: "", dsec: "", per: "", soon: false, pview: "inv", rec: null };
 try { S.per = localStorage.getItem("wt_per") || ""; S.stOpen = localStorage.getItem("wt_stats") !== "0"; } catch (_) { S.stOpen = true; }
 try { S.tab = localStorage.getItem("wt_tab") || "map"; S.reg = localStorage.getItem("wt_reg") || ""; } catch (_) {}
+/* ── bộ nhớ đệm lớn (v2.5): IndexedDB riêng của app thay cho localStorage — localStorage chỉ ~5 MB và DÙNG CHUNG mọi app MMH trên manimedicalhanoi.github.io
+   (CRM, Report Hub, Training Hub…): đầy ⇒ hàng đợi ghi của các app đó hỏng. Nạp hết vào bộ nhớ lúc mở app ⇒ đọc đồng bộ như cũ, ghi ngầm. ── */
+var KV = (function(){
+  var mem = {}, db = null, BIG = /^wt_(boot1|inv2|rec1|all1|pkx|pk:)/;
+  function put(k, v){ if (!db) return; try { var t = db.transaction("kv", "readwrite"), o = t.objectStore("kv"); if (v === undefined) o.delete(k); else o.put(v, k); } catch (_) {} }
+  var ready = new Promise(function(res){
+    var done = false, fin = function(){ if (!done) { done = true; res(); } };
+    setTimeout(fin, 2500);
+    try {
+      var r = indexedDB.open("mmh-theo-doi", 1);
+      r.onupgradeneeded = function(){ r.result.createObjectStore("kv"); };
+      r.onerror = fin;
+      r.onsuccess = function(){
+        db = r.result;
+        try { var q = db.transaction("kv", "readonly").objectStore("kv").openCursor();
+          q.onsuccess = function(){ var c = q.result; if (c) { mem[c.key] = c.value; c.continue(); } else fin(); }; q.onerror = fin;
+        } catch (_) { fin(); }
+      };
+    } catch (_) { fin(); }
+  }).then(function(){
+    try { for (var i = localStorage.length - 1; i >= 0; i--) { var k = localStorage.key(i);
+      if (k && BIG.test(k)) { if (!(k in mem)) { try { mem[k] = JSON.parse(localStorage.getItem(k)); put(k, mem[k]); } catch (_) {} } localStorage.removeItem(k); } } } catch (_) {}
+  });
+  return { ready: ready, get: function(k){ return k in mem ? mem[k] : null; }, set: function(k, v){ mem[k] = v; put(k, v); }, del: function(k){ delete mem[k]; put(k); } };
+})();
 var lg = { step: "pw", email: "", busy: false, err: "" };
 
 function $(id){ return document.getElementById(id); }
@@ -628,18 +653,18 @@ function sendCode(){
 
 /* ── dữ liệu ── */
 function load(){
-  try { var c = JSON.parse(localStorage.getItem("wt_boot1") || "null"); if (c && c.ok && !S.boot) S.boot = c; } catch (_) {}
+  var c = KV.get("wt_boot1"); if (c && c.ok && !S.boot) S.boot = c;
   S.busy = true; render();
   api("wBoot").then(function(d){
     S.busy = false;
-    if (d && d.ok) { S.boot = d; S.err = ""; try { localStorage.setItem("wt_boot1", JSON.stringify(d)); } catch (_) {}
+    if (d && d.ok) { S.boot = d; S.err = ""; KV.set("wt_boot1", d);
       if ((d.hits || []).some(function(x){ return x.status === "Chờ tải"; })) { var sn = (d.bot || {}).seen; if (!sn || Date.now() - new Date(sn.replace(" ", "T") + "+07:00") > 8 * 60e3) kickBot(); } setTimeout(function(){ loadInv(null, true); loadRec(); }, 400); setTimeout(nbCheck, 900); }
     else S.err = (d && d.error) || "Chưa đọc được dữ liệu.";
     render(); jump();
   }, function(e){ S.busy = false; S.err = "Chưa đọc được dữ liệu (" + e.message + ")."; render(); });
 }
 /* danh sách chủ đầu tư: lưu trên máy (localStorage wt_inv2 = {v, list}), chỉ tải lại khi máy chủ báo phiên bản mới (boot.invV) */
-function invCache(){ try { return JSON.parse(localStorage.getItem("wt_inv2") || "null"); } catch (_) { return null; } }
+function invCache(){ return KV.get("wt_inv2"); }
 function loadInv(cb, quiet){
   if (!S.inv) { var c = invCache(); if (c && c.list) { S.inv = c.list; S.invV = c.v; } }
   var want = (S.boot || {}).invV, called = false, fire = function(){ if (!called && cb) { called = true; cb(); } };
@@ -649,7 +674,7 @@ function loadInv(cb, quiet){
   api("wInvestors", S.invV ? { since: S.invV } : {}).then(function(d){
     S._invBusy = false;
     if (d && d.ok) {
-      if (d.list) { S.inv = d.list; CS = null; try { localStorage.setItem("wt_inv2", JSON.stringify({ v: d.v || "", list: d.list })); } catch (_) {} }
+      if (d.list) { S.inv = d.list; CS = null; KV.set("wt_inv2", { v: d.v || "", list: d.list }); }
       S.invV = d.v || S.invV;
       if (F && !F.investor) paintSugg();
       fire();
@@ -681,8 +706,9 @@ function nbDone(view){
   if (view) { S.tab = "watch"; S.sel = ""; S.type = ""; S.q = ""; S.st = S._nbSoon ? "soon" : "fresh"; render(); scrollTo(0, 0); }
 }
 function jump(){
+  if (/^#moi$/.test(location.hash)) { S.tab = "watch"; S.sel = ""; S.type = ""; S.st = "new"; S.q = ""; render(); return; }
   var m = location.hash.match(/#g=(.+)$/); if (!m) return;
-  S.hl = decodeURIComponent(m[1]); S.sel = ""; S.type = ""; S.st = ""; S.q = ""; render();
+  S.tab = "watch"; S.hl = decodeURIComponent(m[1]); S.sel = ""; S.type = ""; S.st = ""; S.q = ""; render();
   var el = document.querySelector('[data-key="' + CSS.escape(S.hl) + '"]'); if (el) el.scrollIntoView({ block: "center" });
 }
 
@@ -845,7 +871,7 @@ function hitsHtml(B){
     if (i.price) line.push("Giá gói: <b>" + esc(i.price) + "</b>");
     if (i.win) line.push("Giá trúng: <b>" + esc(i.win) + "</b>");
     if (i.winner) line.push("Nhà thầu trúng: <b>" + esc(i.winner) + "</b>");
-    var fc = (i.fields || {})["Thời điểm đóng thầu"]; if (fc && x.type === "tbmt") line.push("Đóng thầu: <b>" + esc(fc) + "</b>");
+    var fc = i.close || (i.fields || {})["Thời điểm đóng thầu"]; if (fc && x.type === "tbmt") line.push("Đóng thầu: <b>" + esc(fc) + "</b>");
     var rc = recOf(x.type, x.no), cl = rc ? rc[10] : "";
     if (i.form) line.push(esc(i.form));
     if (i.open) line.push("Mở thầu: " + esc(i.open));
@@ -997,13 +1023,13 @@ function soonDays(close){ if (!close) return null; var t = today0(); if (close <
 function soonTag(close){ var n = soonDays(close); return n == null ? "" : '<span class="soon">' + (n === 0 ? "Đóng thầu hôm nay" : "Đóng thầu còn " + n + " ngày") + '</span>'; }
 function rowProv(r){ return provIdx(r[9], r[3]); }
 function loadRec(force){
-  if (!S.rec && !loadRec._c) { loadRec._c = 1; try { var c = JSON.parse(localStorage.getItem("wt_rec1") || "null"); if (c && c.rows) { S.rec = c.rows; S.recV = c.v; recIndex(); } } catch (_) {} }
+  if (!S.rec && !loadRec._c) { loadRec._c = 1; var c = KV.get("wt_rec1"); if (c && c.rows) { S.rec = c.rows; S.recV = c.v; recIndex(); } }
   var want = (S.boot || {}).recV;
   if (!force && S.rec && (!want || want === S.recV)) return;
   if (loadRec._busy) return; loadRec._busy = 1;
   api("wRecent", S.recV ? { since: S.recV } : {}).then(function(d){
     loadRec._busy = 0;
-    if (d && d.ok && d.rows) { S.rec = d.rows; S.recV = d.v; recIndex(); try { localStorage.setItem("wt_rec1", JSON.stringify({ v: d.v, rows: d.rows })); } catch (_) {} render(); }
+    if (d && d.ok && d.rows) { S.rec = d.rows; S.recV = d.v; recIndex(); KV.set("wt_rec1", { v: d.v, rows: d.rows }); render(); }
     else if (d && d.same) S.recV = d.v;
   }, function(){ loadRec._busy = 0; });
 }
@@ -1028,13 +1054,13 @@ function perLabel(){ return S.soon ? "sắp đóng thầu (≤ 7 ngày)" : S.per
 try { S.sper = localStorage.getItem("wt_sper") || "f"; S.sfrom = localStorage.getItem("wt_sfrom") || ""; S.sto = localStorage.getItem("wt_sto") || ""; } catch (_) { S.sper = "f"; }
 var ATYPE = ["khmt", "tbmt", "kqdt"];
 function loadAll(force){
-  if (!S.all && !loadAll._c) { loadAll._c = 1; try { var c = JSON.parse(localStorage.getItem("wt_all1") || "null"); if (c && c.rows) allSet(c); } catch (_) {} }
+  if (!S.all && !loadAll._c) { loadAll._c = 1; var c = KV.get("wt_all1"); if (c && c.rows) allSet(c); }
   var want = (S.boot || {}).allV;
   if (!force && S.all && (!want || want === S.allV)) return;
   if (loadAll._busy) return; loadAll._busy = 1;
   api("wAll", S.allV && S.all ? { since: S.allV } : {}).then(function(d){
     loadAll._busy = 0;
-    if (d && d.ok && d.rows) { allSet(d); try { localStorage.setItem("wt_all1", JSON.stringify(d)); } catch (_) { try { localStorage.removeItem("wt_all1"); } catch (__) {} } render(); }
+    if (d && d.ok && d.rows) { allSet(d); KV.set("wt_all1", d); render(); }
     else if (d && d.same) S.allV = d.v;
     else if (d && !d.ok) { S.allErr = d.error || "Chưa đọc được dữ liệu thống kê."; render(); }
   }, function(e){ loadAll._busy = 0; S.allErr = "Chưa đọc được dữ liệu thống kê (" + e.message + ")."; render(); });
@@ -1277,16 +1303,21 @@ function focusInv(name, pre){
   if (hit) { var w = B.w / 10, h = w / ar; flyTo({ x: hit.x - w * sh, y: hit.y - h / 2, w: w, h: h }, 520); }
   else { var G = geo(); if (pi >= 0 && G && G[pi] && G[pi].bb) flyTo(boxFor(G[pi].bb), 520); }
 }
+
+/* ── liên kết sang Tender Map (cùng kho, cùng danh mục cơ sở y tế csyt.js với Working Map CRM): KQTT dao / chỉ của mọi hãng, hoạt động Sales Surgical, CRM ── */
+function facOf(name){ var F = facs(); if (!F) return null; var f0 = fold(name), fk = fkey(name); for (var q = 0; q < F.length; q++) if ((F[q].inv && fold(F[q].inv[0]) === f0) || F[q].keys.indexOf(fk) >= 0) return F[q]; return null; }
+function tmHref(name){ var pi = invProv(name), f = facOf(name); return "../map/#" + encodeURIComponent((pi >= 0 ? NEW[pi][0] : "") + "/" + (f ? f.n : name)); }
+function tmLink(name){ return '<a class="btn sm" href="' + esc(tmHref(name)) + '" target="_blank" rel="noopener" title="Mở bệnh viện này trên Tender Map: kết quả trúng thầu dao / chỉ của mọi hãng, hoạt động Sales Surgical, thông tin CRM">Tender Map ↗</a>'; }
 function hideHint(){ var z = $("zhint"); if (z) z.classList.add("off"); }
 
 /* ── gói thầu của 1 bệnh viện (wPkgs) ⇒ tick 1 / nhiều gói ⇒ wGrab (vào hàng đợi tải, kèm loại tài liệu chọn) ── */
 S.pkc = {};
 /* danh sách gói: hiện NGAY từ bộ nhớ máy (đã xem trong 6 giờ) hoặc từ gói gần đây; bản đầy đủ tải ngầm rồi thay vào */
 function pkStore(inv, list, total){ S.pkc[inv] = { list: list, total: total, at: Date.now() };
-  try { var idx = JSON.parse(localStorage.getItem("wt_pkx") || "[]").filter(function(k){ return k !== inv; }); idx.unshift(inv);
-    idx.slice(40).forEach(function(k){ localStorage.removeItem("wt_pk:" + k); }); localStorage.setItem("wt_pkx", JSON.stringify(idx.slice(0, 40)));
-    localStorage.setItem("wt_pk:" + inv, JSON.stringify(S.pkc[inv])); } catch (_) {} }
-function pkCached(inv){ var c = S.pkc[inv]; if (!c) { try { c = JSON.parse(localStorage.getItem("wt_pk:" + inv) || "null"); if (c) S.pkc[inv] = c; } catch (_) {} } return c; }
+  var idx = (KV.get("wt_pkx") || []).filter(function(k){ return k !== inv; }); idx.unshift(inv);
+  idx.slice(80).forEach(function(k){ KV.del("wt_pk:" + k); }); KV.set("wt_pkx", idx.slice(0, 80));
+  KV.set("wt_pk:" + inv, S.pkc[inv]); }
+function pkCached(inv){ var c = S.pkc[inv]; if (!c) { c = KV.get("wt_pk:" + inv); if (c) S.pkc[inv] = c; } return c; }
 function pkFetch(inv, cb){
   var c = pkCached(inv); if (c && Date.now() - c.at < 6 * 3600e3) return cb && cb(null, c, true);
   if (!pkFetch.q) pkFetch.q = {};
@@ -1322,7 +1353,7 @@ function pkgPanel(K){
   var nSel = Object.keys(K.sel).length;
   var h = (K.mode === "new" ? '<h3><span class="pkn">' + esc(K.title) + '</span><span class="sub">' + K.list.length + ' gói · mới nhất trước</span></h3>'
     : '<h3><button class="lnk" data-a="pkback">‹ Danh sách</button><span class="pkn">' + esc(K.inv) + '</span>' + (K.list ? '<span class="sub">' + (K.total || K.list.length) + ' gói</span>' : "") +
-      '<span class="sp"></span><span class="pkh">' + (watchOf(K.inv) ? '<button class="btn sm wok" data-goinv="' + esc(K.inv) + '">Đang theo dõi</button>' + unwBtn(watchOf(K.inv)) : '<button class="btn sm" data-watch="' + esc(K.inv) + '">+ Theo dõi</button>') + '</span></h3>' + pkSum(K)) +
+      '<span class="sp"></span><span class="pkh">' + tmLink(K.inv) + (watchOf(K.inv) ? '<button class="btn sm wok" data-goinv="' + esc(K.inv) + '">Đang theo dõi</button>' + unwBtn(watchOf(K.inv)) : '<button class="btn sm" data-watch="' + esc(K.inv) + '">+ Theo dõi</button>') + '</span></h3>' + pkSum(K)) +
     '<div class="bar"><div class="seg">' + [["", "Tất cả"], ["khmt", "KH LCNT"], ["tbmt", "TBMT"], ["kqdt", "Kết quả"]].map(function(t){ return '<button data-pkt="' + t[0] + '" class="' + (K.type === t[0] ? "on" : "") + '">' + t[1] + '</button>'; }).join("") + '</div>' +
     '<input class="inp q" id="pk-q" placeholder="Tìm tên gói, số TBMT…" value="' + esc(K.q) + '"></div>';
   if (K.busy && !K.list) return h + '<div class="empty"><span class="spin"></span>Đang tải danh sách gói…</div>';
@@ -1358,7 +1389,7 @@ function pkGo(){
     toast("Đang gửi " + items.length + " gói vào hàng đợi…");
     api("wGrab", { inv: K.inv || "", items: JSON.stringify(items), want: want.join(",") }, true).then(function(d){
       if (!d || !d.ok) { toast((d && d.error) || "Chưa gửi được."); return; }
-      S.boot = d; try { localStorage.setItem("wt_boot1", JSON.stringify(d)); } catch (_) {}
+      S.boot = d; KV.set("wt_boot1", d);
       K.sel = {}; S._lt = Date.now() - 30e3; render(); if ((d.queued || []).length) kickBot();
       toast(skipMsg(d.queued || [], d.skipped || []));
     }, function(e){ toast("Chưa gửi được (" + e.message + ")."); });
@@ -1386,7 +1417,7 @@ function unwatch(id){
   var B = S.boot || {}, W = B.watches || [], w = W.filter(function(x){ return x.id === id; })[0]; if (!w) return;
   S.unw = ""; B.watches = W.filter(function(x){ return x.id !== id; }); if (S.sel === id) S.sel = ""; render();
   api("wDel", { id: id }, true).then(function(d){
-    if (d && d.ok) { if (d.watches) { S.boot = d; try { localStorage.setItem("wt_boot1", JSON.stringify(d)); } catch (_) {} } render(); toast("Đã bỏ theo dõi " + w.investor + ". Tài liệu đã tải vẫn giữ trên Drive."); }
+    if (d && d.ok) { if (d.watches) { S.boot = d; KV.set("wt_boot1", d); } render(); toast("Đã bỏ theo dõi " + w.investor + ". Tài liệu đã tải vẫn giữ trên Drive."); }
     else { B.watches = W; render(); toast((d && d.error) || "Chưa bỏ được."); }
   }, function(e){ B.watches = W; render(); toast("Chưa bỏ được (" + e.message + ")."); });
 }
@@ -1578,7 +1609,7 @@ function saveForm(){
   var w = { id: F.id, investor: F.investor, types: F.types, keywords: F.keywords.split(/[;\n]/).map(function(s){ return s.trim(); }).filter(String), dl: F.dl, email: F.email, active: F.active };
   api("wSave", { w: JSON.stringify(w) }, true).then(function(d){
     if (!d || !d.ok) { F.busy = false; F.msg = (d && d.error) || "Chưa lưu được."; paintForm(); return; }
-    S.boot = d; try { localStorage.setItem("wt_boot1", JSON.stringify(d)); } catch (_) {}
+    S.boot = d; KV.set("wt_boot1", d);
     S.sel = d.saved || ""; close_(); render();
     var sc = d.scan || {}; toast(sc.added ? "Đã lưu · tìm thấy " + sc.added + " tin của chủ đầu tư này" : "Đã lưu. Hệ thống sẽ báo khi có tin mới.");
   }, function(e){ F.busy = false; F.msg = "Chưa lưu được (" + e.message + ")."; paintForm(); });
@@ -1892,7 +1923,7 @@ document.addEventListener("click", function(e){
   else if (a === "reload") load();
   else if (a === "bot") openBot(false);
   else if (a === "acct") openAcct();
-  else if (a === "out") { try { localStorage.removeItem("mmh_tk"); localStorage.removeItem("wt_boot1"); } catch (_) {} S.boot = null; close_(); render(); }
+  else if (a === "out") { try { localStorage.removeItem("mmh_tk"); } catch (_) {} KV.del("wt_boot1"); S.boot = null; close_(); render(); }
   else if (a === "later") { try { localStorage.setItem("tm_pw_later:" + lg.email.split("@")[0], String(Date.now() + 7 * 864e5)); } catch (_) {} lg.step = "pw"; load(); }
   else if (a === "eye") { var pi = t.previousElementSibling; if (pi) { var sh = pi.type === "password"; pi.type = sh ? "text" : "password"; t.textContent = sh ? "Ẩn" : "Hiện"; } }
   else if (a === "code") sendCode();
@@ -1920,7 +1951,7 @@ setInterval(function(){
   var now = Date.now(); if (busy ? now - (S._lt || 0) > 45e3 : now - (S._lt || 0) > 5 * 60e3) { S._lt = now; load(); }
 }, 15e3);
 
-if (auth()) load(); else render();
+KV.ready.then(function(){ if (auth()) load(); else render(); });
 </script>
 </body>
 </html>

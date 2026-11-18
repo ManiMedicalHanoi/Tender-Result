@@ -515,7 +515,7 @@ button.stx b{color:#9A5B00}
    Đăng nhập: phiên email công ty (localStorage.mmh_tk — dùng chung Report Hub / CRM / Tender Map). */
 var API = "https://script.google.com/macros/s/AKfycbwv3R7EACqtt3pQZfMWRQFilC4E0W7td8Z8xWxQW6P7UckqFjWFJSFxcOWBZknHplhQuQ/exec";
 var TRAINING_HUB = "https://script.google.com/macros/s/AKfycbwsX4cQEoH4LNlmcNfe8qWIM9K6EiDEXy7PjhP9bHY2citL6xHn5L1unsAlQJHyL9EP/exec";
-var VER = "2.3";
+var VER = "2.4";
 var TYPES = { khmt: "Kế hoạch LCNT", tbmt: "Thông báo mời thầu", kqdt: "Kết quả LCNT" };
 var TSHORT = { khmt: "KH LCNT", tbmt: "TBMT", kqdt: "Kết quả" };
 var STC = { "Chờ tải": "wait", "Đang tải": "work", "Đã tải": "done", "Lỗi": "err", "Không có file": "nofile", "Không tải": "off" };
@@ -1656,7 +1656,8 @@ if (!matchMedia("(display-mode: standalone)").matches) setTimeout(function(){ va
    (+ Tỉnh / chủ đầu tư), kết hợp VÀ / HOẶC ⇒ bảng sắp xếp được ⇒ tải Excel.
    Cột cuối "Nhà thầu tham dự không trúng" do máy chủ ghép theo số TBMT + phần / lô từ file tổng nhà thầu tham dự (backend wGoods).
    v2.3: mỗi ô = các mục đã CHỌN (thẻ). Gõ ⇒ danh sách gợi ý đúng giá trị trong file (kèm số dòng, đã thu hẹp theo ô khác) ⇒ chọn = khớp NGUYÊN Ô
-   ("Mani" chỉ ra đúng Mani); Enter khi không chọn gợi ý = "chứa cụm từ" theo nguyên từ. Đổi điều kiện ⇒ tự lọc lại. ── */
+   ("Mani" chỉ ra đúng Mani); Enter khi không chọn gợi ý = "chứa cụm từ" theo nguyên từ. Đổi điều kiện ⇒ tự lọc lại.
+   v2.4 (người dùng): mọi mục — chọn từ gợi ý hay gõ tự do — đều tìm THEO TỪ: "Mani" ra cả "MANI, Inc" (backend wGoods v1.2); gợi ý chỉ để chọn nhanh, số dòng = số dòng sẽ ra. ── */
 var G = { f: { hang: [], win: [], dm: [], place: [] }, mode: "all", res: null, busy: false, err: "", si: -1, sd: 1, lim: 150, fac: null, facBusy: false, q0: null,
   open: "", sq: "", sug: null, sugBusy: false, sugI: -1 };
 try { var g0 = JSON.parse(localStorage.getItem("wt_goods") || "null");
@@ -1702,28 +1703,28 @@ function gSuggest(field, q){
 function gSugHtml(k){
   if (G.open !== k) return "";
   var d = G.sug && G.sug.field === k ? G.sug : null, q = G.sq.trim(), have = {};
-  G.f[k].forEach(function(c){ if (c[1]) have[fold(c[0])] = 1; });
+  G.f[k].forEach(function(c){ have[fold(c[0])] = 1; });
   var L = d ? (d.list || []).filter(function(x){ return !have[fold(x[0])]; }) : [];
   var h = L.map(function(x, i){ return '<button type="button" class="gso' + (i === G.sugI ? " kb" : "") + '" data-gsv="' + i + '"><span class="gsn">' + esc(x[0]) + '</span>' + (x[2] ? '<small>' + esc(x[2]) + '</small>' : "") + '<span class="c">' + x[1].toLocaleString("vi-VN") + ' dòng</span></button>'; }).join("");
   if (!h) h = '<div class="gse">' + (G.sugBusy || !d ? '<span class="spin"></span>Đang tìm…' : d.err ? esc(d.err) : q ? "Không có giá trị nào khớp “" + esc(q) + "”" + (k !== "place" && gAny() && G.mode === "all" ? " trong các dòng đang lọc" : "") + "." : "Không còn giá trị nào.") + '</div>';
   else if (d && d.more) h += '<div class="gse">+ ' + d.more + ' giá trị khác — gõ thêm chữ để thu hẹp</div>';
-  if (q) h += '<button type="button" class="gso gph' + (G.sugI === L.length ? " kb" : "") + '" data-gsv="p"><span class="gsn">Chứa cụm từ “' + esc(q) + '”</span><small>khớp nguyên từ trong ô</small></button>';
+  if (q && !have[fold(q)] && !L.some(function(x){ return fold(x[0]) === fold(q); })) h += '<button type="button" class="gso gph' + (G.sugI === L.length ? " kb" : "") + '" data-gsv="p"><span class="gsn">Tìm theo “' + esc(q) + '”</span><small>đúng chữ bạn gõ</small></button>';
   return h;
 }
 function gPaintSug(){ ["hang", "win", "dm", "place"].forEach(function(k){ var e = $("gsg-" + k); if (!e) return; var h = gSugHtml(k); e.innerHTML = h; e.classList.toggle("show", !!h); }); }
 function gPick(k, i){
-  var d = G.sug || {}, have = {}; G.f[k].forEach(function(c){ if (c[1]) have[fold(c[0])] = 1; });
+  var d = G.sug || {}, have = {}; G.f[k].forEach(function(c){ have[fold(c[0])] = 1; });
   var L = (d.list || []).filter(function(x){ return !have[fold(x[0])]; });
-  if (i === "p") { var q = G.sq.trim(); if (!q) return; if (!G.f[k].some(function(c){ return !c[1] && fold(c[0]) === fold(q); })) G.f[k].push([q, 0]); }
+  if (i === "p") { var q = G.sq.trim(); if (!q) return; if (!have[fold(q)]) G.f[k].push([q, 0]); }
   else { var x = L[+i]; if (!x) return; G.f[k].push([x[0], 1]); }
   G.sq = ""; G.sug = null; G.open = ""; gSuggest.c = {}; if (document.activeElement && document.activeElement.blur) document.activeElement.blur(); render(); gSoon();   // chọn xong ⇒ đóng danh sách (điện thoại không bị che ô bên dưới); bấm lại ô để chọn thêm
 }
 function gChips(k){
-  return G.f[k].map(function(c, i){ return '<span class="gch' + (c[1] ? "" : " ph") + '" title="' + (c[1] ? "Khớp đúng giá trị này" : "Chứa cụm từ này (nguyên từ)") + '">' + (c[1] ? "" : '<i>chứa</i>') + esc(c[0]) + '<button type="button" data-gx="' + k + ':' + i + '" aria-label="Bỏ ' + esc(c[0]) + '">×</button></span>'; }).join("");
+  return G.f[k].map(function(c, i){ return '<span class="gch" title="Lấy mọi dòng có chữ “' + esc(c[0]) + '” (theo nguyên từ, không phân biệt dấu / hoa thường)">' + esc(c[0]) + '<button type="button" data-gx="' + k + ':' + i + '" aria-label="Bỏ ' + esc(c[0]) + '">×</button></span>'; }).join("");
 }
 function gCond(q){
   q = q || G.q0 || { f: G.f, mode: G.mode }; var p = [], f = q.f || {};
-  GF.forEach(function(g){ var a = f[g[0]] || []; if (a.length) p.push(g[1].replace(" (tuỳ chọn)", "") + ": " + a.map(function(c){ return c[1] ? c[0] : "chứa “" + c[0] + "”"; }).join(" hoặc ")); });
+  GF.forEach(function(g){ var a = f[g[0]] || []; if (a.length) p.push(g[1].replace(" (tuỳ chọn)", "") + ": " + a.map(function(c){ return c[0]; }).join(" hoặc ")); });
   return p.join(q.mode === "any" ? "  HOẶC  " : "  VÀ  ");
 }
 function gRows(){
@@ -1753,7 +1754,7 @@ function goodsView(){
         '<input class="gci" id="g-in-' + k + '" placeholder="' + esc(G.f[k].length ? "Thêm…" : f[2]) + '" value="' + esc(G.open === k ? G.sq : "") + '" autocomplete="off"></div>' +
         '<div class="gsg' + (G.open === k ? " show" : "") + '" id="gsg-' + k + '">' + gSugHtml(k) + '</div></div>'; }).join("") + '</div>' +
     '<div class="gfa"><span class="seg sm">' + [["all", "Khớp tất cả ô (VÀ)"], ["any", "Khớp 1 trong các ô (HOẶC)"]].map(function(t){ return '<button type="button" data-gmode="' + t[0] + '" class="' + (G.mode === t[0] ? "on" : "") + '">' + t[1] + '</button>'; }).join("") + '</span>' +
-    '<span class="hint">Gõ vài chữ ⇒ <b>chọn đúng tên</b> trong danh sách (chỉ ra đúng giá trị đó). Chọn nhiều tên trong 1 ô = lấy tất cả các tên đó.</span>' +
+    '<span class="hint">Gõ tự do rồi Enter, hoặc chọn trong danh sách gợi ý. Lấy mọi dòng có chữ đó theo nguyên từ: <b>Mani</b> ra cả “MANI, Inc”, không lẫn “Romania”. Nhiều mục trong 1 ô = lấy tất cả.</span>' +
     '<span class="gfb">' + (G.busy ? '<span class="gbz"><span class="spin"></span>Đang lọc…</span>' : "") + '<button type="button" class="btn sm" data-ga="clear"' + (gAny() ? "" : " disabled") + '>Xoá điều kiện</button></span></div></form>';
   if (G.err) h += '<div class="err">' + esc(G.err) + '</div>';
   var r = G.res;

@@ -250,8 +250,7 @@ async function searchAny(no, plan) {
   const K = (await Pq('kinds')) || [];
   say('  · ' + no + ': mục mặc định không có — thử ' + (K.join(' / ') || '(không thấy mục khác)'));
   for (const k of K) {
-    if (/^(TBMT|Thông báo mời thầu)$/i.test(k) && !plan) continue;
-    if (/KHLCNT/i.test(k) && plan) continue;
+    if (!/YCBG|rút gọn|^Lựa chọn nhà thầu$/i.test(k)) continue;   // chỉ các mục có thể chứa gói (bỏ Chủ đầu tư, Nhà đầu tư, kiểu khớp từ…)
     await nav(HOME); await P('prepSearch', false);
     if (!(await Pq('pickKind', k))) continue;
     for (let i = 0; i < 2; i++) {
@@ -268,7 +267,8 @@ async function doJob(job, agent) {
   const t0 = Date.now(), bare = job.no.toUpperCase().replace(/-\d+$/, ''), plan = /^PL/.test(bare);
   set({ job: job.no + ' · ' + String(job.investor || job.name || '').slice(0, 60) });
   say('▶ ' + job.no + ' · ' + String(job.investor || '').slice(0, 50));
-  const s = await searchAny(bare, plan);
+  const known = String(((job.info || {}).url) || '');
+  const s = /muasamcong\.mof\.gov\.vn\/.*render=detail/.test(known) ? { url: known, hit: {} } : await searchAny(bare, plan);   // đã có link trang gói ⇒ mở thẳng
   if (s.none || !s.url) { await api('botDone', { hit: job.key, status: 'error', note: 'Không tìm thấy số ' + job.no + ' trên muasamcong' }); return 0; }
   const hit = s.hit || {}, one = v => Array.isArray(v) ? v[0] : (v || ''), loc = (hit.locations || [])[0] || {};
   const pk = { url: s.url, plan, investor: one(hit.investorName) || one(hit.procuringEntityName) || '', bidName: plan ? (hit.name || one(hit.bidName)) : one(hit.bidName),

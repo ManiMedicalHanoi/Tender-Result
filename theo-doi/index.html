@@ -605,7 +605,7 @@ button.stx b{color:#9A5B00}
    Đăng nhập: phiên email công ty (localStorage.mmh_tk — dùng chung Report Hub / CRM / Tender Map). */
 var API = "https://script.google.com/macros/s/AKfycbwv3R7EACqtt3pQZfMWRQFilC4E0W7td8Z8xWxQW6P7UckqFjWFJSFxcOWBZknHplhQuQ/exec";
 var TRAINING_HUB = "https://script.google.com/macros/s/AKfycbwsX4cQEoH4LNlmcNfe8qWIM9K6EiDEXy7PjhP9bHY2citL6xHn5L1unsAlQJHyL9EP/exec";
-var VER = "2.8";
+var VER = "2.9";
 var TYPES = { khmt: "Kế hoạch LCNT", tbmt: "Thông báo mời thầu", kqdt: "Kết quả LCNT" };
 var TSHORT = { khmt: "KH LCNT", tbmt: "TBMT", kqdt: "Kết quả" };
 var STC = { "Chờ tải": "wait", "Đang tải": "work", "Đã tải": "done", "Lỗi": "err", "Không có file": "nofile", "Không tải": "off" };
@@ -2406,6 +2406,98 @@ setInterval(function(){
   var busy = ((S.boot || {}).hits || []).some(function(x){ return x.status === "Chờ tải" || x.status === "Đang tải"; });
   var now = Date.now(); if (busy ? now - (S._lt || 0) > 45e3 : now - (S._lt || 0) > 5 * 60e3) { S._lt = now; load(); }
 }, 15e3);
+
+/* ── v2.9 (19/11/2026): TIỆN ÍCH TRÌNH DUYỆT "MMH Tải hồ sơ thầu" thay máy tải Python (.bat bị Kaspersky chặn) + bot cần token GitHub.
+   Người dùng: "bấm tải thì mọi thứ phải tự chạy, miễn tôi bật Agent; không phải tải bộ cài, bấm file kích hoạt…".
+   Tiện ích (tien-ich/, cài 1 lần vào Chrome / Edge): lấy phiên đăng nhập từ app ⇒ mỗi phút hỏi máy chủ (tender-info botHello) ⇒ có gói Chờ tải
+   ⇒ mở muasamcong trong cửa sổ thu nhỏ, tải như bot GitHub; VNeGP Agent đang chạy ⇒ tải luôn file cần Agent. App báo "kick" ⇒ bắt đầu ngay.
+   html[data-mmh-ext] = phiên bản tiện ích trên trình duyệt này; boot.ext = các máy đang bật tiện ích (backend MMH_WatchExt.gs). ── */
+var EXT_ZIP = "tien-ich/MMH_Tai_ho_so_thau.zip", EXT = { ver: "", st: null };
+function extHere(){ return !!(EXT.ver || document.documentElement.getAttribute("data-mmh-ext")); }
+function extList(){ return (((S.boot || {}).ext) || []).filter(function(x){ return x.min != null && x.min <= 3; }); }
+function extAgent(){ return !!((extHere() && EXT.st && EXT.st.agent) || extList().some(function(x){ return x.agent; })); }
+function extKick(){ if (extHere()) window.postMessage({ mmhExt: "kick" }, location.origin); }
+window.addEventListener("message", function(e){
+  if (e.source !== window || !e.data || e.data.mmhExt !== "state") return;
+  var was = JSON.stringify(EXT); EXT.ver = e.data.v || EXT.ver; EXT.st = e.data.st || EXT.st;
+  if (JSON.stringify(EXT) !== was) { clearTimeout(EXT._t); EXT._t = setTimeout(function(){ if ($("proc")) repaintProc(); if ($("agst")) openAgSetup(); }, 300); }
+});
+setInterval(function(){ if (extHere() && document.visibilityState === "visible") window.postMessage({ mmhExt: "ask" }, location.origin); }, 8000);
+lwPing = function(){};                                   // máy tải Python cũ (127.0.0.1:8767) — bỏ, không hỏi quyền mạng cục bộ nữa
+
+var _kickBot29 = kickBot;
+kickBot = function(manual){
+  if (extHere()) { extKick(); if (manual) { KICK = { at: Date.now(), good: true, msg: "Tiện ích trên trình duyệt này bắt đầu tải ngay (cửa sổ muasamcong thu nhỏ ở thanh tác vụ)." }; repaintProc(); toast(KICK.msg, 6000); } return; }
+  return _kickBot29.apply(this, arguments);
+};
+var _agwState29 = agwState;
+agwState = function(){
+  var o = _agwState29(), L = extList();
+  if (extHere() && EXT.st) return Object.assign(o, { on: true, min: 0, agent: !!EXT.st.agent, name: "trình duyệt này", ext: true });
+  if (L.length) { var a = L.filter(function(x){ return x.agent; })[0] || L[0]; return Object.assign(o, { on: true, min: a.min, agent: !!a.agent, name: String(a.name).replace(/^Tiện ích · /, ""), ext: true }); }
+  return o;
+};
+agentReady = function(){ return extAgent(); };
+agentGo = function(keys, want){
+  keys = (keys || []).filter(Boolean); if (!keys.length) return;
+  var H = (S.boot || {}).hits || [], need = keys.filter(function(k){ var x = H.filter(function(h){ return h.key === k; })[0] || {}; return !agPending(x).length && x.status !== "Chờ tải" && x.status !== "Đang tải"; });
+  var go = function(){ extKick(); toast(extHere() ? "Tiện ích trên máy này đang tải — xong tự lên Drive." : "Đã báo tiện ích trên máy " + (agwState().name || "khác") + " — bắt đầu trong khoảng 1 phút."); };
+  if (!need.length) return go();
+  hitOp(need, "dl", function(){ go(); });
+};
+var _procHtml29 = procHtml;
+procHtml = function(B){
+  return _procHtml29(B).replace(/Máy tải Agent: /g, "Tiện ích tải: ").replace(/chưa cài/g, "chưa cài trên máy nào").replace(/máy tải Agent tự lấy/g, "tiện ích tự lấy");
+};
+var _procWarn29 = procWarn;
+procWarn = function(B, c){
+  var L = extList(); if (L.length || extHere()) c.bs = 0;       // tiện ích đang chạy thay bot máy chủ
+  var h = _procWarn29(B, c).replace(/Máy tải Agent/g, "Tiện ích tải hồ sơ").replace(/Cài Máy tải MMH/g, "Cài tiện ích").replace(/cần cài <b>Máy tải MMH<\/b> 1 lần trên máy tính đang bật VNeGP Client Agent/g, "cần cài <b>tiện ích MMH Tải hồ sơ thầu</b> 1 lần vào Chrome / Edge của máy tính có VNeGP Client Agent")
+    .replace(/máy tải tự tiếp tục/g, "tiện ích tự tiếp tục").replace(/Máy tải đang bật/g, "Tiện ích đang bật");
+  if (!extHere() && !L.length && h.indexOf('data-a="kick"') >= 0) h = h.replace('>Đánh thức bot</button>', '>Đánh thức bot</button><button class="btn sm" data-a="agsetup" title="Tải ngay trên máy tính này, không cần chờ bot máy chủ">Cài tiện ích</button>');
+  if (extHere() && EXT.st && !EXT.st.agent && c.agN) h += '<div class="pwr warn"><div class="pwt"><b>' + c.agN + ' file cần VNeGP Agent</b> — mở VNeGP Client Agent (chữ V đỏ ở khay đồng hồ), tiện ích tự tải trong 1 phút.</div></div>';
+  return h;
+};
+var _agLine29 = agLine;
+agLine = function(x, ag){ return _agLine29(x, ag).replace(/máy tải Agent sẽ tự tải trong vài phút/g, "tiện ích tự tải trong vài phút").replace(/Tải ngay bằng máy Agent/g, "Tải ngay").replace(/Máy có VNeGP Client Agent tự mở gói \(trình duyệt ẩn\), tải mọi file, đưa lên Drive/g, "Tiện ích trên máy có VNeGP Agent tải ngay, đưa lên Drive"); };
+var _agRunBtn29 = agRunBtn;
+agRunBtn = function(x, sc){ return _agRunBtn29(x, sc).replace(/Tải ngay bằng máy Agent/g, "Tải ngay").replace(/title="[^"]*"/, 'title="Tiện ích tải gói này ngay (kể cả file cần Agent), đưa lên Drive"'); };
+agwBar = function(){
+  var a = agwState(), here = extHere();
+  var st = here ? (EXT.st && EXT.st.agent ? '<span class="dot on"></span><b>Tiện ích đang bật trên trình duyệt này</b> · VNeGP Agent đang chạy' : '<span class="dot ' + (EXT.st ? "off" : "on") + '"></span><b>Tiện ích đang bật trên trình duyệt này</b>' + (EXT.st ? " · VNeGP Agent chưa chạy (file cần Agent chờ bật Agent)" : ""))
+    : a.on ? '<span class="dot on"></span><b>Tiện ích đang bật trên máy ' + esc(a.name) + '</b>' + (a.agent ? " · có VNeGP Agent" : "")
+    : '<span class="dot"></span><b>Chưa máy nào bật tiện ích tải hồ sơ</b>';
+  var job = here && EXT.st && EXT.st.busy ? '<span>· đang tải ' + esc(EXT.st.job || "") + '</span>' : "";
+  return '<div class="agw">' + st + job + (here ? "" : '<button class="lnk sm2" data-a="agsetup">Cài tiện ích (Chrome / Edge)</button>') + '</div>';
+};
+openAgSetup = function(){
+  var a = agwState(), here = extHere(), edge = /Edg\//.test(navigator.userAgent), url = edge ? "edge://extensions" : "chrome://extensions";
+  $("dlg").innerHTML = '<h4>Cài tiện ích MMH Tải hồ sơ thầu</h4><div class="bd ags">' +
+    '<p>Tiện ích chạy ngay trong <b>Chrome / Edge</b> đang dùng: mở trình duyệt là tự tải các gói trong hàng đợi (cửa sổ muasamcong thu nhỏ ở thanh tác vụ), đưa lên đúng thư mục Drive. Máy có <b>VNeGP Client Agent</b> đang chạy ⇒ tải luôn Hồ sơ mời thầu, Quyết định, Báo cáo đánh giá… <b>Không cài chương trình, không cần khoá bot, không cần mật khẩu riêng</b> — tiện ích dùng đăng nhập email của app.</p>' +
+    '<ol>' +
+    '<li><a class="btn sm pri" href="' + EXT_ZIP + '" download>Tải tiện ích (.zip)</a> ⇒ mở thư mục Tải xuống ▸ chuột phải file ▸ <b>Extract All / Giải nén tất cả</b>.</li>' +
+    '<li>Mở trang <b>' + url + '</b> (dán vào thanh địa chỉ) <button class="lnk" data-a="extcopy">Sao chép</button> ⇒ bật <b>' + (edge ? "Chế độ nhà phát triển / Developer mode" : "Chế độ dành cho nhà phát triển / Developer mode") + '</b> (công tắc ' + (edge ? "cột trái" : "góc phải trên") + ').</li>' +
+    '<li>Bấm <b>Tải tiện ích đã giải nén / Load unpacked</b> ⇒ chọn thư mục vừa giải nén (thư mục có file manifest.json).</li>' +
+    '<li>Quay lại app, bấm <b>Kiểm tra lại</b>. Xong — từ đó chỉ cần bật VNeGP Agent như thường.</li></ol>' +
+    '<p style="color:var(--t2);font-size:12.5px">Tiện ích chỉ là file JavaScript chạy trong trình duyệt (không file .exe / .bat), Kaspersky không chặn. Gỡ: ' + esc(url) + ' ▸ Xoá. Biểu tượng tiện ích trên thanh công cụ: xem tiện ích đang làm gì, Tạm dừng / Tải ngay.</p>' +
+    '<div class="agst" id="agst">' + (here ? '<span class="dot on"></span>Đã thấy tiện ích trên trình duyệt này (v' + esc(EXT.ver || document.documentElement.getAttribute("data-mmh-ext")) + ')' + (EXT.st ? (EXT.st.agent ? " · VNeGP Agent đang chạy" : " · VNeGP Agent CHƯA chạy") + (EXT.st.msg ? " · " + esc(EXT.st.msg) : "") : "")
+      : a.on ? '<span class="dot on"></span>Tiện ích đang bật trên máy ' + esc(a.name || "khác") + ' — trình duyệt này chưa cài' : '<span class="dot"></span>Chưa thấy tiện ích trên trình duyệt này') + '</div></div>' +
+    '<div class="ft"><button class="btn" data-a="agcheck">Kiểm tra lại</button><button class="btn pri" data-f="close">Đóng</button></div>';
+  $("ov").classList.add("show");
+};
+document.addEventListener("click", function(e){
+  var t = e.target.closest && e.target.closest('[data-a="extcopy"],[data-a="agcheck"]'); if (!t) return;
+  if (t.getAttribute("data-a") === "extcopy") { e.stopPropagation(); var u = /Edg\//.test(navigator.userAgent) ? "edge://extensions" : "chrome://extensions"; try { navigator.clipboard.writeText(u); toast("Đã sao chép " + u + " — dán vào thanh địa chỉ."); } catch (_) { toast(u); } }
+  else window.postMessage({ mmhExt: "ask" }, location.origin);
+}, true);
+var _openBot29 = openBot;
+openBot = function(renew){
+  _openBot29(renew);
+  var fix = function(n){ var d = $("dlg"); if (!d) return; var h = d.querySelector(".bd > div:nth-child(3) .hint");
+    if (h && /Cai dat may tai/.test(h.textContent)) h.innerHTML = 'Không cần khoá bot cho máy tính: cài <b>tiện ích MMH Tải hồ sơ thầu</b> vào Chrome / Edge (tiện ích dùng đăng nhập email) — <button class="lnk" data-a="agsetup">Hướng dẫn cài</button>. Khoá bot + token GitHub bên dưới chỉ để bot máy chủ GitHub chạy dự phòng.';
+    else if (n < 20) setTimeout(function(){ fix(n + 1); }, 250); };
+  fix(0);
+};
 
 KV.ready.then(function(){ if (auth()) load(); else render(); });
 </script>

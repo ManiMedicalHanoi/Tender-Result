@@ -131,41 +131,42 @@
   };
   W.click = realClick;
 
-  /* tìm số TBMT / KHLCNT ⇒ { hit (dòng JSON), url trang chi tiết } */
-  W.search = async (no, plan) => {
-    if (!(await W.waitSel('input[placeholder*="IB000202"]', 30000))) return { err: 'Trang chủ muasamcong chưa hiện ô tìm kiếm' };
+  /* tìm số TBMT / KHLCNT — từng bước (bấm tìm có thể làm trang chuyển trang ⇒ tiện ích hỏi lại ở trang mới) */
+  W.prepSearch = async plan => {
+    if (!(await W.waitSel('input[placeholder*="IB000202"]', 30000))) return { err: 'Trang chủ muasamcong chưa hiện ô tìm kiếm', info: W.info() };
     await W.closePopups();
-    let sel = 'input[placeholder*="IB000202"]';
     if (plan) {
       const lb = [...document.querySelectorAll('label')].find(l => vis(l) && /KHLCNT/.test(txt(l)));
       if (lb) { realClick(lb); await sleep(800); }
-      if ([...document.querySelectorAll('input[placeholder*="KHLCNT"]')].some(vis)) sel = 'input[placeholder*="KHLCNT"]';
     }
-    for (let i = 0; i < 3; i++) {
-      await sleep(1500 + i * 2500);
-      const box = [...document.querySelectorAll(sel)].find(vis);
-      if (!box) return { err: 'Không thấy ô tìm kiếm' };
-      const n0 = W.srch.length;
-      setVal(box, ''); setVal(box, no); enter(box);
-      let res = await W.waitFor(() => W.srch.slice(n0).find(x => x.body.indexOf(no) >= 0 || x.u.indexOf(no) >= 0), i ? 25000 : 12000);
-      if (!res) {   // Enter chưa ăn ⇒ bấm nút tìm cạnh ô
-        const wrap = box.closest('form') || box.parentElement && box.parentElement.parentElement;
-        const btn = wrap && [...wrap.querySelectorAll('button,[role=button],i,svg,span')].find(b => vis(b) && b !== box && (/tìm/i.test(txt(b)) || /search/i.test(String(b.className && b.className.baseVal !== undefined ? b.className.baseVal : b.className))));
-        if (btn) { realClick(btn); res = await W.waitFor(() => W.srch.slice(n0).find(x => x.body.indexOf(no) >= 0 || x.u.indexOf(no) >= 0), 15000); }
-      }
-      if (res) {
-        const items = ((res.j || {}).page || {}).content || [];
-        const hit = items.find(x => String(x.notifyNo || x.planNo || '').toUpperCase().startsWith(no)) || items[0];
-        if (!hit) return { none: true };
-        const a = await W.waitFor(() => document.querySelector('a[href*="render=detail"]'), 20000);
-        let url = a ? a.getAttribute('href') : '';
-        if (url && url.startsWith('/')) url = location.origin + url;
-        return { hit, url };
-      }
-      await W.closePopups();
-    }
-    return { err: 'Trang tìm kiếm muasamcong không phản hồi (thử 3 lần)' };
+    return { ok: 1 };
   };
+  const box = () => [...document.querySelectorAll('input[placeholder*="KHLCNT"]')].find(vis) || [...document.querySelectorAll('input[placeholder*="IB000202"]')].find(vis);
+  W.typeSearch = (no, btn) => {
+    const b = box(); if (!b) return { err: 'Không thấy ô tìm kiếm', info: W.info() };
+    if (btn) {
+      const wrap = b.closest('form') || (b.parentElement && b.parentElement.parentElement);
+      const k = wrap && [...wrap.querySelectorAll('button,[role=button],i,svg,span')].find(e => vis(e) && e !== b && (/tìm/i.test(txt(e)) || /search/i.test(String(e.className && e.className.baseVal !== undefined ? e.className.baseVal : e.className))));
+      if (k) { setTimeout(() => realClick(k), 50); return { ok: 1, btn: 1 }; }
+      return { ok: 0 };
+    }
+    setVal(b, ''); setVal(b, no);
+    setTimeout(() => enter(b), 50);
+    return { ok: 1 };
+  };
+  W.srchFind = no => {
+    const res = W.srch.filter(x => x.body.indexOf(no) >= 0 || x.u.indexOf(no) >= 0 || JSON.stringify((x.j || {}).page || {}).indexOf(no) >= 0).pop();
+    if (!res) return null;
+    const items = ((res.j || {}).page || {}).content || [];
+    const hit = items.find(x => String(x.notifyNo || x.planNo || '').toUpperCase().startsWith(no)) || items[0];
+    if (!hit) return { none: true };
+    const a = document.querySelector('a[href*="render=detail"]');
+    if (!a) return { hit, wait: 1 };
+    let url = a.getAttribute('href');
+    if (url && url.startsWith('/')) url = location.origin + url;
+    return { hit, url };
+  };
+  W.srchDbg = () => ({ n: W.srch.length, last: W.srch.slice(-3).map(x => x.u.slice(0, 120) + ' | ' + x.body.slice(0, 120)), info: W.info() });
 
   W.clickTab = async text => {
     const t = [...document.querySelectorAll('a,button,li,span,div,[role=tab]')].filter(e => vis(e) && txt(e) === text).pop();

@@ -214,13 +214,36 @@ async function ensureValues(url, re, tabs) {
   return false;
 }
 
+/* gõ số ⇒ chờ kết quả tìm kiếm (trang có thể chuyển trang) ⇒ { hit, url } | { none } */
+const Pq = (fn, ...a) => P(fn, ...a).catch(() => null);    // lệnh bị cắt vì trang đang chuyển ⇒ null, hỏi lại
+async function search(no, plan) {
+  await nav(HOME);
+  const pr = await P('prepSearch', plan);
+  if (!pr || pr.err) throw new Error((pr && pr.err) || 'Trang chủ muasamcong chưa sẵn sàng');
+  for (let i = 0; i < 3; i++) {
+    await sleep(1500 + i * 2500);
+    for (let k = 0; k < 2; k++) {
+      const t = await Pq('typeSearch', no, k === 1);
+      if (!t || !t.ok) { if (k === 0 && t && t.err) throw new Error(t.err); continue; }
+      const T = Date.now();
+      while (Date.now() - T < (k ? 15000 : 20000)) {
+        await sleep(700);
+        const r = await Pq('srchFind', no);
+        if (r && (r.none || r.url)) return r;
+        if (r && r.wait && Date.now() - T > 14000) break;
+      }
+    }
+    say('  · tìm ' + no + ' chưa ra (' + JSON.stringify(await Pq('srchDbg')).slice(0, 300) + ')');
+    await nav(HOME); await Pq('prepSearch', plan);
+  }
+  throw new Error('Trang tìm kiếm muasamcong không phản hồi (thử 3 lần)');
+}
+
 async function doJob(job, agent) {
   const t0 = Date.now(), bare = job.no.toUpperCase().replace(/-\d+$/, ''), plan = /^PL/.test(bare);
   set({ job: job.no + ' · ' + String(job.investor || job.name || '').slice(0, 60) });
   say('▶ ' + job.no + ' · ' + String(job.investor || '').slice(0, 50));
-  await nav(HOME);
-  const s = await P('search', bare, plan);
-  if (!s || s.err) throw new Error((s && s.err) || 'Tìm kiếm không trả kết quả');
+  const s = await search(bare, plan);
   if (s.none || !s.url) { await api('botDone', { hit: job.key, status: 'error', note: 'Không tìm thấy số ' + job.no + ' trên muasamcong' }); return 0; }
   const hit = s.hit || {}, one = v => Array.isArray(v) ? v[0] : (v || ''), loc = (hit.locations || [])[0] || {};
   const pk = { url: s.url, plan, investor: one(hit.investorName) || one(hit.procuringEntityName) || '', bidName: plan ? (hit.name || one(hit.bidName)) : one(hit.bidName),

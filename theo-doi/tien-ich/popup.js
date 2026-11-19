@@ -10,12 +10,14 @@ function paint(st, c) {
   $('msg').textContent = c.off ? 'Đang tạm dừng — bấm Bật lại' : (st.msg || '—') + (st.last ? ' · lượt cuối ' + st.last.at : '');
   $('off').textContent = c.off ? 'Bật lại' : 'Tạm dừng';
   $('show').checked = !!c.show;
+  if (document.activeElement !== $('dev')) $('dev').value = c.dev || '';
   $('log').innerHTML = (st.log || []).map(x => '<li>' + x.replace(/[<>&]/g, '') + '</li>').join('');
 }
-async function load() { const x = await chrome.storage.local.get(['st', 'tk', 'pic', 'off', 'show']); paint(x.st, x); }
+async function load() { const x = await chrome.storage.local.get(['st', 'tk', 'pic', 'off', 'show', 'dev']); paint(x.st, x); }
 $('go').onclick = () => chrome.runtime.sendMessage({ t: 'kick' }, () => setTimeout(load, 300));
 $('off').onclick = async () => { const x = await chrome.storage.local.get('off'); chrome.runtime.sendMessage({ t: 'set', v: { off: !x.off } }, load); };
 $('show').onchange = e => chrome.runtime.sendMessage({ t: 'set', v: { show: e.target.checked } }, load);
+$('dev').onchange = e => chrome.runtime.sendMessage({ t: 'set', v: { dev: e.target.value.trim().slice(0, 24) } }, () => chrome.runtime.sendMessage({ t: 'kick' }, load));
 $('app').onclick = () => chrome.tabs.create({ url: APP });
 chrome.storage.onChanged.addListener(load);
 load();

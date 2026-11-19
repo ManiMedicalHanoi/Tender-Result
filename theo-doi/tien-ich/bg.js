@@ -384,8 +384,8 @@ async function round(why) {
 }
 
 /* ───────── sự kiện ───────── */
-chrome.runtime.onInstalled.addListener(() => { chrome.alarms.create('tick', { periodInMinutes: 1 }); tick('cài'); });
-chrome.runtime.onStartup.addListener(() => { chrome.alarms.create('tick', { periodInMinutes: 1 }); tick('mở'); });
+chrome.runtime.onInstalled.addListener(() => { chrome.alarms.create('tick', { periodInMinutes: 0.5 }); tick('cài'); });
+chrome.runtime.onStartup.addListener(() => { chrome.alarms.create('tick', { periodInMinutes: 0.5 }); tick('mở'); });
 chrome.alarms.onAlarm.addListener(a => { if (a.name === 'tick') tick('hẹn giờ'); });
 chrome.runtime.onMessage.addListener((m, sender, reply) => {
   (async () => {
@@ -402,7 +402,7 @@ chrome.runtime.onMessage.addListener((m, sender, reply) => {
   })();
   return true;
 });
-chrome.alarms.get('tick').then(a => { if (!a) chrome.alarms.create('tick', { periodInMinutes: 1 }); });
+chrome.alarms.get('tick').then(a => { if (!a) chrome.alarms.create('tick', { periodInMinutes: 0.5 }); });
 /* phần chạy nền bị trình duyệt tắt giữa lượt ⇒ đóng cửa sổ tải còn sót */
 chrome.storage.session.get('win').then(x => { if (x.win && !WIN) chrome.windows.remove(x.win).catch(() => {}); }).catch(() => {});
 chrome.storage.local.get('st').then(x => { if (x.st) ST = Object.assign(x.st, { busy: false, v: VER }); save(); });

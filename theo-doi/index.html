@@ -657,7 +657,7 @@ button.stx b{color:#9A5B00}
    Đăng nhập: phiên email công ty (localStorage.mmh_tk — dùng chung Report Hub / CRM / Tender Map). */
 var API = "https://script.google.com/macros/s/AKfycbwv3R7EACqtt3pQZfMWRQFilC4E0W7td8Z8xWxQW6P7UckqFjWFJSFxcOWBZknHplhQuQ/exec";
 var TRAINING_HUB = "https://script.google.com/macros/s/AKfycbwsX4cQEoH4LNlmcNfe8qWIM9K6EiDEXy7PjhP9bHY2citL6xHn5L1unsAlQJHyL9EP/exec";
-var VER = "3.0";
+var VER = "3.1";
 var TYPES = { khmt: "Kế hoạch LCNT", tbmt: "Thông báo mời thầu", kqdt: "Kết quả LCNT" };
 var TSHORT = { khmt: "KH LCNT", tbmt: "TBMT", kqdt: "Kết quả" };
 var STC = { "Chờ tải": "wait", "Đang tải": "work", "Đã tải": "done", "Lỗi": "err", "Không có file": "nofile", "Không tải": "off" };
@@ -2487,7 +2487,8 @@ agwState = function(){
   var o = _agwState29(), L = extList();
   if (extHere() && EXT.st) return Object.assign(o, { on: true, min: 0, agent: !!EXT.st.agent, name: "trình duyệt này", ext: true });
   if (L.length) { var a = L.filter(function(x){ return x.agent; })[0] || L[0]; return Object.assign(o, { on: true, min: a.min, agent: !!a.agent, name: String(a.name).replace(/^Tiện ích · /, ""), ext: true }); }
-  return o;
+  var E = (((S.boot || {}).ext) || [])[0];   // v3.1: máy tải Python cũ đã bỏ ⇒ chỉ báo tiện ích (lần cuối)
+  return { on: false, min: E ? E.min : null, agent: false, name: E ? String(E.name).replace(/^Tiện ích · /, "") : "", last: null, seen: E ? E.at : "", ext: !!E };
 };
 agentReady = function(){ return extAgent(); };
 agentGo = function(keys, want){
@@ -2556,7 +2557,7 @@ openBot = function(renew){
    GD = khung hướng dẫn ngay dưới thanh trên cùng (mọi tab): trạng thái máy tải + 3 phần hướng dẫn (ảnh ở huong-dan/).
    docsView viết lại: mỗi gói 1 thẻ (tên, chủ đầu tư, tỉnh, số, giá) + tài liệu chia theo phần, file cần Agent hiện ngay trong phần đó. ── */
 var GD = { open: false, sec: "cai" };
-try { GD.open = localStorage.getItem("wt_gd") === "1" || !localStorage.getItem("wt_gd_seen"); GD.sec = localStorage.getItem("wt_gd_sec") || "cai"; } catch (_) {}
+try { GD.sec = localStorage.getItem("wt_gd_sec") || "cai"; } catch (_) {}   // v3.1: không tự mở khi vào app (người dùng yêu cầu)
 var GIMG = "huong-dan/";
 function gdState(){
   var here = extHere(), L = extList(), a = agwState(), name = function(x){ return String(x.name || "").replace(/^Tiện ích · /, ""); };
@@ -2679,6 +2680,34 @@ docsView = function(B){
     }).join("") + '<div class="dcf">' + (r.url ? '<a class="btn sm" href="' + esc(r.url) + '" target="_blank" rel="noopener">Trang gói trên muasamcong ↗</a>' : "") + '' + redlBtn(r.k, o.f.length) + '</div></div>';
     return '<li class="op">' + hd + body + '</li>';
   }).join("") + '</ul>' + (rows.length > (S.dlim || 150) ? '<div class="more"><button class="btn" data-a="dmore">Xem thêm (' + (rows.length - (S.dlim || 150)) + ' gói)</button></div>' : "") + '</div></div>';
+  return h;
+};
+
+/* ── v3.1 (19/11/2026, người dùng: "cài tiện ích rồi mà vẫn không tải được; hướng dẫn đừng tự hiện khi mở app") ──
+   ① tiện ích báo trạng thái SAU khi app đã vẽ ⇒ vẽ lại ngay dòng "Tải hồ sơ thầu" + chip "Máy tải" + khung Tiến trình (trước chỉ vẽ lại Tiến trình).
+   ② máy tính chưa thấy tiện ích ⇒ nhắc "đã cài thì bấm F5" (trang mở TRƯỚC khi cài thì Chrome chưa gắn tiện ích vào trang).
+   ③ bỏ hẳn thông báo của máy tải Python / token GitHub cũ trong khung Tiến trình. ── */
+function extUiRefresh(){
+  if (!auth() || !$("app")) return;
+  var a = document.activeElement; if (a && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName) && !$("gd")) return;
+  var o = $("gd"); if (o) o.outerHTML = gdHtml();
+  var top = document.querySelector("#app > .top"), ch = top && top.querySelector(".chip .dot") && top.querySelector(".chip");
+  if (top) { var c = top.querySelector('.chip[title^="Máy tính tải hồ sơ"]'); if (c) { var g = gdState(), L = extList(); c.innerHTML = '<span class="dot ' + g.lv + '"></span>Máy tải: ' + (extHere() ? "máy này" : L.length ? esc(String(L[0].name).replace(/^Tiện ích · /, "")) : "chưa bật"); } }
+  if ($("proc")) repaintProc();
+}
+window.addEventListener("message", function(e){ if (e.source === window && e.data && e.data.mmhExt === "state") { clearTimeout(extUiRefresh._t); extUiRefresh._t = setTimeout(extUiRefresh, 250); } });
+(function(){ var n = 0, t = setInterval(function(){ n++; if (document.documentElement.getAttribute("data-mmh-ext")) { clearInterval(t); window.postMessage({ mmhExt: "ask" }, location.origin); extUiRefresh(); } else if (n > 30) clearInterval(t); }, 1000); })();
+var _gdState31 = gdState;
+gdState = function(){
+  var g = _gdState31();
+  if (!extHere() && HOVER) g.t += ' <span style="color:var(--t2)">· Máy tính này đã cài tiện ích? Bấm <b>F5</b> tải lại trang để app nhận tiện ích.</span>';
+  return g;
+};
+var _procWarn31 = procWarn;
+procWarn = function(B, c){
+  var h = _procWarn31(B, c);
+  h = h.replace(/<div class="pwk[^"]*">[^<]*(token|Training Hub)[\s\S]*?<\/div>/g, "")
+    .replace(/Bot máy chủ chạy lần cuối[^<]*|Bot máy chủ chưa chạy lần nào[^<]*/g, extList().length || extHere() ? "" : "Chưa có máy tính nào bật tiện ích tải hồ sơ — cài tiện ích trên máy có VNeGP Agent.");
   return h;
 };
 

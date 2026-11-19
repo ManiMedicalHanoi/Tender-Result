@@ -52,13 +52,18 @@ const ctx = await chromium.launchPersistentContext(path.join(OUT, 'profile'), {
 let sw = ctx.serviceWorkers()[0] || await ctx.waitForEvent('serviceworker', { timeout: 30000 });
 say('tiện ích:', sw.url());
 ctx.on('page', pg => { pg.on('console', m => { if (/error/i.test(m.type())) say('  [trang]', m.text().slice(0, 200)); }); });
-await sw.evaluate(show => chrome.storage.local.set({ tk: 'test-tk', pic: 'Thử', api: 'http://127.0.0.1:8899/exec', show }), process.env.SHOW !== '0');
+await sw.evaluate(show => chrome.storage.local.set({ api: 'http://127.0.0.1:8899/exec', show }), process.env.SHOW !== '0');   // phiên đăng nhập: tiện ích tự lấy từ trang app (mmh_tk dạng JSON như app thật)
 
 // app giả trên github.io? (kiểm app.js bằng trang thật của app) — mở trang app, xem thuộc tính data-mmh-ext
 const app = await ctx.newPage();
 await app.goto('https://manimedicalhanoi.github.io/Tender-Result/theo-doi/', { waitUntil: 'domcontentloaded' }).catch(e => say('app:', e.message));
 await app.waitForTimeout(3000);
 say('app thấy tiện ích:', await app.evaluate(() => document.documentElement.getAttribute('data-mmh-ext')).catch(() => '?'));
+await app.evaluate(() => localStorage.setItem('mmh_tk', JSON.stringify({ tk: 'test-tk', user: { pic: 'Thử', email: 'thu@manimedicalhanoi.com' }, exp: Date.now() + 864e5 })));
+await app.reload({ waitUntil: 'domcontentloaded' }).catch(() => {}); await app.waitForTimeout(3000);
+const gotTk = await sw.evaluate(() => chrome.storage.local.get('tk').then(x => x.tk));
+say('tiện ích nhận phiên từ app:', gotTk === 'test-tk' ? 'ĐÚNG' : 'SAI (' + gotTk + ')');
+if (gotTk !== 'test-tk') process.exit(2);
 
 const shots = setInterval(async () => { for (const pg of ctx.pages()) if (/muasamcong/.test(pg.url())) await pg.screenshot({ path: path.join(OUT, 'live_' + Date.now() + '.png') }).catch(() => {}); }, 20000);
 const t0 = Date.now();

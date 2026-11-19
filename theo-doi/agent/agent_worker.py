@@ -11,13 +11,21 @@ HSMT, Biên bản mở thầu…) ⇒ lấy file qua Agent ⇒ gửi lên máy c
   2. Không được ⇒ mở 1 Chrome ẨN (không hiện cửa sổ) vào trang muasamcong, để chính trang gọi Agent, lấy dữ liệu, đóng Chrome.
      (cần thư viện playwright — bộ cài tự cài; dùng Chrome / Edge sẵn có trên máy, không tải trình duyệt khác)
 
+v2.0 (19/11/2026, người dùng: "bấm tải trên app là tải luôn, tải ẩn, không chiếm Chrome"):
+  3. TẢI CẢ GÓI: app gửi lệnh ⇒ máy tự tìm gói trên muasamcong bằng trình duyệt ẨN riêng (Chromium của playwright, không mở
+     cửa sổ, không đụng Chrome / Edge đang dùng), lấy mọi file (TBMT, HSMT, QĐ, Báo cáo đánh giá, Excel danh sách…) — công cụ
+     tai_nhanh.py ⇒ đưa lên Drive (botPkgPut) ⇒ đẩy kho GitHub tender-docs (nếu đã cài token) ⇒ xoá file tạm.
+     Lệnh tới từ: (a) app mở trên CHÍNH máy này ⇒ gọi thẳng http://127.0.0.1:8767/job (bắt đầu ngay, app thấy tiến độ);
+     (b) app ở máy khác / điện thoại ⇒ máy chủ (wAgentReq) ⇒ máy này hỏi mỗi 45 giây.
+
 Cài đặt: bấm đúp "Cai dat may tai Agent.bat" (hỏi khoá bot 1 lần, tự chạy mỗi khi mở máy).
 Dòng lệnh:  python agent_worker.py --setup | --once | --status
 Thư mục làm việc: %LOCALAPPDATA%\\MMH_Agent (cấu hình, nhật ký log.txt). File tạm: %TEMP%\\MMH_Agent (xoá ngay sau khi gửi).
 """
-import base64, json, mimetypes, os, socket, sys, time, urllib.error, urllib.parse, urllib.request, shutil, traceback
+import asyncio, base64, json, mimetypes, os, socket, sys, threading, time, urllib.error, urllib.parse, urllib.request, shutil, traceback
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
-VER = '1.0'
+VER = '2.0'
 API = os.environ.get('WT_URL') or 'https://script.google.com/macros/s/AKfycbwv3R7EACqtt3pQZfMWRQFilC4E0W7td8Z8xWxQW6P7UckqFjWFJSFxcOWBZknHplhQuQ/exec'
 AGENT = os.environ.get('WT_AGENT_URL') or 'http://localhost:1234'
 HOME = 'https://muasamcong.mof.gov.vn/'
@@ -28,8 +36,10 @@ TMP = os.environ.get('MMH_AGENT_TMP') or os.path.join(os.environ.get('TEMP') or 
 CFG = os.path.join(BASE, 'config.json')
 LOG = os.path.join(BASE, 'log.txt')
 STOP = os.path.join(BASE, 'STOP')
-IDLE = int(os.environ.get('MMH_AGENT_IDLE') or 120)     # giây nghỉ khi không có việc
-PORT_LOCK = 8767                                          # chỉ 1 bản chạy cùng lúc
+IDLE = int(os.environ.get('MMH_AGENT_IDLE') or 45)      # giây giữa 2 lần hỏi máy chủ
+PORT_LOCK = 8767                                          # cổng nhận lệnh từ app (127.0.0.1) + khoá chỉ 1 bản chạy
+ALLOW = ('https://manimedicalhanoi.github.io', 'http://localhost', 'http://127.0.0.1')
+HERE = os.path.dirname(os.path.abspath(__file__))
 MAX_BYTES = 35 * 1024 * 1024
 
 
@@ -206,6 +216,7 @@ def one_round():
     d = call('botAgentList', {'agent': '1' if alive else '0'})
     if not d.get('ok'):
         raise RuntimeError(d.get('error') or 'máy chủ từ chối')
+    job_add(d.get('pkgs') or [], 'server')          # gói nhờ tải từ app ở máy khác (wAgentReq)
     items = d.get('items') or []
     if not items:
         return 0
@@ -255,6 +266,190 @@ def one_round():
     return done
 
 
+# ───────────────────────── v2.0: tải cả gói ─────────────────────────
+QLOCK = threading.Lock()
+WAKE = threading.Event()
+QUEUE = []           # [{hit, no, want, src}]
+JOBS = {}            # hit ⇒ tiến độ (app đọc /jobs)
+
+
+def job_add(items, src):
+    n = 0
+    with QLOCK:
+        for it in items:
+            h = str(it.get('hit') or '').strip()
+            if not h or any(q['hit'] == h for q in QUEUE) or (JOBS.get(h, {}).get('run')):
+                continue
+            QUEUE.append({'hit': h, 'no': it.get('no') or '', 'want': it.get('want') or [], 'src': src})
+            JOBS[h] = {'hit': h, 'no': it.get('no') or '', 'status': 'Chờ', 'files': 0, 'up': 0, 'at': time.time(), 'src': src}
+            n += 1
+    if n:
+        WAKE.set()
+    return n
+
+
+def job_set(h, **kw):
+    with QLOCK:
+        JOBS.setdefault(h, {'hit': h}).update(kw)
+
+
+def tn_mod():
+    """Công cụ tải tai_nhanh.py (đi kèm bộ cài, cùng thư mục với file này)."""
+    for d in (HERE, BASE):
+        if os.path.exists(os.path.join(d, 'tai_nhanh.py')) and d not in sys.path:
+            sys.path.insert(0, d)
+    import tai_nhanh
+    tai_nhanh.log = lambda m: log('   ' + str(m))      # nhật ký chung log.txt
+    return tai_nhanh
+
+
+def want_opts(want):
+    w = set(want or [])
+    return {'browser': 'auto', 'par': 1, 'show': False,
+            'tbmt': not w or bool(w & {'tbmt', 'hsmt'}), 'hsmt': not w or 'hsmt' in w,
+            'kq': not w or bool(w & {'kq', 'nt', 'hh', 'qd', 'mo'})}
+
+
+def do_pkg(q):
+    h = q['hit']
+    job_set(h, status='Đang mở gói', run=True, at=time.time())
+    r = call('botPkgStart', {'hit': h}, post=True)
+    if not r.get('ok'):
+        job_set(h, status='Lỗi', err=r.get('error') or 'máy chủ từ chối', run=False); return 0
+    no = r.get('no') or q.get('no')
+    no = r.get('planNo') if r.get('type') == 'khmt' and r.get('planNo') else no
+    job_set(h, no=no, inv=r.get('inv') or '')
+    log('Gói %s (%s): tải cả gói' % (no, q.get('src')))
+    tn = tn_mod()
+    work = os.path.join(TMP, 'pkg_' + safe(no))
+    shutil.rmtree(work, ignore_errors=True)
+    tn.OUT_DIR = os.path.join(work, 'Ho so thau')
+    up, err = 0, ''
+    try:
+        job_set(h, status='Đang tải từ muasamcong')
+        asyncio.run(tn.run([no], want_opts(r.get('want') or q.get('want'))))
+        j = (tn.STATE.get('jobs') or [{}])[0]
+        files, tags, folder = j.get('files') or [], j.get('tags') or {}, j.get('folder') or ''
+        if j.get('status') == 'Không tìm thấy':
+            err = 'không tìm thấy gói trên muasamcong'
+        job_set(h, status='Đang đưa lên Drive', files=len(files))
+        for name in files:
+            p = os.path.join(folder, name)
+            if not os.path.isfile(p):
+                continue
+            if os.path.getsize(p) > MAX_BYTES:
+                log('   bỏ qua (> 35 MB): ' + name); continue
+            with open(p, 'rb') as fh:
+                b64 = base64.b64encode(fh.read()).decode('ascii')
+            rr = call('botPkgPut', {'hit': h, 'name': name, 'tag': tags.get(name, ''), 'b64': b64,
+                                    'mime': mimetypes.guess_type(name)[0] or 'application/octet-stream'}, post=True, timeout=300)
+            if rr.get('ok'):
+                up += 1; job_set(h, up=up); log('   ✓ Drive: ' + (rr.get('name') or name))
+            else:
+                log('   ! máy chủ chưa nhận %s: %s' % (name, rr.get('error')))
+        gh = tn.gh_cfg()
+        if up and gh.get('token') and gh.get('repo'):
+            job_set(h, status='Đang đẩy lên GitHub')
+            try:
+                job_set(h, gh=bool(tn.gh_push(root=tn.OUT_DIR)))
+            except Exception as e:
+                log('   ! GitHub: %s' % str(e)[:160]); job_set(h, gh=False)
+        if not files and not err:
+            err = '; '.join(j.get('errors') or [])[:200] or ('' if j.get('status') == 'Không có file' else 'không lấy được file')
+    except Exception as e:
+        err = str(e).splitlines()[0][:200] if str(e) else type(e).__name__
+        log('   ! lỗi gói %s: %s' % (no, err))
+    finally:
+        shutil.rmtree(work, ignore_errors=True)       # không giữ file trên máy
+    try:
+        call('botPkgDone', {'hit': h, 'n': up, 'err': err}, post=True)
+    except Exception as e:
+        log('   ! báo xong: %s' % e)
+    job_set(h, status='Xong' if up else ('Lỗi' if err else 'Không có file'), err=err, run=False, end=time.time())
+    return up
+
+
+def run_queue():
+    n = 0
+    while not os.path.exists(STOP):
+        with QLOCK:
+            q = QUEUE.pop(0) if QUEUE else None
+        if not q:
+            break
+        if not agent_alive():
+            job_set(q['hit'], status='Chờ Agent', err='VNeGP Client Agent chưa chạy trên máy này')
+            with QLOCK:
+                QUEUE.insert(0, q)
+            log('Có gói chờ tải nhưng Agent chưa chạy — mở VNeGP Client Agent.')
+            break
+        n += do_pkg(q)
+    return n
+
+
+class Api(BaseHTTPRequestHandler):
+    """Cổng nhận lệnh từ app (chỉ 127.0.0.1, chỉ trang manimedicalhanoi.github.io)."""
+    def log_message(self, *a):
+        pass
+
+    def _ok_origin(self):
+        o = self.headers.get('Origin') or ''
+        return (not o) or any(o == a or o.startswith(a + ':') for a in ALLOW)
+
+    def _send(self, code, obj=None):
+        body = json.dumps(obj or {}, ensure_ascii=False).encode('utf-8')
+        self.send_response(code)
+        o = self.headers.get('Origin') or ''
+        if o and self._ok_origin():
+            self.send_header('Access-Control-Allow-Origin', o)
+            self.send_header('Vary', 'Origin')
+        self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+        self.send_header('Access-Control-Allow-Headers', 'Content-Type')
+        self.send_header('Access-Control-Allow-Private-Network', 'true')
+        self.send_header('Content-Type', 'application/json; charset=utf-8')
+        self.send_header('Content-Length', str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+
+    def do_OPTIONS(self):
+        self._send(204 if self._ok_origin() else 403)
+
+    def do_GET(self):
+        if not self._ok_origin():
+            return self._send(403, {'ok': False})
+        path = self.path.split('?')[0]
+        if path == '/ping':
+            with QLOCK:
+                busy = any(j.get('run') for j in JOBS.values())
+            return self._send(200, {'ok': True, 'ver': VER, 'name': socket.gethostname()[:60], 'agent': agent_alive(),
+                                    'busy': busy, 'queue': len(QUEUE), 'gh': bool(tn_gh())})
+        if path == '/jobs':
+            with QLOCK:
+                L = sorted(JOBS.values(), key=lambda j: -j.get('at', 0))[:30]
+            return self._send(200, {'ok': True, 'jobs': L})
+        self._send(404, {'ok': False})
+
+    def do_POST(self):
+        if not self._ok_origin():
+            return self._send(403, {'ok': False})
+        if self.path.split('?')[0] != '/job':
+            return self._send(404, {'ok': False})
+        try:
+            n = int(self.headers.get('Content-Length') or 0)
+            d = json.loads(self.rfile.read(min(n, 200000)).decode('utf-8') or '{}')
+        except Exception:
+            return self._send(400, {'ok': False, 'error': 'dữ liệu sai'})
+        k = job_add(d.get('jobs') or [], 'app')
+        self._send(200, {'ok': True, 'queued': k, 'agent': agent_alive()})
+
+
+def tn_gh():
+    try:
+        c = tn_mod().gh_cfg()
+        return c.get('token') and c.get('repo')
+    except Exception:
+        return False
+
+
 # ───────────────────────── chạy ─────────────────────────
 def setup():
     print('MMH · Máy tải file cần Agent (v%s)' % VER)
@@ -275,6 +470,14 @@ def setup():
         print('Máy chủ từ chối: %s' % (d.get('error') or d)); return 1
     print('✓ Kết nối máy chủ được. Đang có %d tài liệu cần Agent.' % d.get('n', 0))
     print('✓ Agent trên máy: %s' % ('ĐANG CHẠY' if agent_alive() else 'CHƯA CHẠY — mở VNeGP Client Agent (để Agent tự chạy khi mở máy)'))
+    try:
+        tn = tn_mod(); g = tn.gh_cfg()
+        if g.get('token') and g.get('repo'):
+            print('✓ GitHub: hồ sơ sẽ đẩy lên kho %s' % g.get('repo'))
+        elif not os.environ.get('MMH_NO_GH') and input('Đẩy hồ sơ lên kho GitHub tender-docs? (c = có, Enter = bỏ qua): ').strip().lower().startswith('c'):
+            tn.gh_setup()
+    except Exception as e:
+        print('GitHub: bỏ qua (%s)' % str(e)[:120])
     return 0
 
 
@@ -287,11 +490,14 @@ def main():
     if not cfg_load().get('key'):
         log('Chưa có khoá bot — chạy: python agent_worker.py --setup'); sys.exit(1)
     if '--once' in a:
-        log('Xong %d file.' % one_round()); return
+        log('Xong %d file.' % (one_round() + run_queue())); return
+    if '--pkg' in a:                                  # thử tay: python agent_worker.py --pkg <khoá gói>
+        job_add([{'hit': a[a.index('--pkg') + 1]}], 'tay'); log('Xong %d file.' % run_queue()); return
     try:
-        lock = socket.socket(); lock.bind(('127.0.0.1', PORT_LOCK)); lock.listen(1)
+        srv = ThreadingHTTPServer(('127.0.0.1', PORT_LOCK), Api)      # cổng nhận lệnh app = khoá 1 bản
     except OSError:
         log('Đã có 1 bản đang chạy — thoát.'); return
+    threading.Thread(target=srv.serve_forever, daemon=True).start()
     try:
         os.remove(STOP)
     except OSError:
@@ -302,7 +508,9 @@ def main():
     while not os.path.exists(STOP):
         wait = IDLE
         try:
-            n = one_round(); fails = 0
+            n = run_queue()                  # lệnh từ app trên máy này trước
+            n += one_round(); fails = 0
+            n += run_queue()                 # gói nhờ tải từ máy chủ
             if n:
                 wait = 15            # vừa có việc ⇒ hỏi lại sớm
         except Exception as e:
@@ -311,11 +519,13 @@ def main():
             if fails > 2:
                 log(traceback.format_exc()[-400:])
             wait = min(900, IDLE * fails)
+        WAKE.clear()
         for _ in range(wait):
-            if os.path.exists(STOP):
+            if os.path.exists(STOP) or WAKE.is_set():      # app gửi lệnh ⇒ chạy ngay
                 break
             time.sleep(1)
     log('Đã dừng (có lệnh dừng).')
+    srv.shutdown()
 
 
 if __name__ == '__main__':

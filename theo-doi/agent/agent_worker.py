@@ -271,6 +271,7 @@ QLOCK = threading.Lock()
 WAKE = threading.Event()
 QUEUE = []           # [{hit, no, want, src}]
 JOBS = {}            # hit ⇒ tiến độ (app đọc /jobs)
+TN = {'m': None}     # công cụ tai_nhanh đang chạy (đọc số file đã lấy khi đang tải)
 
 
 def job_add(items, src):
@@ -320,13 +321,13 @@ def do_pkg(q):
     no = r.get('planNo') if r.get('type') == 'khmt' and r.get('planNo') else no
     job_set(h, no=no, inv=r.get('inv') or '')
     log('Gói %s (%s): tải cả gói' % (no, q.get('src')))
-    tn = tn_mod()
+    tn = tn_mod(); TN['m'] = tn
     work = os.path.join(TMP, 'pkg_' + safe(no))
     shutil.rmtree(work, ignore_errors=True)
     tn.OUT_DIR = os.path.join(work, 'Ho so thau')
     up, err = 0, ''
     try:
-        job_set(h, status='Đang tải từ muasamcong')
+        job_set(h, status='Đang tải từ muasamcong', t_dl=time.time())
         asyncio.run(tn.run([no], want_opts(r.get('want') or q.get('want'))))
         j = (tn.STATE.get('jobs') or [{}])[0]
         files, tags, folder = j.get('files') or [], j.get('tags') or {}, j.get('folder') or ''
@@ -386,6 +387,33 @@ def run_queue():
     return n
 
 
+def job_view(j):
+    """Tiến độ % của 1 gói: mở gói 5 · tải từ muasamcong 10 → 60 (theo số file đã lấy + thời gian) · lên Drive 60 → 95 (theo file) · GitHub 97 · xong 100."""
+    j = dict(j); st = j.get('status') or ''
+    if st == 'Đang tải từ muasamcong':
+        got = 0
+        try:
+            tj = (TN['m'].STATE.get('jobs') or [{}])[0] if TN['m'] else {}
+            got = len(tj.get('files') or [])
+        except Exception:
+            pass
+        j['got'] = got
+        el = time.time() - (j.get('t_dl') or time.time())
+        j['pct'] = round(10 + min(48, got * 7 + el / 4))
+    elif st == 'Đang đưa lên Drive':
+        n = j.get('files') or 0
+        j['pct'] = round(60 + 35 * (j.get('up') or 0) / n) if n else 60
+    elif st == 'Đang đẩy lên GitHub':
+        j['pct'] = 97
+    elif st == 'Đang mở gói':
+        j['pct'] = 5
+    elif st in ('Chờ', 'Chờ Agent'):
+        j['pct'] = 0
+    else:
+        j['pct'] = 100
+    return j
+
+
 class Api(BaseHTTPRequestHandler):
     """Cổng nhận lệnh từ app (chỉ 127.0.0.1, chỉ trang manimedicalhanoi.github.io)."""
     def log_message(self, *a):
@@ -424,7 +452,7 @@ class Api(BaseHTTPRequestHandler):
                                     'busy': busy, 'queue': len(QUEUE), 'gh': bool(tn_gh())})
         if path == '/jobs':
             with QLOCK:
-                L = sorted(JOBS.values(), key=lambda j: -j.get('at', 0))[:30]
+                L = [job_view(j) for j in sorted(JOBS.values(), key=lambda j: -j.get('at', 0))[:30]]
             return self._send(200, {'ok': True, 'jobs': L})
         self._send(404, {'ok': False})
 

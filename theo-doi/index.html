@@ -562,6 +562,22 @@ button.stx b{color:#9A5B00}
 .ft2 td.a{white-space:nowrap;text-align:right}
 .ft2 td.a a,.ft2 td.a button{font-size:12.5px;margin-left:10px}
 .dlg.wide{width:min(1100px,96vw)}
+.wnt.dis{opacity:.5;cursor:not-allowed}
+.wsum{margin-left:auto;font-size:12px;color:var(--t2)}
+
+.pbar{height:6px;background:#E3E8EF;border-radius:3px;overflow:hidden;min-width:60px}
+.pbar i{display:block;height:100%;background:var(--blue,#3A5CAA);border-radius:3px;transition:width .6s ease}
+.pbar.ok i{background:var(--ok)}
+.ptot{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;margin-top:10px;font-size:12.5px;color:var(--t2)}
+.ptot b{color:var(--t1);font-size:13px}
+.ptot .pbar{height:10px;border-radius:5px}
+.ptot .pc{font-weight:700;color:var(--navy);font-size:15px;min-width:44px;text-align:right}
+.pl li .pw{flex:none;width:150px;display:flex;gap:8px;align-items:center}
+.pl li .pw .pbar{flex:1}
+.pl li .pw em{font-style:normal;font-weight:700;color:var(--navy);min-width:34px;text-align:right}
+.agp .pbar{display:inline-block;width:70px;height:5px;vertical-align:middle;margin-left:6px}
+@media (max-width:860px){ .pl li{flex-wrap:wrap} .pl li .pw{width:100%} }
+
 .pv{width:100%;height:72vh;border:0;border-radius:8px;background:var(--bg)}
 @media (max-width:860px){ .steps{grid-template-columns:repeat(2,1fr)} .dkb{padding:0 12px 12px} .ft2 td.m{display:none} .dkh{grid-template-columns:auto 1fr} .dkh .cn{grid-column:2;justify-content:flex-start} .pv{height:65vh} }
 
@@ -1515,6 +1531,7 @@ function pkGo(){
   var items = Object.keys(K.sel).filter(function(k){ return !gotK[k]; }).map(function(k){ var i = k.indexOf(":"); return { type: k.slice(0, i), no: k.slice(i + 1), inv: invOf[k] || K.inv || "" }; });
   if (!items.length) return;
   var kh = items.every(function(x){ return x.type === "khmt"; }), tb = items.every(function(x){ return x.type !== "khmt"; });
+  var pts = items.map(function(x){ return x.type; }).filter(function(v, i, a){ return a.indexOf(v) === i; });
   openWant("Tải " + items.length + " gói · chọn tài liệu", kh ? "kh" : tb ? "tb" : "", function(want){
     toast("Đang gửi " + items.length + " gói vào hàng đợi…");
     api("wGrab", { inv: K.inv || "", items: JSON.stringify(items), want: want.join(",") }, true).then(function(d){
@@ -1524,7 +1541,7 @@ function pkGo(){
       toast(skipMsg(d.queued || [], d.skipped || []));
       if ((d.queued || []).length && agentReady()) agentGo(d.queued, want, true);
     }, function(e){ toast("Chưa gửi được (" + e.message + ")."); });
-  });
+  }, pts.length === 1 ? pts[0] : "");
 }
 
 
@@ -1536,6 +1553,7 @@ function stChip(st, n, x){
   if (!st) return "";
   var c = STC[st] || "off", t = STLB[st] || st;
   if (c === "done" && n) t += " · " + n + " file";
+  if (x && c === "work") { var q0 = pctOf(x); t = "Đang tải " + (q0.est ? "~" : "") + q0.p + "%"; }
   var tip = (STTIP[st] || "") + (x && c === "done" && x.done ? " · lúc " + x.done.slice(0, 16) : "") + (x && c === "err" && x.note ? " · " + x.note : "");
   return '<span class="st ' + c + '" title="' + esc(tip) + '">' + esc(t) + '</span>';
 }
@@ -1651,6 +1669,18 @@ function docPreview(key, name){
   $("ov").classList.add("show");
 }
 
+
+/* % tiến trình (v2.7): máy tải Agent trên máy này báo % thật (theo file); bot máy chủ = ước tính theo thời gian (≈ 4 phút / gói) */
+function tms(v){ v = String(v || ""); if (/^\d{4}-\d\d-\d\d/.test(v)) return new Date(v.replace(" ", "T").slice(0, 19) + "+07:00").getTime(); var t = Date.parse(v); return isFinite(t) ? t : 0; }
+function pctOf(x){
+  var j = LJ[x.key];
+  if (j && j.pct != null && (j.run || j.status === "Chờ" || j.status === "Chờ Agent")) return { p: j.pct, est: false, t: j.status + (j.got ? " · " + j.got + " file đã lấy" : "") + (j.files && j.status === "Đang đưa lên Drive" ? " · " + (j.up || 0) + "/" + j.files + " file" : "") };
+  if (x.status === "Đang tải") { var el = (Date.now() - tms(x.last)) / 1000, p = tms(x.last) ? Math.round(Math.min(95, 5 + el / 240 * 90)) : 30; return { p: p, est: true, t: (agReq(x) && !agReq(x).done ? "Máy Agent đang tải" : "Bot đang tải") + " (ước tính)" }; }
+  if (x.status === "Chờ tải") return { p: 0, est: false, t: agReq(x) && !agReq(x).done ? "Chờ máy Agent nhận" : "Trong hàng đợi bot" };
+  if (x.status === "Đã tải") return { p: 100, est: false, t: "Đã lên Drive" + ((x.files || []).length ? " · " + x.files.length + " file" : "") };
+  return { p: 0, est: false, t: x.status || "" };
+}
+function pbar(p, ok){ return '<span class="pbar' + (ok || p >= 100 ? " ok" : "") + '"><i style="width:' + Math.max(0, Math.min(100, p)) + '%"></i></span>'; }
 /* ── TIẾN TRÌNH TẢI (v2.7): 4 bước + máy đang tải + gói đang chạy ── */
 var PROC_OPEN = true; try { PROC_OPEN = localStorage.getItem("wt_proc") !== "0"; } catch (_) {}
 function procHtml(B){
@@ -1663,19 +1693,22 @@ function procHtml(B){
   var ago = function(m){ return m == null ? "chưa chạy" : m < 2 ? "vừa chạy" : m < 60 ? m + " phút trước" : m < 1440 ? Math.round(m / 60) + " giờ trước" : Math.round(m / 1440) + " ngày trước"; };
   var mach = 'Bot máy chủ: ' + (bs != null && bs < 15 ? "đang chạy" : "lần cuối " + ago(bs)) + ' · Máy tải Agent: ' + (LW.ok ? "đang bật trên máy này" + (LW.agent ? "" : " (VNeGP Agent chưa chạy)") : a.on ? (a.agent ? "đang bật" : "bật, Agent chưa chạy") + (a.name ? " (" + a.name + ")" : "") : a.seen ? "đang tắt" : "chưa cài");
   var active = lj.length + wait.length + work.length;
-  var h = '<div class="proc"><div class="proch"><b>Tiến trình tải hồ sơ</b><span class="pm">' + esc(mach) + '</span><button class="lnk" data-a="proc">' + (PROC_OPEN ? "Ẩn chi tiết" : "Hiện chi tiết") + '</button></div>';
+  var h = '<div class="proc" id="proc"><div class="proch"><b>Tiến trình tải hồ sơ</b><span class="pm">' + esc(mach) + '</span><button class="lnk" data-a="proc">' + (PROC_OPEN ? "Ẩn chi tiết" : "Hiện chi tiết") + '</button></div>';
   if (!PROC_OPEN) return h + '</div>';
+  void active;
   h += '<ol class="steps">' +
     '<li class="' + (wait.length ? "on" : "") + '"><b>' + wait.length + '</b><span>1 · Trong hàng đợi</span><small>bot nhận trong ≤ 5 phút</small></li>' +
     '<li class="' + (work.length + lj.length ? "on" : "") + '"><b>' + (work.length + lj.length) + '</b><span>2 · Đang tải</span><small>mở gói trên muasamcong</small></li>' +
     '<li class="' + (done ? "ok" : "") + '"><b>' + done + '</b><span>3 · Đã lên Drive</span><small>trong 24 giờ qua</small></li>' +
     '<li class="' + (agN ? "on" : "") + '"><b>' + agN + '</b><span>File cần Agent</span><small>' + (a.on || LW.ok ? "máy tải Agent tự lấy" : "cần máy có VNeGP Agent") + '</small></li></ol>';
-  if (active) {
-    var L = [];
-    lj.forEach(function(j){ var x = H.filter(function(y){ return y.key === j.hit; })[0] || {}; L.push([j.no || x.no, x.name || "", "Máy Agent: " + j.status + (j.files ? " · " + (j.up || 0) + "/" + j.files + " file" : "")]); });
-    work.forEach(function(x){ if (!LJ[x.key] || !LJ[x.key].run) L.push([x.no, x.name, agReq(x) && !agReq(x).done ? "Máy Agent đang tải" : "Bot đang tải"]); });
-    wait.forEach(function(x){ L.push([x.no, x.name, agReq(x) && !agReq(x).done ? "Chờ máy Agent nhận" : "Trong hàng đợi bot"]); });
-    h += '<ul class="pl">' + L.slice(0, 8).map(function(l){ return '<li><span class="no">' + esc(l[0] || "") + '</span><span class="nm">' + esc(l[1]) + '</span><span class="sg">' + esc(l[2]) + '</span></li>'; }).join("") +
+  // đợt đang tải = gói đang chờ / đang tải + gói xong trong 2 giờ qua ⇒ % chung
+  var batch = H.filter(function(x){ return x.status === "Chờ tải" || x.status === "Đang tải" || (LJ[x.key] && (LJ[x.key].run || LJ[x.key].status === "Chờ")) || (x.status === "Đã tải" && tOf(x.done) > Date.now() - 2 * 3600e3); });
+  if (batch.length) {
+    var P = batch.map(function(x){ return { x: x, q: pctOf(x) }; }), tot = Math.round(P.reduce(function(a, o){ return a + o.q.p; }, 0) / P.length), nd = P.filter(function(o){ return o.q.p >= 100; }).length;
+    h += '<div class="ptot"><b>Đợt tải: ' + nd + '/' + P.length + ' gói xong</b>' + pbar(tot, nd === P.length) + '<span class="pc">' + tot + '%</span></div>';
+    var act = P.filter(function(o){ return o.q.p < 100; }).sort(function(a, b){ return b.q.p - a.q.p; }), fin = P.filter(function(o){ return o.q.p >= 100; });
+    var L = act.concat(fin);
+    h += '<ul class="pl">' + L.slice(0, 8).map(function(o){ return '<li><span class="no">' + esc(o.x.no || "") + '</span><span class="nm">' + esc(o.x.name || "") + '</span><span class="sg">' + esc(o.q.t) + '</span><span class="pw">' + pbar(o.q.p) + '<em>' + (o.q.est && o.q.p < 100 ? "~" : "") + o.q.p + '%</em></span></li>'; }).join("") +
       (L.length > 8 ? '<li><span class="nm">… và ' + (L.length - 8) + ' gói khác</span></li>' : "") + '</ul>';
   }
   return h + '</div>';
@@ -1737,7 +1770,8 @@ function agProg(x){
   if (j && j.status) {
     var t = j.status === "Chờ Agent" ? "Máy Agent: chờ bật VNeGP Client Agent" : "Máy Agent: " + j.status + (j.files ? " · " + (j.up || 0) + "/" + j.files + " file" : "");
     if (!j.run && j.status === "Xong") t = "Máy Agent: đã đưa " + (j.up || 0) + " file lên Drive" + (j.gh ? " + GitHub" : "");
-    return '<span class="agp' + (j.err && !j.run ? " err" : !j.run && j.status === "Xong" ? " ok" : "") + '" title="' + esc(j.err || "") + '">' + esc(t) + '</span>';
+    var pp = j.pct != null ? j.pct : (j.run ? 5 : 100);
+    return '<span class="agp' + (j.err && !j.run ? " err" : !j.run && j.status === "Xong" ? " ok" : "") + '" title="' + esc(j.err || "") + '">' + esc(t) + (j.run || j.status === "Chờ" ? " · " + pp + "%" + pbar(pp) : "") + '</span>';
   }
   if (r && !r.done) return '<span class="agp" title="Gửi lúc ' + esc(r.at) + (r.by ? " · " + esc(r.by) : "") + '">Đã gửi máy Agent ' + esc(String(r.at).slice(11, 16)) + ' · đang chờ máy nhận</span>';
   if (r && r.done && r.err && x.status !== "Đã tải") return '<span class="agp err" title="' + esc(r.err) + '">Máy Agent: chưa tải được</span>';
@@ -1779,6 +1813,11 @@ function agentGo(keys, want, quiet){
   }, function(e){ toast(e.message); });
 }
 setInterval(function(){ if (document.visibilityState === "visible") lwPing(); }, 60e3);
+setInterval(function(){   // % tự chạy: chỉ vẽ lại khung Tiến trình, không đụng ô đang gõ
+  var el = $("proc"); if (!el || document.visibilityState !== "visible" || !S.boot) return;
+  var H = S.boot.hits || []; if (!H.some(function(x){ return x.status === "Đang tải" || x.status === "Chờ tải"; }) && !Object.keys(LJ).some(function(k){ return LJ[k].run; })) return;
+  var d = document.createElement("div"); d.innerHTML = procHtml(S.boot); if (d.firstChild) el.replaceWith(d.firstChild);
+}, 3000);
 document.addEventListener("visibilitychange", function(){ if (document.visibilityState === "visible") lwPing(); });
 setTimeout(lwPing, 600);
 
@@ -1797,22 +1836,38 @@ function wantGet(){ try { var a = JSON.parse(localStorage.getItem("wt_want") || 
 function wantSet(a){ try { localStorage.setItem("wt_want", JSON.stringify(a)); } catch (_) {} }
 function wantSend(a){ return a.length >= WANT.length ? "" : a.join(","); }
 /* mở hộp chọn; kinds = "tb" (gói TBMT / Kết quả) | "kh" (KHLCNT) | "" (cả hai — Tải ngay); done(want[]) */
-function openWant(title, kinds, done){
-  var cur = wantGet(), L = WANT.filter(function(w){ return !kinds || w[4] === "all" || w[4] === kinds; });
-  $("dlg").innerHTML = '<h4>' + esc(title) + '</h4><div class="bd"><div class="wantl">' + L.map(function(w){
-      return '<label class="wnt' + (cur.indexOf(w[0]) >= 0 ? " on" : "") + '"><input type="checkbox" data-w="' + w[0] + '"' + (cur.indexOf(w[0]) >= 0 ? " checked" : "") + '><span><b>' + esc(w[1]) + '</b><small>' + esc(w[2]) + '</small></span></label>'; }).join("") +
-    '</div><div class="wq"><button class="lnk" data-wall="1">Chọn tất cả</button><button class="lnk" data-wall="0">Bỏ chọn</button></div></div>' +
+/* v2.7 — hộp chọn tài liệu THEO LOẠI GÓI (người dùng: bấm tải gói TBMT mà hộp vẫn tích hết mọi tài liệu):
+   ptype "tbmt" ⇒ tích sẵn TBMT · HSMT · Biên bản mở thầu, mục kết quả làm mờ (gói chưa có kết quả) · "kqdt" ⇒ tích sẵn mục kết quả · "khmt" ⇒ chỉ KH LCNT.
+   Lựa chọn nhớ RIÊNG từng loại gói (localStorage wt_want_t:<loại>); ô Tải ngay (không biết loại) dùng lựa chọn chung như cũ. */
+var WANT_DEF = { tbmt: ["tbmt", "hsmt", "mo"], kqdt: ["kq", "nt", "hh", "qd", "mo"], khmt: ["kh"] };
+var WANT_RES = ["kq", "nt", "hh", "qd"];
+function wantFor(pt){ try { var a = JSON.parse(localStorage.getItem("wt_want_t:" + pt) || "null"); if (Array.isArray(a) && a.length) return a; } catch (_) {} return WANT_DEF[pt] ? WANT_DEF[pt].slice() : wantGet(); }
+function openWant(title, kinds, done, ptype){
+  var pt = ptype || (kinds === "kh" ? "khmt" : ""), cur = pt ? wantFor(pt) : wantGet();
+  var L = WANT.filter(function(w){ return !kinds || w[4] === "all" || w[4] === kinds; });
+  if (pt === "khmt") L = WANT.filter(function(w){ return w[0] === "kh"; });
+  var off = function(w){ return pt === "tbmt" && WANT_RES.indexOf(w[0]) >= 0; };
+  var row = function(w){ var dis = off(w), on = !dis && cur.indexOf(w[0]) >= 0;
+    return '<label class="wnt' + (on ? " on" : "") + (dis ? " dis" : "") + '"' + (dis ? ' title="Gói đang ở bước Thông báo mời thầu — chưa có kết quả lựa chọn nhà thầu"' : "") + '><input type="checkbox" data-w="' + w[0] + '"' + (on ? " checked" : "") + (dis ? " disabled" : "") + '><span><b>' + esc(w[1]) + '</b><small>' + esc(dis ? "Chưa có — gói chưa có kết quả lựa chọn nhà thầu" : w[2]) + '</small></span></label>'; };
+  var hint = pt === "tbmt" ? "Gói đang mời thầu: tải thông báo, hồ sơ mời thầu, biên bản mở thầu (nếu đã mở thầu)." : pt === "kqdt" ? "Gói đã có kết quả: tải kết quả, danh sách nhà thầu, hàng hóa, quyết định / báo cáo đánh giá." : pt === "khmt" ? "Kế hoạch lựa chọn nhà thầu." : "";
+  $("dlg").innerHTML = '<h4>' + esc(title) + '</h4><div class="bd">' + (hint ? '<div class="hint" style="margin:0">' + esc(hint) + ' Lựa chọn được nhớ cho lần sau.</div>' : "") + '<div class="wantl">' + L.map(row).join("") +
+    '</div><div class="wq"><button class="lnk" data-wall="1">Chọn tất cả</button><button class="lnk" data-wall="0">Bỏ chọn</button>' + (pt && WANT_DEF[pt] ? '<button class="lnk" data-wall="d">Mặc định</button>' : "") + '<span class="wsum" id="w-sum"></span></div></div>' +
     '<div class="ft"><span class="msg" id="w-msg"></span><button class="btn" data-f="close">Huỷ</button><button class="btn pri" id="w-go">Tải</button></div>';
   $("ov").classList.add("show");
   var box = $("dlg");
-  box.querySelectorAll("[data-wall]").forEach(function(b){ b.onclick = function(){ var on = b.getAttribute("data-wall") === "1"; box.querySelectorAll("[data-w]").forEach(function(c){ c.checked = on; c.parentNode.classList.toggle("on", on); }); }; });
-  box.querySelectorAll("[data-w]").forEach(function(c){ c.onchange = function(){ c.parentNode.classList.toggle("on", c.checked); }; });
+  var sum = function(){ var n = box.querySelectorAll("[data-w]:checked").length, m = box.querySelectorAll("[data-w]:not(:disabled)").length; $("w-sum").textContent = "Đã chọn " + n + "/" + m; $("w-go").textContent = n ? "Tải " + n + " loại tài liệu" : "Tải"; };
+  box.querySelectorAll("[data-wall]").forEach(function(b){ b.onclick = function(){ var v = b.getAttribute("data-wall");
+    box.querySelectorAll("[data-w]:not(:disabled)").forEach(function(c){ c.checked = v === "d" ? WANT_DEF[pt].indexOf(c.getAttribute("data-w")) >= 0 : v === "1"; c.parentNode.classList.toggle("on", c.checked); }); sum(); }; });
+  box.querySelectorAll("[data-w]").forEach(function(c){ c.onchange = function(){ c.parentNode.classList.toggle("on", c.checked); sum(); }; });
+  sum();
   $("w-go").onclick = function(){
     var sel = [].slice.call(box.querySelectorAll("[data-w]:checked")).map(function(c){ return c.getAttribute("data-w"); });
     if (!sel.length) { $("w-msg").textContent = "Chọn ít nhất 1 loại."; return; }
-    var keep = cur.filter(function(k){ return !L.some(function(w){ return w[0] === k; }); });      // loại không hiện trong hộp này giữ nguyên lựa chọn cũ
-    wantSet(keep.concat(sel)); close_();
-    done(kinds ? (sel.length === L.length ? [] : sel.concat(kinds === "tb" ? [] : [])) : sel);
+    if (pt) { try { localStorage.setItem("wt_want_t:" + pt, JSON.stringify(sel)); } catch (_) {} }
+    else { var keep = cur.filter(function(k){ return !L.some(function(w){ return w[0] === k; }); }); wantSet(keep.concat(sel)); }
+    close_();
+    var all = L.filter(function(w){ return !off(w); }).every(function(w){ return sel.indexOf(w[0]) >= 0; });
+    done(kinds && all && !pt ? [] : sel);
   };
 }
 function wantLabel(a){ if (!a || !a.length) return ""; return a.map(function(k){ var w = WANT.filter(function(x){ return x[0] === k; })[0]; return w ? w[1] : k; }).join(" · "); }
@@ -2153,7 +2208,7 @@ document.addEventListener("click", function(e){
   if (t.hasAttribute("data-edit")) { e.stopPropagation(); openForm(t.getAttribute("data-edit")); return; }
   if (t.hasAttribute("data-unw")) { e.stopPropagation(); var uid = t.getAttribute("data-unw"); if (S.unw === uid) unwatch(uid); else { S.unw = uid; clearTimeout(S._unwT); S._unwT = setTimeout(function(){ S.unw = ""; render(); }, 4000); render(); } return; }
   if (t.hasAttribute("data-redl")) { e.stopPropagation(); var rk = t.getAttribute("data-redl"); if (S.redl !== rk) { S.redl = rk; clearTimeout(S._rdT); S._rdT = setTimeout(function(){ S.redl = ""; render(); }, 4000); render(); return; }
-    S.redl = ""; var hx2 = ((S.boot || {}).hits || []).filter(function(x){ return x.key === rk; })[0] || {}; openWant("Tải lại · " + (hx2.no || ""), hx2.type === "khmt" || /^PL/i.test(hx2.no || "") ? "kh" : "tb", function(want){ dlHit(rk, want); }); return; }
+    S.redl = ""; var hx2 = ((S.boot || {}).hits || []).filter(function(x){ return x.key === rk; })[0] || {}; openWant("Tải lại · " + (hx2.no || ""), hx2.type === "khmt" || /^PL/i.test(hx2.no || "") ? "kh" : "tb", function(want){ dlHit(rk, want); }, /^PL/i.test(hx2.no || "") ? "khmt" : hx2.type); return; }
   if (t.hasAttribute("data-sper")) { S.sper = t.getAttribute("data-sper"); if (S.sper === "rng" && !S.sfrom) { S.sfrom = addDays(today0(), -365); S.sto = today0(); } try { localStorage.setItem("wt_sper", S.sper); localStorage.setItem("wt_sfrom", S.sfrom || ""); localStorage.setItem("wt_sto", S.sto || ""); } catch (_) {} render(); return; }
   if (t.hasAttribute("data-tab")) { S.tab = t.getAttribute("data-tab"); try { localStorage.setItem("wt_tab", S.tab); } catch (_) {} if (S.tab === "map") loadInv(function(){ if (S.tab === "map") render(); }, true); render(); scrollTo(0, 0); return; }
   if (t.hasAttribute("data-pv")) { S.pk = null; var pv = +t.getAttribute("data-pv"); if (t.closest("#vnmap") && S.prov !== pv) { goProv(pv); var pn0 = $("pv-panel"); if (pn0 && matchMedia("(max-width:860px)").matches) setTimeout(function(){ pn0.scrollIntoView({ behavior: "smooth", block: "start" }); }, 450); return; } S.prov = S.prov === pv ? -1 : pv; S.mlim = 40; render(); if (S.prov < 0) flyTo(VB0()); var pn = $("pv-panel"); if (pn && matchMedia("(max-width:860px)").matches && S.prov >= 0) pn.scrollIntoView({ behavior: "smooth", block: "start" }); return; }
@@ -2185,7 +2240,7 @@ document.addEventListener("click", function(e){
   if (t.hasAttribute("data-t")) { var k = t.getAttribute("data-t"), i = F.types.indexOf(k); readForm(); if (t.checked && i < 0) F.types.push(k); if (!t.checked && i >= 0) F.types.splice(i, 1); paintForm(); return; }
   if (t.hasAttribute("data-dl")) {
     var key = t.getAttribute("data-dl"), hx = ((S.boot || {}).hits || []).filter(function(x){ return x.key === key; })[0] || {};
-    openWant("Chọn tài liệu cần tải · " + (hx.no || ""), hx.type === "khmt" || /^PL/i.test(hx.no || "") ? "kh" : "tb", function(want){ dlHit(key, want); });
+    openWant("Chọn tài liệu cần tải · " + (hx.no || ""), hx.type === "khmt" || /^PL/i.test(hx.no || "") ? "kh" : "tb", function(want){ dlHit(key, want); }, /^PL/i.test(hx.no || "") ? "khmt" : hx.type);
     return;
   }
   var a = t.getAttribute("data-a"), f = t.getAttribute("data-f");

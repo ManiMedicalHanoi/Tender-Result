@@ -242,12 +242,33 @@ async function search(no, plan) {
   }
   throw new Error('Trang tìm kiếm muasamcong không phản hồi (thử 3 lần)');
 }
+/* v1.3: mục mặc định không ra (gói rút gọn / chỉ định thầu / mua sắm trực tiếp…) ⇒ thử lần lượt các mục tìm kiếm khác trên trang chủ */
+async function searchAny(no, plan) {
+  const r = await search(no, plan);
+  if (r && r.url) return r;
+  await nav(HOME); await P('prepSearch', false);
+  const K = (await Pq('kinds')) || [];
+  say('  · ' + no + ': mục mặc định không có — thử ' + (K.join(' / ') || '(không thấy mục khác)'));
+  for (const k of K) {
+    if (/^(TBMT|Thông báo mời thầu)$/i.test(k) && !plan) continue;
+    if (/KHLCNT/i.test(k) && plan) continue;
+    await nav(HOME); await P('prepSearch', false);
+    if (!(await Pq('pickKind', k))) continue;
+    for (let i = 0; i < 2; i++) {
+      await sleep(1500 + i * 2500);
+      const t = await Pq('typeSearch', no, false); if (!t || !t.ok) break;
+      const T = Date.now();
+      while (Date.now() - T < 18000) { await sleep(700); const x = await Pq('srchFind', no); if (x && x.url) { say('  · tìm thấy ở mục "' + k + '"'); return x; } if (x && x.none) break; }
+    }
+  }
+  return r || { none: true };
+}
 
 async function doJob(job, agent) {
   const t0 = Date.now(), bare = job.no.toUpperCase().replace(/-\d+$/, ''), plan = /^PL/.test(bare);
   set({ job: job.no + ' · ' + String(job.investor || job.name || '').slice(0, 60) });
   say('▶ ' + job.no + ' · ' + String(job.investor || '').slice(0, 50));
-  const s = await search(bare, plan);
+  const s = await searchAny(bare, plan);
   if (s.none || !s.url) { await api('botDone', { hit: job.key, status: 'error', note: 'Không tìm thấy số ' + job.no + ' trên muasamcong' }); return 0; }
   const hit = s.hit || {}, one = v => Array.isArray(v) ? v[0] : (v || ''), loc = (hit.locations || [])[0] || {};
   const pk = { url: s.url, plan, investor: one(hit.investorName) || one(hit.procuringEntityName) || '', bidName: plan ? (hit.name || one(hit.bidName)) : one(hit.bidName),

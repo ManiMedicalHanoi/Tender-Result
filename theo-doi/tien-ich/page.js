@@ -141,7 +141,8 @@
     }
     return { ok: 1 };
   };
-  const box = () => [...document.querySelectorAll('input[placeholder*="KHLCNT"]')].find(vis) || [...document.querySelectorAll('input[placeholder*="IB000202"]')].find(vis);
+  const box = () => [...document.querySelectorAll('input[placeholder*="KHLCNT"]')].find(vis) || [...document.querySelectorAll('input[placeholder*="IB000202"]')].find(vis)
+    || [...document.querySelectorAll('input[type=text], input:not([type])')].find(i => vis(i) && /mã|số|nhập|tìm/i.test(i.placeholder || ''));
   W.typeSearch = (no, btn) => {
     const b = box(); if (!b) return { err: 'Không thấy ô tìm kiếm', info: W.info() };
     if (btn) {
@@ -166,6 +167,15 @@
     if (url && url.startsWith('/')) url = location.origin + url;
     return { hit, url };
   };
+  /* các mục tìm kiếm (radio) quanh ô tìm kiếm trang chủ: TBMT · KHLCNT · … — gói rút gọn / chỉ định thầu nằm ở mục khác */
+  const kindLabels = () => {
+    const b = box(); if (!b) return [];
+    let wrap = b; for (let i = 0; i < 6 && wrap && wrap.querySelectorAll('input[type=radio], [role=radio], .ant-radio-wrapper').length < 2; i++) wrap = wrap.parentElement;
+    if (!wrap) return [];
+    return [...wrap.querySelectorAll('label, .ant-radio-wrapper, [role=radio]')].filter(l => vis(l) && txt(l) && txt(l).length < 40).filter((l, i, a) => a.findIndex(x => txt(x) === txt(l)) === i);
+  };
+  W.kinds = () => kindLabels().map(l => txt(l));
+  W.pickKind = async name => { const l = kindLabels().find(x => txt(x) === name); if (!l) return false; realClick(l); await sleep(900); return true; };
   W.srchDbg = () => ({ n: W.srch.length, last: W.srch.slice(-3).map(x => x.u.slice(0, 120) + ' | ' + x.body.slice(0, 120)), info: W.info() });
 
   W.clickTab = async text => {

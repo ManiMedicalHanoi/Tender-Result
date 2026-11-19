@@ -2464,7 +2464,7 @@ setInterval(function(){
    Tiện ích (tien-ich/, cài 1 lần vào Chrome / Edge): lấy phiên đăng nhập từ app ⇒ mỗi phút hỏi máy chủ (tender-info botHello) ⇒ có gói Chờ tải
    ⇒ mở muasamcong trong cửa sổ thu nhỏ, tải như bot GitHub; VNeGP Agent đang chạy ⇒ tải luôn file cần Agent. App báo "kick" ⇒ bắt đầu ngay.
    html[data-mmh-ext] = phiên bản tiện ích trên trình duyệt này; boot.ext = các máy đang bật tiện ích (backend MMH_WatchExt.gs). ── */
-var EXT_ZIP = "MMH_Tai_ho_so_thau.zip", EXT = { ver: "", st: null };
+var EXT_ZIP = "MMH_Tai_ho_so_thau.zip?v=1.2.0", EXT = { ver: "", st: null };
 function extHere(){ return !!(EXT.ver || document.documentElement.getAttribute("data-mmh-ext")); }
 function extList(){ return (((S.boot || {}).ext) || []).filter(function(x){ return x.min != null && x.min <= 3; }); }
 function extAgent(){ return !!((extHere() && EXT.st && EXT.st.agent) || extList().some(function(x){ return x.agent; })); }

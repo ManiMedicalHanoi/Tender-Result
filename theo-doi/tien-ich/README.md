@@ -12,6 +12,6 @@ VNeGP Client Agent đang chạy ⇒ trang muasamcong gọi Agent lấy luôn fil
 - `bg.js` — điều phối (service worker) · `page.js` — chạy trong trang muasamcong (chỉ cửa sổ của tiện ích, cờ `sessionStorage.mmhbot`)
 - `app.js` — trên app MMH: gửi phiên đăng nhập, nhận lệnh "kick" từ app · `popup.*` — bảng trạng thái khi bấm biểu tượng
 
-**Sửa xong:** tăng `version` trong `manifest.json`, đóng gói lại:
+**Sửa xong:** tăng `version` trong `manifest.json` + `EXT_ZIP` (?v=) trong `theo-doi/index.html`, đóng gói lại:
 `cd theo-doi/tien-ich && rm -f ../MMH_Tai_ho_so_thau.zip && zip -qr ../MMH_Tai_ho_so_thau.zip . -x README.md`
 (người dùng tải zip mới ▸ chrome://extensions ▸ nút tải lại của tiện ích). Thử với muasamcong thật: workflow *Thử tiện ích tải hồ sơ thầu*.

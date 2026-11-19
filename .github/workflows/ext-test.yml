@@ -1,0 +1,25 @@
+name: Thử tiện ích tải hồ sơ thầu
+# Chạy tiện ích theo-doi/tien-ich với muasamcong thật (máy chủ + Agent giả). Chạy khi sửa tiện ích trên nhánh claude/*, hoặc bấm tay.
+on:
+  push:
+    branches: ['claude/**']
+    paths: ['theo-doi/tien-ich/**', 'tools/ext-test/**', '.github/workflows/ext-test.yml']
+  workflow_dispatch:
+    inputs:
+      no: { description: 'Số TBMT / KHLCNT (cách nhau dấu cách)', required: false, default: 'IB2500491794 PL2500276110' }
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - name: Cài trình duyệt
+        run: npm i --no-save playwright@1.48.2 >/dev/null && npx playwright install --with-deps chromium >/dev/null
+      - name: Chạy thử
+        env: { NO: '${{ github.event.inputs.no }}', BACKLOG: '1' }
+        run: xvfb-run -a node tools/ext-test/run.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: { name: ext-out, path: ext-out/*.png, retention-days: 3 }

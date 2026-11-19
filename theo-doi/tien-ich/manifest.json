@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "MMH Tải hồ sơ thầu",
   "short_name": "MMH Hồ sơ thầu",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Tự tải hồ sơ gói thầu từ muasamcong (kể cả file cần VNeGP Agent) cho app Theo dõi gói thầu của MANI Medical Hanoi.",
   "icons": { "16": "icon16.png", "48": "icon48.png", "128": "icon128.png" },
   "action": { "default_popup": "popup.html", "default_title": "MMH Tải hồ sơ thầu" },

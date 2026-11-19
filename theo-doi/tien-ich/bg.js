@@ -347,13 +347,13 @@ function tick(why) { if (!RUN) RUN = round(why).finally(() => { RUN = null; }); 
 async function round(why) {
   const c = await cfg();
   if (c.off) { set({ msg: 'Đang tạm dừng', busy: false, err: '' }); return; }
-  if (!c.tk) { set({ msg: 'Chưa đăng nhập — mở app Theo dõi gói thầu 1 lần để tiện ích nhận đăng nhập', err: 'login', busy: false }); return; }
+  if (!c.tk) { attachApps(); set({ msg: 'Chưa đăng nhập — mở app Theo dõi gói thầu 1 lần để tiện ích nhận đăng nhập', err: 'login', busy: false }); return; }
   const agent = await agentAlive();
   let h;
   try { h = await api('botHello', { agent: agent ? 1 : 0, job: ST.job || '' }, 2); } catch (e) { return; }
   if (!h.ok) {
     const auth = h.code === 'AUTH';
-    if (auth) await chrome.storage.local.remove('tk');
+    if (auth) { await chrome.storage.local.remove('tk'); attachApps(); }
     set({ msg: auth ? 'Phiên đăng nhập hết hạn — mở app Theo dõi gói thầu để đăng nhập lại' : (h.error || 'Máy chủ lỗi'), err: auth ? 'login' : 'server', busy: false, agent });
     return;
   }
@@ -384,8 +384,15 @@ async function round(why) {
 }
 
 /* ───────── sự kiện ───────── */
-chrome.runtime.onInstalled.addListener(() => { chrome.alarms.create('tick', { periodInMinutes: 0.5 }); tick('cài'); });
-chrome.runtime.onStartup.addListener(() => { chrome.alarms.create('tick', { periodInMinutes: 0.5 }); tick('mở'); });
+/* trang app MMH mở TRƯỚC khi cài / cập nhật tiện ích ⇒ Chrome chưa gắn app.js ⇒ gắn ngay (không cần F5) */
+async function attachApps() {
+  try {
+    const tabs = await chrome.tabs.query({ url: 'https://manimedicalhanoi.github.io/*' });
+    for (const t of tabs) await chrome.scripting.executeScript({ target: { tabId: t.id }, files: ['app.js'] }).catch(() => {});
+  } catch (e) {}
+}
+chrome.runtime.onInstalled.addListener(() => { chrome.alarms.create('tick', { periodInMinutes: 0.5 }); attachApps().then(() => setTimeout(() => tick('cài'), 1500)); });
+chrome.runtime.onStartup.addListener(() => { chrome.alarms.create('tick', { periodInMinutes: 0.5 }); attachApps(); tick('mở'); });
 chrome.alarms.onAlarm.addListener(a => { if (a.name === 'tick') tick('hẹn giờ'); });
 chrome.runtime.onMessage.addListener((m, sender, reply) => {
   (async () => {

@@ -1,0 +1,27 @@
+<!doctype html><html lang="vi"><head><meta charset="utf-8"><title>MMH Tải hồ sơ thầu</title>
+<style>
+:root{--ink:#2C4A5E;--t2:#5A6B78;--line:#BCD4E6;--pale:#F2F7FB;--ok:#1E7B4A;--bad:#B3261E}
+body{margin:0;width:330px;font:13px/1.45 Aptos,"Segoe UI",system-ui,sans-serif;color:#1C2A35;background:#fff}
+header{padding:12px 14px 8px;border-bottom:1px solid var(--line)}
+h1{margin:0;font-size:14px;color:var(--ink);letter-spacing:.02em}
+.sub{color:var(--t2);font-size:12px}
+.row{display:flex;gap:8px;align-items:center;padding:6px 14px}
+.dot{width:9px;height:9px;border-radius:50%;background:#C3CDD8;flex:none}.dot.on{background:var(--ok)}.dot.bad{background:var(--bad)}
+.msg{padding:8px 14px;background:var(--pale);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.btns{display:flex;gap:6px;padding:10px 14px;flex-wrap:wrap}
+button{font:inherit;border:1px solid var(--line);background:#fff;border-radius:7px;padding:5px 10px;cursor:pointer;color:var(--ink)}
+button.pri{background:var(--ink);border-color:var(--ink);color:#fff}
+ol{margin:0;padding:6px 14px 10px 30px;color:var(--t2);font-size:12px;max-height:150px;overflow:auto;list-style:none}
+ol li{padding-left:0;margin-left:-16px}
+label{display:flex;gap:6px;align-items:center;padding:0 14px 10px;color:var(--t2);font-size:12px}
+a{color:var(--ink)}
+</style></head><body>
+<header><h1>MMH TẢI HỒ SƠ THẦU</h1><div class="sub" id="who">—</div></header>
+<div class="row"><span class="dot" id="d1"></span><span id="s1">—</span></div>
+<div class="row"><span class="dot" id="d2"></span><span id="s2">—</span></div>
+<div class="msg" id="msg">—</div>
+<div class="btns"><button class="pri" id="go">Tải ngay</button><button id="off">Tạm dừng</button><button id="app">Mở app</button></div>
+<label><input type="checkbox" id="show"> Hiện cửa sổ tải (để xem tiện ích đang làm gì)</label>
+<ol id="log"></ol>
+<script src="popup.js"></script>
+</body></html>

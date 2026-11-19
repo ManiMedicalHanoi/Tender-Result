@@ -1,0 +1,23 @@
+{
+  "manifest_version": 3,
+  "name": "MMH Tải hồ sơ thầu",
+  "short_name": "MMH Hồ sơ thầu",
+  "version": "1.0.0",
+  "description": "Tự tải hồ sơ gói thầu từ muasamcong (kể cả file cần VNeGP Agent) cho app Theo dõi gói thầu của MANI Medical Hanoi.",
+  "icons": { "16": "icon16.png", "48": "icon48.png", "128": "icon128.png" },
+  "action": { "default_popup": "popup.html", "default_title": "MMH Tải hồ sơ thầu" },
+  "background": { "service_worker": "bg.js" },
+  "permissions": ["alarms", "storage", "scripting", "downloads"],
+  "host_permissions": [
+    "https://muasamcong.mof.gov.vn/*",
+    "https://script.google.com/*",
+    "https://script.googleusercontent.com/*",
+    "https://manimedicalhanoi.github.io/*",
+    "http://localhost/*",
+    "http://127.0.0.1/*"
+  ],
+  "content_scripts": [
+    { "matches": ["https://muasamcong.mof.gov.vn/*"], "js": ["page.js"], "run_at": "document_start", "world": "MAIN" },
+    { "matches": ["https://manimedicalhanoi.github.io/*"], "js": ["app.js"], "run_at": "document_idle" }
+  ]
+}

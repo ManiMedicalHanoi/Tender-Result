@@ -52,7 +52,7 @@ const ctx = await chromium.launchPersistentContext(path.join(OUT, 'profile'), {
 let sw = ctx.serviceWorkers()[0] || await ctx.waitForEvent('serviceworker', { timeout: 30000 });
 say('tiện ích:', sw.url());
 ctx.on('page', pg => { pg.on('console', m => { if (/error/i.test(m.type())) say('  [trang]', m.text().slice(0, 200)); }); });
-await sw.evaluate(() => chrome.storage.local.set({ tk: 'test-tk', pic: 'Thử', api: 'http://127.0.0.1:8899/exec', show: process.env.SHOW !== '0' }));
+await sw.evaluate(show => chrome.storage.local.set({ tk: 'test-tk', pic: 'Thử', api: 'http://127.0.0.1:8899/exec', show }), process.env.SHOW !== '0');
 
 // app giả trên github.io? (kiểm app.js bằng trang thật của app) — mở trang app, xem thuộc tính data-mmh-ext
 const app = await ctx.newPage();

@@ -6,7 +6,7 @@ on:
     paths: ['theo-doi/tien-ich/**', 'tools/ext-test/**', '.github/workflows/ext-test.yml']
   workflow_dispatch:
     inputs:
-      no: { description: 'Số TBMT / KHLCNT (cách nhau dấu cách)', required: false, default: 'IB2500491794 PL2500276110' }
+      so: { description: 'Số TBMT / KHLCNT (cách nhau dấu cách)', required: false, default: 'IB2500491794 PL2500276110' }
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -18,7 +18,7 @@ jobs:
       - name: Cài trình duyệt
         run: npm i --no-save playwright@1.48.2 >/dev/null && npx playwright install --with-deps chromium >/dev/null
       - name: Chạy thử
-        env: { NO: '${{ github.event.inputs.no }}', BACKLOG: '1' }
+        env: { NO: "${{ github.event.inputs.so || 'IB2600028503-00 IB2600454356-00 DC2600073170-00 IB2500491794' }}", BACKLOG: '1' }
         run: xvfb-run -a node tools/ext-test/run.mjs
       - name: Chạy thử — cửa sổ thu nhỏ, máy không có Agent
         env: { NO: 'IB2500491794', AGENT: '0', SHOW: '0' }

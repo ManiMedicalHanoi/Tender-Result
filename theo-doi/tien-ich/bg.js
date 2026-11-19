@@ -156,8 +156,12 @@ const KNOWN = ['Mã TBMT', 'Ngày đăng tải', 'Mã KHLCNT', 'Tên KHLCNT', 'P
 async function addFile(c, f, sec, type, extDef) {
   const ext = extOf(f.name) || extDef || (/pdf/.test(f.type || '') ? 'pdf' : /sheet|excel/.test(f.type || '') ? 'xlsx' : '');
   const name = docName(c.no, type, ext, c.used);
-  c.files.push({ name, b64: f.b64, sec, type, mime: MIME[ext] || f.type || 'application/octet-stream' });
-  say('  ⬇ ' + name + ' (' + Math.round(f.b64.length * 0.75 / 1024) + ' KB)');
+  const mime = MIME[ext] || f.type || 'application/octet-stream', kb = Math.round(f.b64.length * 0.75 / 1024);
+  // v1.3: đưa lên Drive NGAY từng file (trước: chờ xong cả gói) ⇒ app thấy tiến độ, gói lỗi giữa chừng vẫn giữ file đã tải
+  const I = c.info || {}, r = await api('botFile', { hit: c.job.key, name, kind: type, sec, planNo: I.planNo || '', investor: I.investor || '', bidName: I.bidName || '', mime, b64: f.b64 });
+  if (r.ok) { c.up++; c.docs.push({ sec, docType: type, name: r.name || name, url: r.url }); say('  ⬇ ' + name + ' (' + kb + ' KB) ⇒ Drive'); }
+  else say('  ! ' + name + ': gửi lên Drive lỗi — ' + (r.error || ''));
+  set({ job: c.no + ' · ' + c.up + ' file đã lên Drive' });
 }
 async function attachments(c, sec, prefix) {
   const list = await P('attachList') || [];
@@ -249,8 +253,9 @@ async function doJob(job, agent) {
   const pk = { url: s.url, plan, investor: one(hit.investorName) || one(hit.procuringEntityName) || '', bidName: plan ? (hit.name || one(hit.bidName)) : one(hit.bidName),
     planNo: one(hit.planNo), planName: one(hit.planName) || (plan ? hit.name || '' : ''), prov: loc.provName || loc.provinceName || '', posted: vnTime(one(hit.publicDate)), close: vnTime(hit.bidCloseDate), price: hit.investTotal || '' };
   await nav(pk.url);
-  const c = { job, no: bare, files: [], docs: [], agentFiles: [], used: new Set(), seenF: new Set(), agent };
+  const c = { job, no: bare, files: [], docs: [], agentFiles: [], used: new Set(), seenF: new Set(), agent, up: 0 };
   const info = { url: pk.url, investor: pk.investor, bidName: pk.bidName, planNo: pk.planNo, planName: pk.planName, prov: pk.prov, posted: pk.posted, fields: {}, kqFields: {}, by: 'ext' };
+  c.info = info;
   if (plan) {
     if (!(await ensureValues(pk.url, 'PL\\d{8}', []))) say('  · KHLCNT chưa hiện số liệu');
     await P('closePopups');
@@ -305,12 +310,7 @@ async function doJob(job, agent) {
       await excels(c, 'kq');
     }
   }
-  let up = 0;
-  for (const f of c.files) {
-    const r = await api('botFile', { hit: job.key, name: f.name, kind: f.type, sec: f.sec, planNo: info.planNo, investor: pk.investor, bidName: pk.bidName, mime: f.mime, b64: f.b64 });
-    if (r.ok) { up++; c.docs.push({ sec: f.sec, docType: f.type, name: r.name || f.name, url: r.url }); }
-    else say('  ! gửi file lỗi: ' + (r.error || ''));
-  }
+  const up = c.up;
   info.agentFiles = c.agentFiles;
   const ag = c.agentFiles.length;
   await api('botDone', { hit: job.key, status: up ? 'done' : 'nofile', note: up + ' file' + (ag ? ' · ' + ag + ' file cần Agent' : '') + (c.miss ? ' · ' + c.miss + ' file Excel chưa xuất được (bấm Tải lại)' : '') + ' · tiện ích trình duyệt', info: JSON.stringify(info), docs: JSON.stringify(c.docs) });

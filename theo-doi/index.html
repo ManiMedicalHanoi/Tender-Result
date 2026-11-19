@@ -657,7 +657,7 @@ button.stx b{color:#9A5B00}
    Đăng nhập: phiên email công ty (localStorage.mmh_tk — dùng chung Report Hub / CRM / Tender Map). */
 var API = "https://script.google.com/macros/s/AKfycbwv3R7EACqtt3pQZfMWRQFilC4E0W7td8Z8xWxQW6P7UckqFjWFJSFxcOWBZknHplhQuQ/exec";
 var TRAINING_HUB = "https://script.google.com/macros/s/AKfycbwsX4cQEoH4LNlmcNfe8qWIM9K6EiDEXy7PjhP9bHY2citL6xHn5L1unsAlQJHyL9EP/exec";
-var VER = "3.1";
+var VER = "3.2";
 var TYPES = { khmt: "Kế hoạch LCNT", tbmt: "Thông báo mời thầu", kqdt: "Kết quả LCNT" };
 var TSHORT = { khmt: "KH LCNT", tbmt: "TBMT", kqdt: "Kết quả" };
 var STC = { "Chờ tải": "wait", "Đang tải": "work", "Đã tải": "done", "Lỗi": "err", "Không có file": "nofile", "Không tải": "off" };
@@ -2464,7 +2464,7 @@ setInterval(function(){
    Tiện ích (tien-ich/, cài 1 lần vào Chrome / Edge): lấy phiên đăng nhập từ app ⇒ mỗi phút hỏi máy chủ (tender-info botHello) ⇒ có gói Chờ tải
    ⇒ mở muasamcong trong cửa sổ thu nhỏ, tải như bot GitHub; VNeGP Agent đang chạy ⇒ tải luôn file cần Agent. App báo "kick" ⇒ bắt đầu ngay.
    html[data-mmh-ext] = phiên bản tiện ích trên trình duyệt này; boot.ext = các máy đang bật tiện ích (backend MMH_WatchExt.gs). ── */
-var EXT_ZIP = "MMH_Tai_ho_so_thau.zip?v=1.2.0", EXT = { ver: "", st: null };
+var EXT_ZIP = "MMH_Tai_ho_so_thau.zip?v=1.3.0", EXT = { ver: "", st: null };
 function extHere(){ return !!(EXT.ver || document.documentElement.getAttribute("data-mmh-ext")); }
 function extList(){ return (((S.boot || {}).ext) || []).filter(function(x){ return x.min != null && x.min <= 3; }); }
 function extAgent(){ return !!((extHere() && EXT.st && EXT.st.agent) || extList().some(function(x){ return x.agent; })); }
@@ -2710,6 +2710,33 @@ procWarn = function(B, c){
     .replace(/Bot máy chủ chạy lần cuối[^<]*|Bot máy chủ chưa chạy lần nào[^<]*/g, extList().length || extHere() ? "" : "Chưa có máy tính nào bật tiện ích tải hồ sơ — cài tiện ích trên máy có VNeGP Agent.");
   return h;
 };
+
+/* ── v3.2 (19/11/2026, người dùng: "tiện ích báo tải được vài tài liệu mà app vẫn 0/25") ──
+   Tiện ích v1.3 đưa từng file lên Drive ngay. App: dòng gói đang tải lấy tiến độ thật từ tiện ích (EXT.st.job = "<số> · n file đã lên Drive"),
+   gói vừa xong / tiện ích chuyển gói ⇒ tự đọc lại danh sách (≤ 1 lần / 15 giây); còn gói chờ mà tiện ích đang chạy ⇒ đọc lại mỗi 45 giây. ── */
+var EXTW = { job: "", at: "", t: 0 };
+function extJobNo(){ var j = extHere() && EXT.st && EXT.st.busy ? String(EXT.st.job || "") : ""; return (j.split(" · ")[0] || "").toUpperCase(); }
+var _pctOf32 = pctOf;
+pctOf = function(x){
+  var no = extJobNo(), bare = String(x.no || "").toUpperCase().replace(/-\d+$/, "");
+  if (no && bare && no.indexOf(bare) === 0 && x.status !== "Đã tải") {
+    var m = String(EXT.st.job || "").match(/(\d+) file đã lên Drive/), n = m ? +m[1] : 0;
+    return { p: Math.min(90, 10 + n * 12), est: true, t: "Tiện ích đang tải" + (n ? " · " + n + " file đã lên Drive" : " · đang mở gói") };
+  }
+  return _pctOf32(x);
+};
+function extReload(){ if (Date.now() - EXTW.t < 15e3 || !auth()) return; EXTW.t = Date.now(); S._lt = Date.now(); load(); }
+window.addEventListener("message", function(e){
+  if (e.source !== window || !e.data || e.data.mmhExt !== "state" || !e.data.st) return;
+  var st = e.data.st, no = String(st.job || "").split(" · ")[0], at = (st.last || {}).at || "";
+  if ((EXTW.job && no !== EXTW.job) || (EXTW.at && at !== EXTW.at)) setTimeout(extReload, 2500);
+  EXTW.job = no; EXTW.at = at;
+});
+setInterval(function(){
+  if (document.visibilityState !== "visible" || !S.boot) return;
+  var busy = (S.boot.hits || []).some(function(x){ return x.status === "Chờ tải" || x.status === "Đang tải"; });
+  if (busy && (extHere() || extList().length)) extReload();
+}, 45e3);
 
 KV.ready.then(function(){ if (auth()) load(); else render(); });
 </script>

@@ -3,3 +3,4 @@ __pycache__/
 tools/.cache/
 tools/.shots/
 ext-out/
+tools/td-guide/raw/

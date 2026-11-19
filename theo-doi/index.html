@@ -2412,7 +2412,7 @@ setInterval(function(){
    Tiện ích (tien-ich/, cài 1 lần vào Chrome / Edge): lấy phiên đăng nhập từ app ⇒ mỗi phút hỏi máy chủ (tender-info botHello) ⇒ có gói Chờ tải
    ⇒ mở muasamcong trong cửa sổ thu nhỏ, tải như bot GitHub; VNeGP Agent đang chạy ⇒ tải luôn file cần Agent. App báo "kick" ⇒ bắt đầu ngay.
    html[data-mmh-ext] = phiên bản tiện ích trên trình duyệt này; boot.ext = các máy đang bật tiện ích (backend MMH_WatchExt.gs). ── */
-var EXT_ZIP = "tien-ich/MMH_Tai_ho_so_thau.zip", EXT = { ver: "", st: null };
+var EXT_ZIP = "MMH_Tai_ho_so_thau.zip", EXT = { ver: "", st: null };
 function extHere(){ return !!(EXT.ver || document.documentElement.getAttribute("data-mmh-ext")); }
 function extList(){ return (((S.boot || {}).ext) || []).filter(function(x){ return x.min != null && x.min <= 3; }); }
 function extAgent(){ return !!((extHere() && EXT.st && EXT.st.agent) || extList().some(function(x){ return x.agent; })); }
@@ -2479,7 +2479,7 @@ openAgSetup = function(){
     '<li>Mở trang <b>' + url + '</b> (dán vào thanh địa chỉ) <button class="lnk" data-a="extcopy">Sao chép</button> ⇒ bật <b>' + (edge ? "Chế độ nhà phát triển / Developer mode" : "Chế độ dành cho nhà phát triển / Developer mode") + '</b> (công tắc ' + (edge ? "cột trái" : "góc phải trên") + ').</li>' +
     '<li>Bấm <b>Tải tiện ích đã giải nén / Load unpacked</b> ⇒ chọn thư mục vừa giải nén (thư mục có file manifest.json).</li>' +
     '<li>Quay lại app, bấm <b>Kiểm tra lại</b>. Xong — từ đó chỉ cần bật VNeGP Agent như thường.</li></ol>' +
-    '<p style="color:var(--t2);font-size:12.5px">Tiện ích chỉ là file JavaScript chạy trong trình duyệt (không file .exe / .bat), Kaspersky không chặn. Gỡ: ' + esc(url) + ' ▸ Xoá. Biểu tượng tiện ích trên thanh công cụ: xem tiện ích đang làm gì, Tạm dừng / Tải ngay.</p>' +
+    '<p style="color:var(--t2);font-size:12.5px">Tiện ích chỉ là mã JavaScript chạy bên trong trình duyệt — không có file .exe / .bat, không cài Python, không chạy ngầm ngoài trình duyệt (bộ cài cũ bị Kaspersky chặn vì làm các việc này). Gỡ: ' + esc(url) + ' ▸ Xoá. Biểu tượng tiện ích trên thanh công cụ: xem tiện ích đang làm gì, Tạm dừng / Tải ngay.</p>' +
     '<div class="agst" id="agst">' + (here ? '<span class="dot on"></span>Đã thấy tiện ích trên trình duyệt này (v' + esc(EXT.ver || document.documentElement.getAttribute("data-mmh-ext")) + ')' + (EXT.st ? (EXT.st.agent ? " · VNeGP Agent đang chạy" : " · VNeGP Agent CHƯA chạy") + (EXT.st.msg ? " · " + esc(EXT.st.msg) : "") : "")
       : a.on ? '<span class="dot on"></span>Tiện ích đang bật trên máy ' + esc(a.name || "khác") + ' — trình duyệt này chưa cài' : '<span class="dot"></span>Chưa thấy tiện ích trên trình duyệt này') + '</div></div>' +
     '<div class="ft"><button class="btn" data-a="agcheck">Kiểm tra lại</button><button class="btn pri" data-f="close">Đóng</button></div>';

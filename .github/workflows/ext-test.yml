@@ -20,6 +20,9 @@ jobs:
       - name: Chạy thử
         env: { NO: '${{ github.event.inputs.no }}', BACKLOG: '1' }
         run: xvfb-run -a node tools/ext-test/run.mjs
+      - name: Chạy thử — cửa sổ thu nhỏ, máy không có Agent
+        env: { NO: 'IB2500491794', AGENT: '0', SHOW: '0' }
+        run: rm -rf ext-out/profile && xvfb-run -a node tools/ext-test/run.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with: { name: ext-out, path: ext-out/*.png, retention-days: 3 }

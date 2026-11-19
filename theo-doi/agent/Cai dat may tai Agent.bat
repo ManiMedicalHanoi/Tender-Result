@@ -1,6 +1,6 @@
 @echo off
 chcp 65001 >nul
-title MMH - Cai dat may tai file can Agent
+title MMH - Cai dat may tai ho so can Agent (v2.0)
 cd /d "%~dp0"
 echo ============================================================
 echo  MMH - May tu tai file "can Agent" (Theo doi goi thau)
@@ -18,11 +18,15 @@ if not defined PY (
   echo Khong cai duoc Python. Tai Python tai https://www.python.org/downloads/ ^(tick "Add python.exe to PATH"^) roi chay lai file nay.
   pause & exit /b 1
 )
-echo Dang cai thu vien mo Chrome an ^(playwright^)...
+echo Dang cai thu vien trinh duyet an ^(playwright + Chromium rieng, khong dung Chrome cua ban^)...
 %PY% -m pip install --quiet --disable-pip-version-check --upgrade playwright
+%PY% -m playwright install chromium
 set "DEST=%LOCALAPPDATA%\MMH_Agent"
 if not exist "%DEST%" mkdir "%DEST%"
+rem dung ban cu dang chay (neu co) truoc khi chep ban moi
+powershell -NoProfile -Command "Get-CimInstance Win32_Process | Where-Object { $_.CommandLine -like '*agent_worker.py*' } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force }" >nul 2>nul
 copy /y "agent_worker.py" "%DEST%\agent_worker.py" >nul
+copy /y "tai_nhanh.py" "%DEST%\tai_nhanh.py" >nul
 if exist "%DEST%\STOP" del "%DEST%\STOP"
 %PY% "%DEST%\agent_worker.py" --setup
 if errorlevel 1 ( echo. & echo Chua cai dat xong - xem thong bao o tren. & pause & exit /b 1 )

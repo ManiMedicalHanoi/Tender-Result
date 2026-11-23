@@ -642,6 +642,34 @@ button.stx b{color:#9A5B00}
 .dfr.ag .st{font-size:12px;color:#8A5A00;background:#FFF6E0;border-radius:999px;padding:1px 8px;white-space:nowrap}
 .dcf{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
 @media (max-width:720px){.dc{padding:10px 8px 4px}.dch{grid-template-columns:1fr}.dch .when{text-align:left}.dfr{grid-template-columns:auto 1fr;}.dfr .fz{display:none}.dfr .fa{grid-column:2}}
+/* v3.2 — tab Từ khoá */
+.kwc .note{padding:10px 16px 0}
+.kwbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding:12px 16px}
+.kwbar input,.kwbar select{border:1px solid var(--line2);border-radius:8px;padding:6px 10px;font:inherit;font-size:13px;background:var(--sf);color:var(--t1)}
+.kwbar input{min-width:240px;flex:1 1 240px;max-width:380px}
+.kwn{margin-left:auto;font-size:12.5px;color:var(--t2)}
+.kwt{min-width:1100px}
+.kwt td small{display:block;color:var(--t3);font-size:11.5px;margin-top:2px}
+.kwt .ksp{max-width:300px;color:var(--t2)}
+.kwt tr.koff td{color:var(--t3)}
+.kgp{display:inline-block;border:1px solid var(--line2);background:var(--sf);color:var(--navy);border-radius:999px;padding:2px 9px;margin:2px 4px 2px 0;font-size:12px;line-height:1.4;cursor:default}
+button.kgp{cursor:pointer}
+button.kgp.on{background:var(--pale);border-color:var(--blue);color:var(--blue);font-weight:600}
+.kst{display:inline-block;border-radius:999px;padding:2px 9px;font-size:12px;font-weight:600;white-space:nowrap}
+.kst.on{background:#EAF6EE;color:#1F7A3F}
+.kst.soon{background:#FBE9B7;color:#7A5A00}
+.kst.off{background:#F1F3F5;color:var(--t3)}
+.kact{white-space:nowrap}
+.kwf{margin:12px 16px;border:1px solid var(--line2);border-radius:var(--r);padding:12px 14px;background:var(--pale)}
+.kwfh{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap;margin-bottom:8px}.kwfh span{font-size:12.5px;color:var(--t2)}
+.kwfg{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:10px 16px}
+.kwfg label{display:flex;flex-direction:column;gap:5px;font-size:12.5px;font-weight:600;color:var(--navy)}
+.kwfg input[type=text],.kwfg input:not([type]){border:1px solid var(--line2);border-radius:8px;padding:7px 10px;font:inherit;font-size:13px;font-weight:400;background:var(--sf)}
+.kwfg .hint{font-weight:400}
+.kwgl{display:flex;flex-wrap:wrap}
+.kwck{flex-direction:row!important;align-items:center;font-weight:400!important;color:var(--t1)!important}
+.kwfa{margin-top:12px;text-align:right}
+@media (max-width:700px){.kwn{margin-left:0;width:100%}.kwbar input{min-width:0}}
 </style>
 </head>
 <body>
@@ -657,7 +685,7 @@ button.stx b{color:#9A5B00}
    Đăng nhập: phiên email công ty (localStorage.mmh_tk — dùng chung Report Hub / CRM / Tender Map). */
 var API = "https://script.google.com/macros/s/AKfycbwv3R7EACqtt3pQZfMWRQFilC4E0W7td8Z8xWxQW6P7UckqFjWFJSFxcOWBZknHplhQuQ/exec";
 var TRAINING_HUB = "https://script.google.com/macros/s/AKfycbwsX4cQEoH4LNlmcNfe8qWIM9K6EiDEXy7PjhP9bHY2citL6xHn5L1unsAlQJHyL9EP/exec";
-var VER = "3.1";
+var VER = "3.2";
 var TYPES = { khmt: "Kế hoạch LCNT", tbmt: "Thông báo mời thầu", kqdt: "Kết quả LCNT" };
 var TSHORT = { khmt: "KH LCNT", tbmt: "TBMT", kqdt: "Kết quả" };
 var STC = { "Chờ tải": "wait", "Đang tải": "work", "Đã tải": "done", "Lỗi": "err", "Không có file": "nofile", "Không tải": "off" };
@@ -872,7 +900,7 @@ function render(){
       nWait = H.filter(function(x){ return x.status === "Chờ tải" || x.status === "Đang tải"; }).length;
   var nDocs = 0; if (DOCS.rows) DOCS.rows.forEach(function(r){ nDocs += r.f.length; }); else H.forEach(function(x){ nDocs += (x.files || []).length; });
   var h = '<div class="top"><div class="brand"><b>Theo dõi gói thầu</b><span>Kế hoạch LCNT · TBMT · Kết quả — tự tải hồ sơ về Drive</span></div>' +
-    '<nav class="tabs">' + [["map", "Bản đồ", ""], ["watch", "Theo dõi", W.length], ["docs", "Tài liệu", nDocs], ["goods", "Hàng hóa", ""]].map(function(t){ return '<button data-tab="' + t[0] + '" class="' + (S.tab === t[0] ? "on" : "") + '">' + t[1] + (t[2] ? '<span class="tn">' + t[2] + '</span>' : "") + '</button>'; }).join("") + '</nav>' +
+    '<nav class="tabs">' + [["map", "Bản đồ", ""], ["watch", "Theo dõi", W.length], ["docs", "Tài liệu", nDocs], ["goods", "Hàng hóa", ""], ["kw", "Từ khoá", ""]].map(function(t){ return '<button data-tab="' + t[0] + '" class="' + (S.tab === t[0] ? "on" : "") + '">' + t[1] + (t[2] ? '<span class="tn">' + t[2] + '</span>' : "") + '</button>'; }).join("") + '</nav>' +
     '<span class="chip" title="Bot tải hồ sơ từ muasamcong.mof.gov.vn, chạy trên máy chủ 5 phút / lần (7h–21h, T2–T7)"><span class="dot ' + (live ? "on" : seen ? "off" : "") + '"></span>Bot: ' + (live ? "đang chạy" : seen ? "lần cuối " + esc(bot.seen.slice(5, 16)) : "chưa chạy") + '</span>' +
     (nWait ? '<button class="chip dlq" data-a="dlq" title="Xem các gói đang chờ / đang tải">' + (H.some(function(x){ return x.status === "Đang tải"; }) ? '<span class="spin"></span>' : "") + 'Đang tải ' + nWait + ' gói</button>' : "") +
     (B.rootUrl ? '<a class="btn sm" href="' + esc(B.rootUrl) + '" target="_blank" rel="noopener">Thư mục Drive</a>' : "") +
@@ -882,6 +910,7 @@ function render(){
     '<button class="btn sm" data-a="acct" title="Tài khoản, mật khẩu, cài app">' + esc(a.user.pic || (a.user.email || "").split("@")[0] || "Tài khoản") + ' ▾</button></div>';
   if (S.tab === "map") { app.innerHTML = h + mapView(B); mapWire(); return; }
   if (S.tab === "docs") { app.innerHTML = h + docsView(B); return; }
+  if (S.tab === "kw") { app.innerHTML = h + kwView(); kwWire(); return; }
   if (S.tab === "goods") { var fa = document.activeElement, fid = fa && fa.id && /^g-/.test(fa.id) ? fa.id : "", fp = fid && fa.selectionStart; app.innerHTML = h + goodsView(); goodsWire(); if (fid && $(fid)) { $(fid).focus(); try { $(fid).setSelectionRange(fp, fp); } catch (_) {} } return; }
   h += '<div class="stats">' +
     tile("watch", W.filter(function(w){ return w.active; }).length, "bệnh viện đang theo dõi", "") +
@@ -2710,6 +2739,115 @@ procWarn = function(B, c){
     .replace(/Bot máy chủ chạy lần cuối[^<]*|Bot máy chủ chưa chạy lần nào[^<]*/g, extList().length || extHere() ? "" : "Chưa có máy tính nào bật tiện ích tải hồ sơ — cài tiện ích trên máy có VNeGP Agent.");
   return h;
 };
+
+/* ── v3.2 (23/11/2026, người dùng: "xem được các từ khoá đang áp dụng, liên đới với sản phẩm nào; thêm từ khoá khác — từ ngày hôm sau hệ thống tìm theo từ đó") ──
+   Tab Từ khoá = tab "Từ khoá sản phẩm MMH" của file tổng hàng hóa (backend wKw / wKwSave, MMH_WatchKw.gs). Dùng cho báo cáo thầu buổi sáng theo PIC,
+   tab SP liên quan, đọc chữ hồ sơ mời thầu. Thêm / đổi chữ từ khoá ⇒ áp dụng từ NGÀY HÔM SAU. */
+var KW = { d: null, busy: false, err: "", q: "", spec: "", grp: "", form: null, saving: false, del: "" };
+var KW_SPEC = ["Nha khoa", "Nhãn khoa", "Ngoại khoa"], KW_LV = ["Cao", "Trung bình", "Thấp"];
+function kwLoad(force){
+  if (KW.busy || (KW.d && !force)) return;
+  KW.busy = true; KW.err = "";
+  api("wKw", { op: "list" }).then(function(d){ KW.busy = false; if (d && d.ok) KW.d = d; else KW.err = (d && d.error) || "Không đọc được danh sách từ khoá."; if (S.tab === "kw") render(); },
+    function(e){ KW.busy = false; KW.err = "Không đọc được danh sách từ khoá (" + e.message + ")."; if (S.tab === "kw") render(); });
+}
+function kwGroups(){ var o = {}; ((KW.d || {}).groups || []).forEach(function(g){ o[g[0]] = { spec: g[1], name: g[2], sp: g[3] }; }); return o; }
+function kwVn(d){ var m = String(d || "").match(/(\d{4})-(\d{2})-(\d{2})/); return m ? m[3] + "/" + m[2] : d; }
+function kwSt(x, today){
+  if (/tạm tắt/i.test(x.st)) return '<span class="kst off">Tạm tắt</span>';
+  if (x.apply && x.apply > today) return '<span class="kst soon" title="Từ khoá mới thêm hoặc vừa đổi chữ — hệ thống bắt đầu tìm theo từ này từ ngày ' + kwVn(x.apply) + '">Từ ' + kwVn(x.apply) + '</span>';
+  return '<span class="kst on">Đang dùng</span>';
+}
+function kwView(){
+  kwLoad();
+  var d = KW.d, G = kwGroups(), today = (d && d.today) || "";
+  var h = '<div class="dwrap"><div class="card kwc"><h3>Từ khoá sản phẩm MMH<span class="sp"></span><button class="btn pri sm" data-kwa="new">+ Thêm từ khoá</button></h3>' +
+    '<div class="note">Hệ thống dùng các từ khoá này để tìm gói thầu và mặt hàng liên quan cho báo cáo thầu buổi sáng. Từ khoá mới thêm được áp dụng <b>từ ngày hôm sau</b>.</div>';
+  if (KW.err) h += '<div class="err">' + esc(KW.err) + '</div>';
+  if (KW.form) h += kwFormHtml(G);
+  if (!d) return h + '<div class="empty">' + (KW.busy ? '<span class="spin"></span>Đang đọc danh sách từ khoá…' : "") + '</div></div></div>';
+  var L = d.kw || [], q = fold(KW.q);
+  var rows = L.filter(function(x){
+    if (KW.spec && String(x.spec).indexOf(KW.spec) < 0) return false;
+    if (KW.grp && String(x.groups).split(/[;,]\s*/).indexOf(KW.grp) < 0) return false;
+    if (q && fold([x.kw, x.sp, x.groups, (x.groups || "").split(/[;,]\s*/).map(function(c){ return (G[c] || {}).name || ""; }).join(" ")].join(" ")).indexOf(q) < 0) return false;
+    return true;
+  });
+  var nOn = L.filter(function(x){ return !/tạm tắt/i.test(x.st) && !(x.apply && x.apply > today); }).length, nSoon = L.filter(function(x){ return !/tạm tắt/i.test(x.st) && x.apply && x.apply > today; }).length;
+  h += '<div class="kwbar"><input id="kw-q" placeholder="Tìm từ khoá, sản phẩm, nhóm…" value="' + esc(KW.q) + '" autocomplete="off">' +
+    '<span class="seg sm">' + [["", "Tất cả"]].concat(KW_SPEC.map(function(s){ return [s, s]; })).map(function(t){ return '<button data-kwspec="' + esc(t[0]) + '" class="' + (KW.spec === t[0] ? "on" : "") + '">' + esc(t[1]) + '</button>'; }).join("") + '</span>' +
+    '<select id="kw-grp"><option value="">Mọi nhóm sản phẩm</option>' + ((d.groups || []).filter(function(g){ return !KW.spec || g[1] === KW.spec; }).map(function(g){ return '<option value="' + esc(g[0]) + '"' + (KW.grp === g[0] ? " selected" : "") + '>' + esc(g[2]) + '</option>'; }).join("")) + '</select>' +
+    '<span class="kwn"><b>' + nOn + '</b> đang dùng' + (nSoon ? ' · <b>' + nSoon + '</b> áp dụng từ ngày mai' : "") + ' · ' + L.length + ' từ khoá</span></div>';
+  if (!rows.length) return h + '<div class="empty">Không có từ khoá khớp bộ lọc.</div></div></div>';
+  h += '<div class="gtw"><table class="gt kwt"><thead><tr><th>Từ khoá</th><th>Chuyên khoa</th><th>Nhóm sản phẩm MMH</th><th>Sản phẩm MMH có thể gặp</th><th>Mức</th><th>Báo email</th><th>Trạng thái</th><th>Người thêm</th><th></th></tr></thead><tbody>' +
+    rows.map(function(x){
+      var gs = String(x.groups || "").split(/[;,]\s*/).filter(String).map(function(c){ return '<span class="kgp" title="' + esc((G[c] || {}).sp || c) + '">' + esc((G[c] || {}).name || c) + '</span>'; }).join("");
+      var k = esc(x.kw), off = /tạm tắt/i.test(x.st), dz = KW.del === x.kw;
+      return '<tr class="' + (off ? "koff" : "") + '"><td><b>' + k + '</b>' + (x.noise ? '<small class="kno" title="Dễ khớp nhầm với">Nhiễu: ' + esc(x.noise) + '</small>' : "") + '</td><td>' + esc(x.spec) + '</td><td>' + (gs || '<span class="mute">—</span>') + '</td>' +
+        '<td class="ksp">' + esc(x.sp || "") + '</td><td>' + esc(x.level) + '</td><td>' + (x.mail ? "Có" : "Không") + '</td><td>' + kwSt(x, today) + '</td>' +
+        '<td class="kby">' + esc(x.by || "") + (x.at ? '<small>' + esc(String(x.at).slice(0, 16)) + '</small>' : "") + '</td>' +
+        '<td class="kact"><button class="btn sm" data-kwedit="' + k + '">Sửa</button> <button class="btn sm" data-kwoff="' + k + '" data-on="' + (off ? 1 : 0) + '">' + (off ? "Bật lại" : "Tạm tắt") + '</button>' +
+        (x.by !== "Mặc định" ? ' <button class="btn sm dng" data-kwdel="' + k + '">' + (dz ? "Bấm lần nữa để xoá" : "Xoá") + '</button>' : "") + '</td></tr>';
+    }).join("") + '</tbody></table></div></div></div>';
+  return h;
+}
+function kwFormHtml(G){
+  var f = KW.form, d = KW.d || {}, sp = f.spec || [];
+  var gl = (d.groups || []).filter(function(g){ return !sp.length || sp.indexOf(g[1]) >= 0; });
+  return '<form id="kw-form" class="kwf" autocomplete="off" novalidate><div class="kwfh"><b>' + (f.key ? "Sửa từ khoá “" + esc(f.key) + "”" : "Thêm từ khoá") + '</b>' +
+    '<span>' + (f.key ? "Đổi chữ từ khoá ⇒ áp dụng lại từ ngày hôm sau." : "Áp dụng từ ngày hôm sau.") + '</span></div>' +
+    '<div class="kwfg"><label>Từ khoá<input id="kwf-kw" value="' + esc(f.kw || "") + '" placeholder="vd. kìm vi phẫu, trâm*"><span class="hint">Khớp nguyên từ, không phân biệt hoa thường. <b>*</b> = mọi đuôi (Composit* ⇒ Composite, Composites).</span></label>' +
+    '<label>Chuyên khoa<span class="seg sm">' + KW_SPEC.map(function(s){ return '<button type="button" data-kwfs="' + esc(s) + '" class="' + (sp.indexOf(s) >= 0 ? "on" : "") + '">' + esc(s) + '</button>'; }).join("") + '</span></label>' +
+    '<label>Nhóm sản phẩm MMH<span class="kwgl">' + gl.map(function(g){ return '<button type="button" data-kwfg="' + esc(g[0]) + '" class="kgp' + ((f.groups || []).indexOf(g[0]) >= 0 ? " on" : "") + '" title="' + esc(g[3]) + '">' + esc(g[2]) + '</button>'; }).join("") + '</span></label>' +
+    '<label>Sản phẩm MMH có thể gặp<input id="kwf-sp" value="' + esc(f.sp || "") + '" placeholder="vd. Micro Forceps"></label>' +
+    '<label>Dễ khớp nhầm với (tuỳ chọn)<input id="kwf-noise" value="' + esc(f.noise || "") + '" placeholder="vd. kìm cắt xương"></label>' +
+    '<label>Mức liên quan<span class="seg sm">' + KW_LV.map(function(s){ return '<button type="button" data-kwfl="' + esc(s) + '" class="' + ((f.level || "Trung bình") === s ? "on" : "") + '">' + esc(s) + '</button>'; }).join("") + '</span></label>' +
+    '<label class="kwck"><input type="checkbox" id="kwf-mail"' + (f.mail !== false ? " checked" : "") + '> Đưa vào báo cáo email khi gói thầu có từ khoá này</label></div>' +
+    '<div class="kwfa"><button type="button" class="btn" data-kwa="cancel">Huỷ</button> <button type="button" class="btn pri" data-kwa="save"' + (KW.saving ? " disabled" : "") + '>' + (KW.saving ? "Đang lưu…" : f.key ? "Lưu" : "Thêm từ khoá") + '</button></div></form>';
+}
+function kwKeep(){ var f = KW.form; if (!f) return; ["kw", "sp", "noise"].forEach(function(k){ var e = $("kwf-" + k); if (e) f[k] = e.value; }); var m = $("kwf-mail"); if (m) f.mail = m.checked; }
+function kwSave(op, extra){
+  var p = Object.assign({ op: op }, extra || {});
+  if (op === "add" || op === "edit") {
+    kwKeep(); var f = KW.form;
+    if (!String(f.kw || "").trim()) { KW.err = "Nhập từ khoá."; render(); return; }
+    if (!(f.spec || []).length) { KW.err = "Chọn ít nhất 1 chuyên khoa."; render(); return; }
+    Object.assign(p, { key: f.key || "", kw: f.kw, spec: f.spec.join("; "), groups: (f.groups || []).join("; "), level: f.level || "Trung bình", sp: f.sp || "", noise: f.noise || "", mail: f.mail === false ? "0" : "1" });
+    KW.saving = true;
+  }
+  KW.err = ""; render();
+  api("wKwSave", p, true).then(function(d){
+    KW.saving = false;
+    if (d && d.ok) { KW.d = d; if (op === "add" || op === "edit") KW.form = null; KW.del = "";
+      toast(op === "add" ? "Đã thêm từ khoá — hệ thống tìm theo từ này từ ngày mai." : op === "edit" ? "Đã lưu." : op === "del" ? "Đã xoá từ khoá." : op === "off" ? "Đã tạm tắt từ khoá." : "Đã bật lại từ khoá.", 5000); }
+    else KW.err = (d && d.error) || "Chưa lưu được.";
+    render();
+  }, function(e){ KW.saving = false; KW.err = "Chưa lưu được (" + e.message + ")."; render(); });
+}
+document.addEventListener("click", function(e){
+  var t = e.target.closest("[data-kwa],[data-kwspec],[data-kwedit],[data-kwoff],[data-kwdel],[data-kwfs],[data-kwfg],[data-kwfl]");
+  if (!t || S.tab !== "kw") return;
+  if (t.hasAttribute("data-kwa")) { var a = t.getAttribute("data-kwa");
+    if (a === "new") { KW.form = { kw: "", spec: KW.spec ? [KW.spec] : [], groups: KW.grp ? [KW.grp] : [], level: "Trung bình", mail: true }; KW.err = ""; render(); var i = $("kwf-kw"); if (i) i.focus(); }
+    else if (a === "cancel") { KW.form = null; KW.err = ""; render(); }
+    else if (a === "save") kwSave(KW.form && KW.form.key ? "edit" : "add");
+    return; }
+  if (t.hasAttribute("data-kwspec")) { KW.spec = t.getAttribute("data-kwspec"); KW.grp = ""; render(); return; }
+  if (t.hasAttribute("data-kwedit")) { var x = ((KW.d || {}).kw || []).filter(function(r){ return r.kw === t.getAttribute("data-kwedit"); })[0]; if (!x) return;
+    KW.form = { key: x.kw, kw: x.kw, spec: String(x.spec).split(/[;,]\s*/).filter(String), groups: String(x.groups).split(/[;,]\s*/).filter(String), level: x.level || "Trung bình", sp: x.sp, noise: x.noise, mail: x.mail };
+    KW.err = ""; render(); scrollTo(0, 0); return; }
+  if (t.hasAttribute("data-kwoff")) { kwSave(t.getAttribute("data-on") === "1" ? "on" : "off", { key: t.getAttribute("data-kwoff") }); return; }
+  if (t.hasAttribute("data-kwdel")) { var k = t.getAttribute("data-kwdel"); if (KW.del !== k) { KW.del = k; render(); setTimeout(function(){ if (KW.del === k) { KW.del = ""; render(); } }, 4000); return; } kwSave("del", { key: k }); return; }
+  if (KW.form) { kwKeep();
+    if (t.hasAttribute("data-kwfs")) { var s = t.getAttribute("data-kwfs"), L = KW.form.spec, j = L.indexOf(s); if (j >= 0) L.splice(j, 1); else L.push(s); }
+    if (t.hasAttribute("data-kwfg")) { var c = t.getAttribute("data-kwfg"), Lg = KW.form.groups, jg = Lg.indexOf(c); if (jg >= 0) Lg.splice(jg, 1); else Lg.push(c); }
+    if (t.hasAttribute("data-kwfl")) KW.form.level = t.getAttribute("data-kwfl");
+    render(); }
+});
+function kwWire(){
+  var q = $("kw-q"); if (q) q.addEventListener("input", function(){ KW.q = q.value; clearTimeout(kwWire._t); kwWire._t = setTimeout(function(){ var p = q.selectionStart; render(); var n = $("kw-q"); if (n) { n.focus(); try { n.setSelectionRange(p, p); } catch (_) {} } }, 250); });
+  var g = $("kw-grp"); if (g) g.addEventListener("change", function(){ KW.grp = g.value; render(); });
+}
 
 KV.ready.then(function(){ if (auth()) load(); else render(); });
 </script>

@@ -394,7 +394,8 @@ button.stx b{color:#9A5B00}
   .wrap>*{min-width:0}
   .stats{grid-template-columns:repeat(2,1fr);padding:12px 12px 0;gap:8px}
   .tabs{order:5;width:100%;display:flex}
-  .tabs button{flex:1;justify-content:center;padding:7px 6px;white-space:nowrap}
+  .tabs{overflow-x:auto;scrollbar-width:none}
+  .tabs button{flex:1 0 auto;justify-content:center;padding:7px 8px;white-space:nowrap}
   #vnmap .lb text{font-size:21px;stroke-width:4px}
   #vnmap .wdot{r:7px}
   .brand span{display:none}
@@ -642,6 +643,37 @@ button.stx b{color:#9A5B00}
 .dfr.ag .st{font-size:12px;color:#8A5A00;background:#FFF6E0;border-radius:999px;padding:1px 8px;white-space:nowrap}
 .dcf{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
 @media (max-width:720px){.dc{padding:10px 8px 4px}.dch{grid-template-columns:1fr}.dch .when{text-align:left}.dfr{grid-template-columns:auto 1fr;}.dfr .fz{display:none}.dfr .fa{grid-column:2}}
+/* v3.3 — tab TT57 (rà soát phân nhóm TBYT theo TT 57/2025/TT-BYT trong HSMT + lý do không đáp ứng) */
+.t57 .note{padding:10px 16px 0;color:var(--t2);font-size:13px;line-height:1.5}
+.t57g{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;padding:12px 16px}
+.t57k{border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:var(--sf)}
+.t57k b{display:block;font-size:22px;color:var(--navy);line-height:1.2}
+.t57k span{font-size:12.5px;color:var(--t2)}
+.t57k.hl{background:#FBE9B7;border-color:#EBD48E}
+.t57bar{display:flex;height:14px;border-radius:4px;overflow:hidden;background:var(--sf2);min-width:120px}
+.t57bar i{display:block;height:100%}
+.t57lg{display:flex;flex-wrap:wrap;gap:12px;font-size:12.5px;color:var(--t2);padding:0 16px 10px}
+.t57lg i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+.t57 .l-A{background:#B42318}.t57 .l-B{background:#C77700}.t57 .l-C{background:#5188CC}.t57 .l-D{background:#CFE2F3}.t57 .l-N{background:#E6EAEF}
+.t57 .gt.t57t{min-width:0}
+.t57 .gtw{max-height:none}
+.t57t td{min-width:0}
+.t57t td:nth-child(2){min-width:0}
+.t57t td.n,.t57t th.n{text-align:right;white-space:nowrap;width:56px}
+.t57t .bc{width:38%}
+.t57t .wt{width:34%}
+.t57t .wq{width:46%}
+.t57t td .oq{color:var(--t2);font-size:12.5px;line-height:1.45;overflow-wrap:anywhere}
+.t57t td small{display:block;color:var(--t3);font-size:11.5px;margin-top:2px}
+.t57lv{display:inline-block;min-width:22px;text-align:center;border-radius:6px;padding:1px 6px;font-weight:700;color:#fff;font-size:12px}
+.t57lv.l-D,.t57lv.l-N{color:var(--navy)}
+.t57sec{padding:4px 16px 14px}
+.t57sec h4{margin:12px 0 8px;font-size:14px;color:var(--navy)}
+.t57bars{display:grid;grid-template-columns:minmax(150px,220px) 1fr 70px;gap:6px 10px;align-items:center;font-size:12.5px}
+.t57bars .v{text-align:right;color:var(--t2)}
+.t57rb{height:12px;border-radius:3px;background:var(--sky)}
+.t57rb.oq{background:#C77700}
+@media (max-width:720px){.t57bars{grid-template-columns:110px 1fr 48px}.t57 h3{flex-wrap:wrap}.t57t .bc{width:30%}.t57sec{padding:4px 10px 12px}}
 /* v3.2 — tab Từ khoá */
 .kwc .note{padding:10px 16px 0}
 .kwbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding:12px 16px}
@@ -685,7 +717,7 @@ button.kgp.on{background:var(--pale);border-color:var(--blue);color:var(--blue);
    Đăng nhập: phiên email công ty (localStorage.mmh_tk — dùng chung Report Hub / CRM / Tender Map). */
 var API = "https://script.google.com/macros/s/AKfycbwv3R7EACqtt3pQZfMWRQFilC4E0W7td8Z8xWxQW6P7UckqFjWFJSFxcOWBZknHplhQuQ/exec";
 var TRAINING_HUB = "https://script.google.com/macros/s/AKfycbwsX4cQEoH4LNlmcNfe8qWIM9K6EiDEXy7PjhP9bHY2citL6xHn5L1unsAlQJHyL9EP/exec";
-var VER = "3.2";
+var VER = "3.3";
 var TYPES = { khmt: "Kế hoạch LCNT", tbmt: "Thông báo mời thầu", kqdt: "Kết quả LCNT" };
 var TSHORT = { khmt: "KH LCNT", tbmt: "TBMT", kqdt: "Kết quả" };
 var STC = { "Chờ tải": "wait", "Đang tải": "work", "Đã tải": "done", "Lỗi": "err", "Không có file": "nofile", "Không tải": "off" };
@@ -900,7 +932,7 @@ function render(){
       nWait = H.filter(function(x){ return x.status === "Chờ tải" || x.status === "Đang tải"; }).length;
   var nDocs = 0; if (DOCS.rows) DOCS.rows.forEach(function(r){ nDocs += r.f.length; }); else H.forEach(function(x){ nDocs += (x.files || []).length; });
   var h = '<div class="top"><div class="brand"><b>Theo dõi gói thầu</b><span>Kế hoạch LCNT · TBMT · Kết quả — tự tải hồ sơ về Drive</span></div>' +
-    '<nav class="tabs">' + [["map", "Bản đồ", ""], ["watch", "Theo dõi", W.length], ["docs", "Tài liệu", nDocs], ["goods", "Hàng hóa", ""], ["kw", "Từ khoá", ""]].map(function(t){ return '<button data-tab="' + t[0] + '" class="' + (S.tab === t[0] ? "on" : "") + '">' + t[1] + (t[2] ? '<span class="tn">' + t[2] + '</span>' : "") + '</button>'; }).join("") + '</nav>' +
+    '<nav class="tabs">' + [["map", "Bản đồ", ""], ["watch", "Theo dõi", W.length], ["docs", "Tài liệu", nDocs], ["goods", "Hàng hóa", ""], ["kw", "Từ khoá", ""], ["tt57", "TT57", ""]].map(function(t){ return '<button data-tab="' + t[0] + '" class="' + (S.tab === t[0] ? "on" : "") + '">' + t[1] + (t[2] ? '<span class="tn">' + t[2] + '</span>' : "") + '</button>'; }).join("") + '</nav>' +
     '<span class="chip" title="Bot tải hồ sơ từ muasamcong.mof.gov.vn, chạy trên máy chủ 5 phút / lần (7h–21h, T2–T7)"><span class="dot ' + (live ? "on" : seen ? "off" : "") + '"></span>Bot: ' + (live ? "đang chạy" : seen ? "lần cuối " + esc(bot.seen.slice(5, 16)) : "chưa chạy") + '</span>' +
     (nWait ? '<button class="chip dlq" data-a="dlq" title="Xem các gói đang chờ / đang tải">' + (H.some(function(x){ return x.status === "Đang tải"; }) ? '<span class="spin"></span>' : "") + 'Đang tải ' + nWait + ' gói</button>' : "") +
     (B.rootUrl ? '<a class="btn sm" href="' + esc(B.rootUrl) + '" target="_blank" rel="noopener">Thư mục Drive</a>' : "") +
@@ -911,6 +943,7 @@ function render(){
   if (S.tab === "map") { app.innerHTML = h + mapView(B); mapWire(); return; }
   if (S.tab === "docs") { app.innerHTML = h + docsView(B); return; }
   if (S.tab === "kw") { app.innerHTML = h + kwView(); kwWire(); return; }
+  if (S.tab === "tt57") { app.innerHTML = h + t57View(); t57Wire(); return; }
   if (S.tab === "goods") { var fa = document.activeElement, fid = fa && fa.id && /^g-/.test(fa.id) ? fa.id : "", fp = fid && fa.selectionStart; app.innerHTML = h + goodsView(); goodsWire(); if (fid && $(fid)) { $(fid).focus(); try { $(fid).setSelectionRange(fp, fp); } catch (_) {} } return; }
   h += '<div class="stats">' +
     tile("watch", W.filter(function(w){ return w.active; }).length, "bệnh viện đang theo dõi", "") +
@@ -2850,6 +2883,76 @@ function kwWire(){
 }
 
 KV.ready.then(function(){ if (auth()) load(); else render(); });
+
+/* ── v3.3 (24/11/2026, Product Team: rà soát áp dụng TT 57/2025/TT-BYT trong hồ sơ thầu TBYT công lập) ──
+   Tab TT57 đọc tt57/tt57.json (dựng ngoài app từ tracker: Danh sách hàng hóa, Danh sách nhà thầu, chữ HSMT đã tải). Mức áp dụng mỗi gói:
+   A phân nhóm theo TT57 · B có nhắc TT57 nhưng không chia nhóm · C tự đặt tiêu chí chất lượng (CE, FDA, CFS/FSC, G7/EU, ISO 13485, TT14 cũ, nước tham chiếu…) · D không có tiêu chí. */
+var T57 = { d: null, busy: false, err: "", w: "W1", by: "pk", q: "", lv: "", more: 0 };
+var T57_LVN = { A: "A · Phân nhóm TT57", B: "B · Nhắc TT57, không chia nhóm", C: "C · Tự đặt tiêu chí chất lượng", D: "D · Không có tiêu chí", "Chưa có dữ liệu": "Chưa có dữ liệu" };
+var T57_RC = { PHAN_NHOM_TT57: "Phân nhóm / dẫn chiếu TT57", PHAN_NHOM_KHAC: "Phân nhóm khác (TT14 cũ)", CFS_FSC_LUU_HANH_NN: "CFS / FSC / lưu hành nước ngoài", CHAT_LUONG_CE: "Chứng nhận CE / MDR", CHAT_LUONG_FDA: "FDA", ISO13485: "ISO 13485", HOP_CHUAN_DGSPH: "Hợp chuẩn / hợp quy / tiêu chuẩn công bố", XUAT_XU_G7: "Xuất xứ G7 / EU", SO_LUU_HANH_VN: "Số lưu hành / GPNK tại VN", THONG_SO_KY_THUAT: "Thông số kỹ thuật", HOP_LE_HANG_HOA: "Tính hợp lệ hàng hóa (Mục 3)", NANG_LUC_HO_SO: "Năng lực, kinh nghiệm, hồ sơ", XEP_HANG_GIA: "Xếp hạng / giá", XEM_BAO_CAO: "Xem báo cáo đánh giá", KHONG_DANH_GIA: "Không được đánh giá", KHONG_DAP_UNG_CHUNG: "Không đáp ứng (không nói rõ)", KHAC: "Khác" };
+function t57Load(){
+  if (T57.busy || T57.d) return;
+  T57.busy = true;
+  fetch("tt57/tt57.json?v=" + VER + "-1", { cache: "no-cache" }).then(function(r){ if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
+    .then(function(d){ T57.busy = false; T57.d = d; if (S.tab === "tt57") render(); }, function(e){ T57.busy = false; T57.err = "Không đọc được dữ liệu rà soát (" + e.message + ")."; if (S.tab === "tt57") render(); });
+}
+function t57Cls(l){ return "l-" + (l === "Chưa có dữ liệu" ? "N" : l); }
+function t57Bar(arr, lv){ var t = arr.reduce(function(a, b){ return a + b; }, 0) || 1; return '<div class="t57bar">' + arr.map(function(v, i){ return v ? '<i class="' + t57Cls(lv[i]) + '" style="width:' + (100 * v / t).toFixed(2) + '%" title="' + esc(T57_LVN[lv[i]] + ": " + v) + '"></i>' : ""; }).join("") + '</div>'; }
+function t57Pct(a, b){ return b ? (100 * a / b).toFixed(1).replace(".", ",") + "%" : "—"; }
+function t57View(){
+  t57Load();
+  var d = T57.d;
+  var h = '<div class="dwrap"><div class="card t57"><h3>Rà soát phân nhóm TBYT theo TT 57/2025/TT-BYT<span class="sp"></span>' +
+    '<span class="seg sm">' + [["W1", "24/05 – 24/11/2026"], ["W0", "01/03 – 23/05/2026"]].map(function(t){ return '<button data-t57w="' + t[0] + '" class="' + (T57.w === t[0] ? "on" : "") + '">' + t[1] + '</button>'; }).join("") + '</span></h3>' +
+    '<div class="note">Gói thiết bị, vật tư y tế, vật tư xét nghiệm của chủ đầu tư công lập (bỏ thuốc, dịch vụ, xây lắp). Phân nhóm theo TT57 <b>bắt buộc từ 01/01/2027</b>; năm 2026 bệnh viện vẫn mua sắm theo quy định cũ. ' +
+    'Mức của mỗi gói lấy từ nguồn tốt nhất có được: chữ HSMT đã tải ⇒ lý do không đáp ứng (trích yêu cầu E-HSMT) ⇒ cấu hình chào thầu trong Danh sách hàng hóa (gián tiếp).</div>';
+  if (T57.err) return h + '<div class="err">' + esc(T57.err) + '</div></div></div>';
+  if (!d) return h + '<div class="empty"><span class="spin"></span>Đang đọc dữ liệu rà soát…</div></div></div>';
+  var W = d.byWin[T57.w] || {}, LV = d.levels, arr = T57.by === "cdt" ? W.cdt : W.pk, tot = T57.by === "cdt" ? W.nCdt : W.nPk, R = d.reasons[T57.w] || {};
+  h += '<div class="t57g">' +
+    '<div class="t57k"><b>' + (W.nPk || 0).toLocaleString("vi-VN") + '</b><span>gói TBYT công lập · ' + (W.nCdt || 0).toLocaleString("vi-VN") + ' chủ đầu tư</span></div>' +
+    '<div class="t57k hl"><b>' + (W.pk ? W.pk[0] : 0) + ' · ' + (W.pk ? W.pk[1] : 0) + '</b><span>gói mức A (phân nhóm TT57) · mức B (nhắc TT57)</span></div>' +
+    '<div class="t57k"><b>' + t57Pct(W.pk ? W.pk[2] : 0, W.nPk) + '</b><span>gói tự đặt tiêu chí chất lượng (mức C)</span></div>' +
+    '<div class="t57k"><b>' + (W.hsmt || 0) + '</b><span>gói đã đọc được chữ HSMT / BCĐG (' + t57Pct(W.hsmt, W.nPk) + ')</span></div>' +
+    '<div class="t57k"><b>' + (R.q || 0).toLocaleString("vi-VN") + '</b><span>lượt nhà thầu trượt vì tiêu chí chất lượng · ' + (R.qPk || 0) + ' gói · ' + (R.qCdt || 0) + ' CĐT</span></div></div>';
+  h += '<div class="t57sec"><h4>Tỷ lệ mức áp dụng <span class="seg sm" style="margin-left:8px">' + [["pk", "theo gói"], ["cdt", "theo chủ đầu tư"]].map(function(t){ return '<button data-t57by="' + t[0] + '" class="' + (T57.by === t[0] ? "on" : "") + '">' + t[1] + '</button>'; }).join("") + '</span></h4>' +
+    t57Bar(arr || [], LV) + '</div><div class="t57lg">' + LV.map(function(l, i){ return '<span><i class="' + t57Cls(l) + '"></i>' + esc(T57_LVN[l]) + ': <b>' + (arr ? arr[i] : 0) + '</b> (' + t57Pct(arr ? arr[i] : 0, tot) + ')</span>'; }).join("") + '</div>';
+  h += '<div class="t57sec"><h4>Theo tháng đăng tải</h4><div class="gtw"><table class="gt t57t"><thead><tr><th>Tháng</th><th class="bc">Tỷ lệ</th>' + LV.map(function(l){ return '<th class="n">' + esc(l === "Chưa có dữ liệu" ? "Chưa có" : l) + '</th>'; }).join("") + '</tr></thead><tbody>' +
+    d.month.map(function(m){ return '<tr><td>' + esc(m[0]) + '</td><td>' + t57Bar(m.slice(1), LV) + '</td>' + m.slice(1).map(function(v){ return '<td class="n">' + v + '</td>'; }).join("") + '</tr>'; }).join("") + '</tbody></table></div></div>';
+  h += '<div class="t57sec"><h4>Nhóm ưu tiên (24/05 – 24/11/2026)</h4><div class="gtw"><table class="gt t57t"><thead><tr><th>Nhóm</th><th class="bc">Tỷ lệ</th>' + LV.map(function(l){ return '<th class="n">' + esc(l === "Chưa có dữ liệu" ? "Chưa có" : l) + '</th>'; }).join("") + '<th class="n">CĐT</th></tr></thead><tbody>' +
+    d.prio.map(function(p){ return '<tr><td>' + esc(p[0]) + '</td><td>' + t57Bar(p.slice(1, 6), LV) + '</td>' + p.slice(1).map(function(v){ return '<td class="n">' + v + '</td>'; }).join("") + '</tr>'; }).join("") + '</tbody></table></div></div>';
+  var RC = d.reasonCodes, mx = Math.max.apply(null, (R.mul || [1]).slice(0, 9).concat([1]));
+  h += '<div class="t57sec"><h4>Lý do nhà thầu không trúng — nhóm chất lượng, phân nhóm, lưu hành (' + (R.n || 0).toLocaleString("vi-VN") + ' lượt trượt, ' + (R.pk || 0) + ' gói)</h4><div class="t57bars">' +
+    RC.slice(0, 9).map(function(c, i){ var v = R.mul[i]; return '<span>' + esc(T57_RC[c] || c) + '</span><div><div class="t57rb oq" style="width:' + (100 * v / mx).toFixed(1) + '%"></div></div><span class="v">' + v.toLocaleString("vi-VN") + '</span>'; }).join("") +
+    '</div><div class="note" style="padding:8px 0 0">Một lượt trượt có thể nêu nhiều lý do. Lý do phổ biến khác (mã chính): ' + RC.slice(9).map(function(c){ var i = RC.indexOf(c); return esc(T57_RC[c]) + " " + R.pri[i].toLocaleString("vi-VN"); }).join(" · ") + '.</div></div>';
+  var PN = (d.phanNhom || {})[T57.w];
+  if (PN) h += '<div class="t57sec"><h4>Cột "Phân nhóm" trong Danh sách hàng hóa (muasamcong)</h4><div class="note" style="padding:0">' + PN.rows.toLocaleString("vi-VN") + ' dòng hàng TBYT: để trống ' + t57Pct(PN.c.trong || 0, PN.rows) + ' · "Không áp dụng / Không" ' + t57Pct(PN.c.khong_ap_dung || 0, PN.rows) +
+    ' · ghi "Nhóm 1–6" ' + (PN.c.nhom_so || 0) + ' dòng (' + ((PN.cpk || {}).nhom_so || 0) + ' gói) · dẫn chiếu TT57 ' + (PN.c.tt57 || 0) + ' dòng. Từ 2027 đây là trường chính để đo việc áp dụng TT57.</div></div>';
+  var q = fold(T57.q), ex = d.ex.filter(function(x){ return (x.w === T57.w) && (!T57.lv || x.lv === T57.lv) && (!q || fold([x.no, x.inv, x.prov, x.name, x.q].join(" ")).indexOf(q) >= 0); });
+  h += '<div class="t57sec"><h4>Gói tiêu biểu có tiêu chí chất lượng / phân nhóm</h4><div class="kwbar" style="padding:0 0 8px"><input id="t57-q" placeholder="Tìm số TBMT, chủ đầu tư, nội dung…" value="' + esc(T57.q) + '" autocomplete="off">' +
+    '<span class="seg sm">' + [["", "Mọi mức"], ["A", "A"], ["B", "B"], ["C", "C"]].map(function(t){ return '<button data-t57lv="' + t[0] + '" class="' + (T57.lv === t[0] ? "on" : "") + '">' + t[1] + '</button>'; }).join("") + '</span><span class="kwn">' + ex.length + ' gói</span></div>' +
+    (ex.length ? '<div class="gtw"><table class="gt t57t"><thead><tr><th>Mức</th><th class="wt">Gói thầu</th><th>Trích dẫn</th></tr></thead><tbody>' + ex.slice(0, T57.more & 1 ? 80 : 12).map(function(x){
+      return '<tr><td><span class="t57lv ' + t57Cls(x.lv) + '">' + esc(x.lv) + '</span></td><td><b>' + esc(x.inv) + '</b><small>' + esc(x.no) + ' · ' + esc(x.d || "") + ' · ' + esc(x.prov || "") + '</small><small>' + esc(x.name) + '</small>' + (x.url ? '<small><a href="' + esc(x.url) + '" target="_blank" rel="noopener">Trang gói</a></small>' : "") + '</td><td><div class="oq">' + esc(x.q) + '</div><small>Nguồn: ' + esc(x.src) + '</small></td></tr>';
+    }).join("") + '</tbody></table></div>' + (ex.length > 12 ? '<button class="btn sm" data-t57more="1" style="margin-top:8px">' + (T57.more & 1 ? "Thu gọn" : "Xem thêm " + (Math.min(ex.length, 80) - 12) + " gói") + '</button>' : "") : '<div class="empty">Không có gói khớp bộ lọc.</div>') + '</div>';
+  var QP = d.qpk.filter(function(x){ return x.w === T57.w; });
+  h += '<div class="t57sec"><h4>Gói có nhà thầu trượt vì tiêu chí chất lượng</h4>' + (QP.length ? '<div class="gtw"><table class="gt t57t"><thead><tr><th class="wt">Gói thầu</th><th class="n">Lượt</th><th>Tiêu chí</th><th class="wq">Lý do (nguyên văn)</th></tr></thead><tbody>' + QP.slice(0, T57.more & 2 ? 60 : 10).map(function(x){
+    return '<tr><td><b>' + esc(x.inv) + '</b><small>' + esc(x.no) + ' · ' + esc(x.d) + ' · ' + esc(x.prov) + '</small><small>' + esc(x.name) + '</small></td><td class="n">' + x.n + '</td><td>' + x.codes.map(function(c){ return '<span class="kgp">' + esc(T57_RC[c] || c) + '</span>'; }).join("") + '</td><td><div class="oq">' + esc(x.why) + '</div></td></tr>';
+  }).join("") + '</tbody></table></div>' + (QP.length > 10 ? '<button class="btn sm" data-t57more="2" style="margin-top:8px">' + (T57.more & 2 ? "Thu gọn" : "Xem thêm " + (QP.length - 10) + " gói") + '</button>' : "") : '<div class="empty">Không có.</div>') + '</div>';
+  h += '<div class="note" style="padding:0 16px 14px">Cập nhật ' + esc(d.gen) + '. Mức D / "Chưa có dữ liệu" phần lớn là gói chưa tải được HSMT (HSMT cần máy có VNeGP Agent) — các gói ưu tiên đã được xếp tải trước.</div></div></div>';
+  return h;
+}
+function t57Wire(){
+  var tb = document.querySelector('.tabs button.on'); if (tb && tb.parentNode.scrollWidth > tb.parentNode.clientWidth) tb.parentNode.scrollLeft = tb.offsetLeft - 40;
+  var q = $("t57-q");
+  if (q) q.oninput = function(){ T57.q = q.value; var pos = q.selectionStart; render(); var q2 = $("t57-q"); if (q2) { q2.focus(); try { q2.setSelectionRange(pos, pos); } catch (_) {} } };
+  document.querySelectorAll("[data-t57w],[data-t57by],[data-t57lv],[data-t57more]").forEach(function(b){ b.onclick = function(){
+    if (b.hasAttribute("data-t57w")) T57.w = b.getAttribute("data-t57w");
+    if (b.hasAttribute("data-t57by")) T57.by = b.getAttribute("data-t57by");
+    if (b.hasAttribute("data-t57lv")) T57.lv = b.getAttribute("data-t57lv");
+    if (b.hasAttribute("data-t57more")) T57.more ^= +b.getAttribute("data-t57more");
+    render();
+  }; });
+}
 </script>
 </body>
 </html>
